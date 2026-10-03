@@ -1,0 +1,15 @@
+# Local environment and generated files
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/.env
+**/.env.*
+!**/.env.example
+**/*.local
+**/*.log
+**/.preview-browser*/
+**/qa/*-browser/
+**/qa/screenshots/*
+!**/qa/screenshots/.gitkeep
+# Accidental empty npm lock outside the frontend project
+/package-lock.json

@@ -1,0 +1,37 @@
+.account-login { min-height: 100dvh; padding: max(24px, env(safe-area-inset-top)) 30px 24px; display: flex; flex-direction: column; }
+.login-topbar { display: flex; align-items: center; justify-content: space-between; color: #77716a; font-size: 11px; }
+.login-topbar button { min-height: 40px; padding: 0; color: #66635f; }
+.account-brand { text-align: center; padding: 25px 0 27px; }
+.companion-logo { width: 72px; height: 72px; margin: 0 auto 16px; }
+.account-brand h1 { font-size: 34px; font-weight: 800; letter-spacing: 2px; margin: 0 0 7px; line-height: 1.2; color: var(--login-heading); }
+.account-brand h1 span { color: #b84020; }
+.account-brand p { font-size: 12px; letter-spacing: 3px; margin: 0; color: #77716a; }
+.account-fields label { display: block; font-size: 12px; font-weight: 600; margin: 17px 0 9px; }
+.account-fields .ant-input, .account-fields .ant-input-affix-wrapper { background: #f0eeea; border-color: transparent; border-radius: 11px; min-height: 51px; padding: 12px 14px; box-shadow: none; }
+.account-fields .ant-input-affix-wrapper .ant-input { min-height: 0; padding: 0; border-radius: 0; background: transparent; }
+.account-fields .ant-input:focus, .account-fields .ant-input-affix-wrapper-focused { border-color: #b84020; }
+.account-fields input::placeholder { font-size: 13px; }
+.account-recovery { display: flex; align-items: center; justify-content: space-between; margin: 5px 0 10px; gap: 10px; font-size: 10px; color: #77716a; }
+.account-recovery button { color: #66635f; min-height: 40px; padding: 0; font-size: 11px; }
+.account-consent { display: flex; align-items: flex-start; gap: 8px; font-size: 11px; line-height: 24px; color: #77716a; margin-top: 1px; }
+.account-consent .ant-checkbox-wrapper { padding-top: 1px; }
+.account-consent button { color: #8e391f; padding: 0 1px; line-height: 24px; }
+.account-submit.ant-btn { height: 49px; margin-top: 18px; border-radius: 10px; background: var(--login-strong); border-color: var(--login-strong); font-size: 15px; letter-spacing: 5px; }
+.account-submit.ant-btn:hover { background: var(--login-hover) !important; border-color: var(--login-hover) !important; }
+.account-error { color: #b62e24; font-size: 12px; line-height: 1.6; margin: 12px 0 -5px; }
+.account-demo { margin: 19px 0 10px; text-align: center; color: #77716a; font-size: 10px; }
+.account-demo > span { display: block; }
+.account-demo > button { min-height: 40px; color: #77716a; font-size: 11px; text-decoration: underline; text-underline-offset: 4px; }
+.account-sample { text-align: left; padding: 15px; border: 1px dashed #d4c8bb; border-radius: 8px; background: #fff; }
+.account-sample p { margin: 6px 0; font-size: 12px; }
+.account-sample button { padding: 8px 0; color: #8e391f; font-size: 12px; min-height: 40px; }
+.account-signature { margin: auto 0 0; padding-top: 20px; text-align: center; font-size: 10px; letter-spacing: 2px; color: #77716a; }
+.account-login[data-palette="clay"] { --login-strong: #98563f; --login-hover: #7f4431; --login-heading: #654438; }
+.account-login[data-palette="black"] { --login-strong: #292622; --login-hover: #433a33; --login-heading: #242321; }
+.account-role-radios { border: 0; padding: 0; margin: 0 0 12px; display: flex; flex-wrap: wrap; column-gap: 16px; row-gap: 0; justify-content: flex-start; }
+.account-role-radios legend { font-size: 11px; color: #77716a; margin-bottom: 0; }
+.account-role-radios legend span { font-size: 10px; margin-left: 5px; color: #98563f; }
+.account-role-radios label { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.account-role-radios input { appearance: auto; width: 17px; height: 17px; margin: 0; padding: 0; accent-color: var(--login-strong); cursor: pointer; }
+@media(max-width:360px) { .account-login { padding-inline: 24px; } }
+@media(max-height:740px) { .account-brand { padding-top: 12px; padding-bottom: 16px; }.companion-logo { width: 58px; height: 58px; margin-bottom: 11px; }.account-brand h1 { font-size: 30px; }.account-signature { padding-top: 8px; } }

@@ -1,0 +1,15 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.preview-browser*": true,
+    "**/qa/*-browser": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.preview-browser*": true,
+    "**/qa/*-browser": true,
+    "**/qa/screenshots": true
+  }
+}
