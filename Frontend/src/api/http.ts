@@ -14,6 +14,7 @@ export class ApiError extends Error {
 export function createHttpClient(baseUrl: string, fetcher: typeof fetch = fetch, timeoutMs = 15000) {
   let accessToken: string | null = null
   return {
+    getToken() { return accessToken },
     setToken(token: string | null) { accessToken = token },
     async request<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
       const controller = new AbortController()

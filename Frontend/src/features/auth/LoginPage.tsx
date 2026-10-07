@@ -42,7 +42,7 @@ export function LoginPage({ onLogin, onPrivacy }: { onLogin: (session: Session) 
       <svg className="companion-logo" viewBox="0 0 80 80" role="img" aria-label="心伙伴标志：并肩交汇的双轨">
         <rect x="1" y="1" width="78" height="78" rx="25" fill="var(--login-strong)"/>
         <path d="M23 54V33c0-9 6-15 14-15h6v9h-6c-3 0-5 2-5 6v21Z" fill="#fff9f1"/>
-        <path d="M57 26v21c0 9-6 15-14 15h-6v-9h6c3 0 5-2 5-6V26Z" fill="#f4c6a7"/>
+        <path d="M57 26v21c0 9-6 15-14 15h-6v-9h6c3 0 5-2 5-6V26Z" fill="var(--theme-tint)"/>
         <path d="m28 45 23-15v10L28 55Z" fill="#fff9f1"/>
       </svg>
       <h1>心伙伴<span>。</span></h1><p>你的校园，你的伙伴</p>

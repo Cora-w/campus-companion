@@ -13,3 +13,14 @@
 !**/qa/screenshots/.gitkeep
 # Accidental empty npm lock outside the frontend project
 /package-lock.json
+
+# Android local build outputs and signing material
+Android/build/
+Android/.signing/
+Releases/*.apk
+Releases/*.idsig
+
+
+.site-publish/
+.site-archive.zip
+.site-archive.tar.gz

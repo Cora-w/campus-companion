@@ -3,13 +3,17 @@
     "**/node_modules": true,
     "**/dist": true,
     "**/.preview-browser*": true,
-    "**/qa/*-browser": true
+    "**/qa/*-browser": true,
+    "**/Android/build": true,
+    "**/Android/.signing": true
   },
   "search.exclude": {
     "**/node_modules": true,
     "**/dist": true,
     "**/.preview-browser*": true,
     "**/qa/*-browser": true,
-    "**/qa/screenshots": true
+    "**/qa/screenshots": true,
+    "**/Android/build": true,
+    "**/Android/.signing": true
   }
 }

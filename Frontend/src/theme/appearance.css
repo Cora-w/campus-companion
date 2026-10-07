@@ -19,3 +19,23 @@
 :root[data-theme] .profile-order-tabs button[aria-pressed=true],:root[data-theme] .wall-sort .share-daily-entry{background:var(--accent-soft);color:var(--accent)}
 :root[data-theme] .service-tabs .selected{background:var(--accent);color:white}
 :root[data-theme] .wall-sort .active,:root[data-theme] .wall-actions button[aria-pressed=true]{color:var(--accent)}
+
+/* Shared interface roles. Photos, product artwork and semantic alerts keep their own colors. */
+:root[data-theme]{
+ --theme-ink:color-mix(in srgb,var(--accent) 45%,#242321);
+ --accent-muted:color-mix(in srgb,var(--accent) 65%,#ffffff);
+ --accent-hover:color-mix(in srgb,var(--accent) 88%,#000000);
+ --surface-secondary:color-mix(in srgb,var(--theme-tint) 48%,#ffffff);
+ --border:color-mix(in srgb,var(--theme-tint) 70%,#bfc4c9);
+}
+:root[data-theme] .account-login{--login-strong:var(--accent);--login-hover:var(--accent-hover);--login-heading:var(--theme-ink)}
+:root[data-theme] .hot-post-card{background:var(--theme-tint);color:var(--theme-ink)}
+:root[data-theme] .hot-post-card small,:root[data-theme] .hot-post-card b,:root[data-theme] .hot-post-card em{color:var(--theme-ink)}
+:root[data-theme] .snack-quantity button{background:var(--accent);color:#fff;border-color:var(--accent)}
+:root[data-theme] .snack-quantity button:first-child:not(:last-child){background:var(--accent-soft);color:var(--accent);border-color:var(--theme-tint)}
+:root[data-theme] .inbox-filters button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent)}
+:root[data-theme] .chat-settings-profile{background:var(--accent-soft)}
+
+:root[data-theme] .messenger-chat .chat-input .ant-btn-primary:not(:disabled){background:var(--accent);color:#fff}
+:root[data-theme] .messenger-refresh button:focus-visible{outline-color:var(--accent)}
+:root[data-theme] .snack-root{--snack-ink:var(--theme-ink)}

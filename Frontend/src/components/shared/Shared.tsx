@@ -1,6 +1,7 @@
+import { Drawer } from '../../navigation/BackOverlays'
 import { useId } from 'react'
 import type { ReactNode } from 'react'
-import { Drawer, Tag } from 'antd'
+import { Tag } from 'antd'
 import type { MoodEntry, Risk } from '../../data/data'
 import { riskColors } from '../../data/data'
 
@@ -44,7 +45,7 @@ export function Trend({ entries, metric = 'mood' }: { entries: MoodEntry[]; metr
   const values = entries.slice(-7)
   const points = values.map((e, i) => `${26 + i * (268 / Math.max(1, values.length - 1))},${122 - e[metric] * 19}`).join(' ')
   return <div className="trend-chart" role="img" aria-label={values.map(e => `${e.day}，${metric === 'mood' ? '心情' : '压力'} ${e[metric]} / 5`).join('；')}>
-    <svg viewBox="0 0 320 155" aria-hidden="true"><defs><linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1"><stop stopColor="#a85430" stopOpacity=".35"/><stop offset="1" stopColor="#a85430" stopOpacity="0"/></linearGradient></defs>{[27,65,103].map(y=><line key={y} x1="16" x2="305" y1={y} y2={y} stroke="#dedee3" strokeDasharray="4 5"/>)}<polygon points={`26,128 ${points} 294,128`} fill={`url(#${gradientId})`}/><polyline points={points} stroke="#a85430" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>{values.map((e,i)=><g key={e.id}><circle cx={26+i*(268/Math.max(1,values.length-1))} cy={122-e[metric]*19} r="3.5" fill="#ffffff" stroke="#a85430" strokeWidth="2"/><text x={26+i*(268/Math.max(1,values.length-1))} y="150" textAnchor="middle" fill="#63636b" fontSize="9">{e.day}</text></g>)}</svg>
+    <svg viewBox="0 0 320 155" aria-hidden="true"><defs><linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1"><stop stopColor="var(--accent)" stopOpacity=".35"/><stop offset="1" stopColor="var(--accent)" stopOpacity="0"/></linearGradient></defs>{[27,65,103].map(y=><line key={y} x1="16" x2="305" y1={y} y2={y} stroke="#dedee3" strokeDasharray="4 5"/>)}<polygon points={`26,128 ${points} 294,128`} fill={`url(#${gradientId})`}/><polyline points={points} stroke="var(--accent)" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>{values.map((e,i)=><g key={e.id}><circle cx={26+i*(268/Math.max(1,values.length-1))} cy={122-e[metric]*19} r="3.5" fill="#ffffff" stroke="var(--accent)" strokeWidth="2"/><text x={26+i*(268/Math.max(1,values.length-1))} y="150" textAnchor="middle" fill="#63636b" fontSize="9">{e.day}</text></g>)}</svg>
   </div>
 }
 export function DemoNote({ children }: { children?: ReactNode }) { return <p className="demo-note">{children || '演示数据 · 不构成心理评估或诊断'}</p> }

@@ -124,6 +124,129 @@
           }
         }
       }
+    },
+    "/schools": {
+      "get": {
+        "operationId": "listSchools",
+        "summary": "查询当前开放绑定的学校",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "学校列表，目前只开放四川航天职业技术学院",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/School"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "登录已过期"
+          }
+        }
+      }
+    },
+    "/users/me/school": {
+      "get": {
+        "operationId": "getMySchool",
+        "summary": "查询登录用户的学校，未绑定返回 JSON null",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "已绑定学校或 null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "name",
+                    "city"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "city": {
+                      "type": "string"
+                    }
+                  },
+                  "nullable": true
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "登录已过期"
+          }
+        }
+      },
+      "put": {
+        "operationId": "bindMySchool",
+        "summary": "首次绑定学校，同校重复请求幂等，跨校修改返回 409",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "schoolId"
+                ],
+                "properties": {
+                  "schoolId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "持久化成功后的学校",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/School"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "登录已过期"
+          },
+          "403": {
+            "description": "当前学校不可访问或未绑定学校"
+          },
+          "409": {
+            "description": "已绑定其他学校，不允许自行更改"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -210,6 +333,27 @@
             "type": "string"
           },
           "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "School": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "city"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "city": {
             "type": "string"
           }
         }
