@@ -90,16 +90,15 @@
 .location-manual label { font-size:12px; color:var(--text-secondary); }
 .location-confirm { position:sticky; bottom:0; background:white; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 0 8px; }
 .location-attribution { text-align:center; margin:0; }
-@media (max-height:740px) {
- .compose-card { margin-bottom:10px; }
- .compose-media { min-height:84px; padding-block:10px; }
- .compose-upload-empty { height:60px; grid-template-columns:60px 1fr; }
- .compose-title-input { min-height:40px; margin-bottom:8px; }
- .compose-writing { padding-top:0; padding-bottom:8px; }
- .compose-writing textarea.ant-input { height:66px; min-height:66px; line-height:22px; }
- .compose-setting { min-height:44px; }
- .compose-topic-suggestions { display:none; }
-}
+/* Use the resting page size so the IME cannot switch the form's layout. */
+:root[data-compact-viewport='true'] .compose-card { margin-bottom:10px; }
+:root[data-compact-viewport='true'] .compose-media { min-height:84px; padding-block:10px; }
+:root[data-compact-viewport='true'] .compose-upload-empty { height:60px; grid-template-columns:60px 1fr; }
+:root[data-compact-viewport='true'] .compose-title-input { min-height:40px; margin-bottom:8px; }
+:root[data-compact-viewport='true'] .compose-writing { padding-top:0; padding-bottom:8px; }
+:root[data-compact-viewport='true'] .compose-writing textarea.ant-input { height:66px; min-height:66px; line-height:22px; }
+:root[data-compact-viewport='true'] .compose-setting { min-height:44px; }
+:root[data-compact-viewport='true'] .compose-topic-suggestions { display:none; }
 .compose-visibility-options { display:grid; gap:12px; padding:4px 0 12px; }
 .compose-visibility-options > button { display:flex; align-items:center; gap:12px; width:100%; padding:18px 14px; text-align:left; border:1px solid var(--accent-soft); border-radius:14px; min-height:88px; }
 .compose-visibility-options > button[aria-checked='true'] { background:var(--accent-soft); border-color:var(--accent-muted); }

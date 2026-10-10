@@ -3,7 +3,8 @@ import { CancelSnackOrder } from '../commerce/CancelSnackOrder'
 import { snackPrice } from '../../data/snackData'
 import { AppearanceSettings } from '../../components/shared/AppearanceSettings'
 import { useRef, useState } from 'react'
-import { Alert, Button, Input, Switch, Tag, message } from 'antd'
+import { Button, Input, Switch, Tag, message } from 'antd'
+import { FeedbackForm, type FeedbackRecord } from './FeedbackForm'
 import { useCommerce } from '../commerce/commerce'
 import { Icon, Sheet } from '../../components/shared/Shared'
 import './StudentProfile.css'
@@ -61,7 +62,8 @@ export function StudentProfile(props: Props) {
   const requestClose = () => { if (panel === 'feedback') { setPanel('help'); return } if (panel === 'edit' && (isDirty || readingAvatar)) setDiscardOpen(true); else closeEditor() }
   const [reminders, setReminders] = useState(true)
   const [feedback, setFeedback] = useState('')
-  const [feedbacks, setFeedbacks] = useState<string[]>([])
+  const [feedbackImages, setFeedbackImages] = useState<string[]>([])
+  const [feedbacks, setFeedbacks] = useState<FeedbackRecord[]>([])
   const [filter, setFilter] = useState('全部')
   const [confirm, setConfirm] = useState<'logout' | 'history' | null>(null)
   const { orders, studentId } = useCommerce()
@@ -92,7 +94,7 @@ export function StudentProfile(props: Props) {
       {panel === 'orders' && <><div className="profile-order-tabs">{['全部', '进行中', '已完成', '已取消'].map(value => <button key={value} aria-pressed={filter === value} onClick={() => setFilter(value)}>{value}</button>)}</div>{filtered.length ? filtered.map(order => <article className="profile-order-card" key={order.id}><div className="row"><b>{order.shop}</b><Tag>{order.status}</Tag></div><small>订单号 {order.id}</small>{order.items.map((item, i) => <p key={i}>{item.name} × {item.count}<span>¥{snackPrice(item.price * item.count)}</span></p>)}<p>{order.mode}<span>合计 ¥{snackPrice(order.total)}</span></p><small>演示订单，未实际付款或配送</small><CancelSnackOrder order={order}/></article>) : <div className="profile-empty"><Icon name="bag"/><h3>{filter === '全部' ? '还没有零食订单' : `暂无${filter}订单`}</h3><p>课间的小满足，从逛逛校园小店开始。</p><Button onClick={() => { setPanel(null); props.shop() }}>去逛零食铺子</Button></div>}</>}
       {panel === 'settings' && <div className="profile-settings"><AppearanceSettings/><div className="row"><div><h3>互动提醒</h3><p>仅本次体验偏好，不发送系统通知</p></div><Switch aria-label="互动提醒" checked={reminders} onChange={setReminders}/></div><button onClick={() => setConfirm('history')}><span>清空浏览足迹</span><small>{props.counts[3]} 条</small><Icon name="next"/></button><button onClick={() => props.open('identity')}><span>账号与学校详情</span><Icon name="next"/></button><p className="subtle">当前账号：{props.account}</p><Button block danger onClick={() => setConfirm('logout')}>退出当前身份</Button><p className="demo-note">退出会清空本次个人资料、发布、收藏和对话。</p></div>}
       {panel === 'help' && <div className="profile-help"><h3>常见问题</h3>{[['发布的内容在哪里查看？', '在“我的发布”中查看本次校园墙分享；尚未发布的内容可以从草稿箱继续编辑。'], ['收藏和点赞有什么区别？', '收藏便于再次找到帖子与地点；赞过用于回看你点赞的校园墙动态。'], ['为什么刷新后记录不见了？', '目前为前端体验版，个人资料、动态和订单等仅保留在本次体验中。首页分类偏好会保存在当前浏览器。'], ['如何联系心理支持？', '进入“首页 → 倾诉空间”查看支持入口。当前体验不代表真实预约或即时响应。']].map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}<Button block type="primary" className="spaced" onClick={() => setPanel('feedback')}>提出建议或反馈问题</Button><p className="demo-note">心伙伴 · 校园生活体验版</p></div>}
-      {panel === 'feedback' && <form className="profile-editor" onSubmit={e => { e.preventDefault(); if (feedback.trim().length < 5) return; setFeedbacks(prev => [feedback.trim(), ...prev]); setFeedback('') }}><label>想让哪里变得更好？<Input.TextArea placeholder="描述遇到的问题，或者你期待的新功能（至少 5 个字）" rows={5} maxLength={500} showCount value={feedback} onChange={e => setFeedback(e.target.value)}/></label><Button block type="primary" htmlType="submit" disabled={feedback.trim().length < 5}>保存本次反馈</Button><p className="demo-note">仅保留在本次体验中，尚未发送给客服。</p>{feedbacks.length > 0 && <><Alert type="success" title="反馈已保存在本次体验中"/><h3 className="spaced">我的反馈</h3>{feedbacks.map((item, i) => <p className="profile-feedback-item" key={i}>{item}<small>本次记录 · 未发送</small></p>)}</>}</form>}
+      {panel === 'feedback' && <FeedbackForm text={feedback} setText={setFeedback} images={feedbackImages} setImages={setFeedbackImages} records={feedbacks} save={record => { setFeedbacks(prev => [record, ...prev]); setFeedback(''); setFeedbackImages([]) }}/>}
     </Sheet>
     <Modal open={discardOpen} title="放弃这次修改？" okText="放弃修改" cancelText="继续编辑" onCancel={() => setDiscardOpen(false)} onOk={() => { setDiscardOpen(false); closeEditor() }}><p>尚未保存的资料会丢失，已保存的资料不受影响。</p></Modal>
     <Modal open={confirm !== null} title={confirm === 'logout' ? '退出当前身份？' : '清空浏览足迹？'} okText={confirm === 'logout' ? '确认退出' : '确认清空'} cancelText="取消" onCancel={() => setConfirm(null)} onOk={() => { if (confirm === 'logout') props.logout(); else props.clearHistory(); setConfirm(null) }}><p>{confirm === 'logout' ? '本次个人资料、发布、收藏、草稿和对话将被清空。' : '清空后无法恢复，已发布和已收藏的内容不受影响。'}</p></Modal>

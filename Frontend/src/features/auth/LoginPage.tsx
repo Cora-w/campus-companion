@@ -45,7 +45,7 @@ export function LoginPage({ onLogin, onPrivacy }: { onLogin: (session: Session) 
         <path d="M57 26v21c0 9-6 15-14 15h-6v-9h6c3 0 5-2 5-6V26Z" fill="var(--theme-tint)"/>
         <path d="m28 45 23-15v10L28 55Z" fill="#fff9f1"/>
       </svg>
-      <h1>心伙伴<span>。</span></h1><p>你的校园，你的伙伴</p>
+      <h1>心伙伴</h1><p>你的校园，你的伙伴</p>
     </section>
     <form className="account-form" onSubmit={e => { e.preventDefault(); submit() }} noValidate>
       <div className="account-fields"><label htmlFor="login-account">账号</label><Input id="login-account" autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="请输入学生账号" value={account} maxLength={64} onChange={e => { setAccount(e.target.value); setError('') }}/><label htmlFor="login-password">密码</label><Input.Password id="login-password" autoComplete="current-password" placeholder="请输入密码" value={password} maxLength={128} onChange={e => { setPassword(e.target.value); setError('') }}/></div>

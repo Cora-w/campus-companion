@@ -1,0 +1,52 @@
+/* Shared selection menus, including those opened above drawers. */
+:root .ant-select-dropdown {
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px #24232114, 0 2px 6px #24232108;
+  min-width: 160px;
+  max-width: calc(100vw - 24px);
+}
+:root .ant-select-dropdown .ant-select-item-option {
+  position: relative;
+  min-height: 40px;
+  padding: 10px 32px 10px 12px;
+  margin: 2px 0;
+  border-radius: 9px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-primary);
+}
+:root .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: var(--canvas);
+}
+:root .ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+:root .ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled)::after {
+  content: '✓';
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  font-size: 14px;
+}
+:root .ant-select-dropdown .ant-select-item-option-disabled { color: var(--text-secondary); opacity: .5; }
+:root .quiet-filter-select.ant-select {
+  flex-shrink: 0;
+  width: 112px;
+  height: 36px;
+  font-size: 12px;
+  padding-inline: 12px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px #24232104;
+}
+:root .quiet-filter-select .ant-select-content { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+:root .quiet-filter-select.ant-select-open { border-color: var(--accent); }
+:root .ant-select .ant-select-suffix { color: var(--text-secondary); }
+:root .ant-select .ant-select-suffix svg { width: 12px; height: 12px; }

@@ -5,6 +5,7 @@ import type { Session } from '../../types/domain'
 import type { School } from '../../types/school'
 import { schoolService } from '../../services/schools'
 import { useBackNavigation } from '../../navigation/useBackNavigation'
+import { Icon } from '../../components/shared/Shared'
 import './SchoolGate.css'
 
 export function SchoolGate({ session, logout, children }: { session: Session; logout: () => Promise<void>; children: ReactNode }) {
@@ -46,12 +47,13 @@ export function SchoolGate({ session, logout, children }: { session: Session; lo
     } catch (reason) { if (alive.current) setError(reason instanceof Error ? reason.message : '绑定失败，请重试。') }
     finally { busy.current = false; if (alive.current) setSaving(false) }
   }
-  if (school) return <><div className="bound-school" aria-label="当前学校">{school.name}<span>我的学校</span></div>{children}</>
+  if (school) return <><div className="bound-school" aria-label="当前学校"><span className="bound-school-identity"><span className="bound-school-location"><Icon name="location"/></span><strong title={school.name}>{school.name}</strong></span><span className="bound-school-label">我的学校</span></div>{children}</>
   const visible = schools.filter(item => `${item.name}${item.city}`.includes(query.trim()))
   return <div className="school-gate-background">
-    <Modal open title="先找到你的学校" closable={false} maskClosable={false} keyboard={false} centered footer={null} width={380} className="school-picker">
-      <p className="school-intro">绑定学校后，才能进入你的校园空间。</p>
-      <Input aria-label="搜索学校" placeholder="搜索学校名称" value={query} disabled={loading || saving || leaving} onChange={event => setQuery(event.target.value)}/>
+    <Modal open centered title="绑定学校" closable={false} maskClosable={false} keyboard={false} footer={null} width={380} className="school-picker">
+      <p className="school-intro">选择所在学校，进入专属校园空间。</p>
+      <label className="school-search-label" htmlFor="school-search">查找学校</label>
+      <Input id="school-search" aria-label="搜索学校" placeholder="输入学校名称" value={query} disabled={loading || saving || leaving} onChange={event => setQuery(event.target.value)}/>
       <div className="school-options" role="radiogroup" aria-label="选择学校" aria-busy={loading}>
         {loading ? <p role="status">正在确认学校信息…</p> : visible.map(item => <label key={item.id} className={selected === item.id ? 'selected' : ''}>
           <input type="radio" name="school" value={item.id} checked={selected === item.id} disabled={saving || leaving} onChange={() => setSelected(item.id)}/>
@@ -60,9 +62,11 @@ export function SchoolGate({ session, logout, children }: { session: Session; lo
         {!loading && !visible.length && !error && <p>未找到学校，请调整搜索或联系管理员开通。</p>}
       </div>
       {error && <div className="school-error" role="alert">{error}<Button type="link" disabled={saving || leaving} onClick={() => { setLoading(true); setError(''); setAttempt(value => value + 1) }}>重新加载</Button></div>}
-      <p className="school-binding-note">请确认选择。绑定后不能自行切换学校。</p>
-      <Button type="primary" block disabled={!selected || loading || leaving} loading={saving} onClick={() => { void bind() }}>确认学校，进入校园</Button>
-      <Button block type="text" className="school-exit" disabled={saving} loading={leaving} onClick={() => { void exit() }}>暂不选择，退出登录</Button>
+      <div className="school-actions">
+        <p className="school-binding-note">绑定后无法自行更换，请确认学校信息。</p>
+        <Button type="primary" block disabled={!selected || loading || leaving} loading={saving} onClick={() => { void bind() }}>确认学校，进入校园</Button>
+        <Button block type="text" className="school-exit" disabled={saving} loading={leaving} onClick={() => { void exit() }}>暂不选择，退出登录</Button>
+      </div>
     </Modal>
   </div>
 }

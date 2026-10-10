@@ -15,7 +15,7 @@ import { SnackShops } from '../commerce/SnackShops'
 import { SocialContext, initialPeople } from '../messages/socialContext'
 import { UserAvatar } from '../../components/shared/UserAvatar'
 import { useLayoutEffect, useRef, useState } from 'react'
-import { Alert, Button, Checkbox, Input, Select, Tag } from 'antd'
+import { Alert, Button, Checkbox, Input, Select, Tag, message } from 'antd'
 import type { InputRef } from 'antd'
 import type { Session } from '../../data/data'
 import { uid } from '../../data/data'
@@ -50,6 +50,19 @@ function StudentContent({ page, go, session, logout, requests, requestSupport }:
   const [snackShopId, setSnackShopId] = useState<string | null>(null)
   const [hub, setHub] = useState<HubPage | null>(null)
   const [category, setCategory] = useState('全部')
+  const [sort, setSort] = useState('推荐')
+  const feedRef = useRef<HTMLDivElement>(null)
+  const previousSelection = useRef({ category, sort })
+  useLayoutEffect(() => {
+    if (previousSelection.current.category === category && previousSelection.current.sort === sort) return
+    previousSelection.current = { category, sort }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const animation = feedRef.current?.animate(
+      [{ opacity: .92, transform: 'translateY(1px)' }, { opacity: 1, transform: 'translateY(0)' }],
+      { duration: 140, easing: 'ease-out' },
+    )
+    return () => animation?.cancel()
+  }, [category, sort])
   const categoryKey = 'campus-home-categories:' + session.id
   const [homeCategories, setHomeCategories] = useState<string[]>(() => {
     try { const stored: unknown = JSON.parse(localStorage.getItem(categoryKey) || 'null'); if (Array.isArray(stored)) return wallCategories.filter(c => c !== '全部' && stored.includes(c)) } catch { /* Use defaults when storage is unavailable. */ }
@@ -65,7 +78,6 @@ function StudentContent({ page, go, session, logout, requests, requestSupport }:
   const [search, setSearch] = useState('')
   const { shops } = useCommerce()
   const serviceEntries = [{name:'校园指南',words:'课表 教室 老师 办公室 地图 通知 四六级',key:'guide'},{name:'校园闲置',words:'二手 买卖 教材',key:'market'},{name:'活动搭子',words:'活动 报名 组队 比赛',key:'activities'},{name:'倾诉空间',words:'倾诉 吐槽 倾听',key:'listen'}] as const
-  const [sort, setSort] = useState('推荐')
   const [liked, setLiked] = useState<string[]>([])
   const [saved, setSaved] = useState<string[]>([])
   const [history, setHistory] = useState<string[]>([])
@@ -103,7 +115,8 @@ function StudentContent({ page, go, session, logout, requests, requestSupport }:
   const [images, setImages] = useState<string[]>([])
   const [uploading, setUploading] = useState(false)
   const [formError, setFormError] = useState('')
-  const [notice, setNotice] = useState('')
+  const [feedbackApi, feedbackHolder] = message.useMessage()
+  const setNotice = (content: string) => { void feedbackApi.open({ key: 'campus-feedback', content, icon: <Icon name="check"/>, duration: 3, className: 'campus-feedback-toast' }) }
   const [profileIdentity, setProfileIdentity] = useState({ avatar: '', realName: '', studentNumber: '', schoolDetails: { college: '', major: '', grade: '', className: '' } })
   const [nickname, setNickname] = useState(session.name)
   const [nicknameDraft, setNicknameDraft] = useState(session.name)
@@ -163,18 +176,19 @@ function StudentContent({ page, go, session, logout, requests, requestSupport }:
     {p.comments.length>0&&<button className="post-comment-preview" onClick={()=>openPost(p)}><b>{p.comments[0].author}：</b>{p.comments[0].text}<span>查看讨论</span></button>}<div className="wall-actions"><button aria-label={`点赞${p.title}`} aria-pressed={liked.includes(p.id)} onClick={() => setLiked(toggle(liked, p.id))}><Icon name="like"/>{p.likes + Number(liked.includes(p.id))}</button><button aria-label={`评论${p.title}`} onClick={() => openPost(p)}><Icon name="chat"/>{p.comments.length || '评论'}</button><button aria-label={`收藏${p.title}`} aria-pressed={saved.includes(p.id)} onClick={() => setSaved(toggle(saved, p.id))}><Icon name="bookmark"/>{saved.includes(p.id) ? '已收藏' : '收藏'}</button></div>
   </article>
   return <>
+    {feedbackHolder}
     {page === 'home' && <>
       <Input className="campus-search" aria-label="搜索校园内容" placeholder="搜帖子、店铺、地点与服务" readOnly onClick={()=>setPanel('search')} prefix={<Icon name="search"/>} allowClear/>
       {<HotPosts openShop={id => { setSnackShopId(id); setSnacksOpen(true) }} blocked={panel !== null || hub !== null || snacksOpen} posts={featuredPosts} openPost={openPost}/>}
       <div className="campus-hub-entries"><button onClick={() => { setSnackShopId(null); setSnacksOpen(true) }}><Icon name="food"/><span>零食铺子</span></button>{([['guide','校园指南','location'],['market','校园闲置','bookmark'],['activities','活动搭子','users'],['listen','倾诉空间','chat']] as const).map(([key,label,icon])=><button key={key} onClick={()=>setHub(key)}><Icon name={icon}/><span>{label}</span></button>)}</div>
       <div className="wall-sort"><div>{['推荐', '最新', '热门'].map(s => <button key={s} className={sort === s ? 'active' : ''} onClick={() => setSort(s)}>{s}</button>)}</div><button className="share-daily-entry" onClick={() => startPost()}>分享日常 <Icon name="plus"/></button></div>
       <div className="category-navigation"><button className="category-manage" aria-label="管理首页分类" onClick={() => { setDraftCategories(homeCategories); setPanel('categories') }}><Icon name="categories"/></button><div className="wall-categories">{['全部', ...homeCategories].map(c => <button key={c} className={category === c ? 'selected' : ''} onClick={() => setCategory(c)}>{c}</button>)}</div></div>
-      {notice && <Alert type="success" title={notice} closable={{ onClose: () => setNotice('') }} className="wall-notice"/>}
-      <div className="wall-feed">{orderedPosts.map(postCard)}</div>{!orderedPosts.length && <div className="empty"><p>还没有找到相关内容</p><Button onClick={() => { setSearch(''); setCategory('全部') }}>查看全部动态</Button></div>}
+      <div ref={feedRef} className="wall-feed">{orderedPosts.map(postCard)}</div>{!orderedPosts.length && <div className="empty"><p>还没有找到相关内容</p><Button onClick={() => { setSearch(''); setCategory('全部') }}>查看全部动态</Button></div>}
       <button className="companion-entry" onClick={() => go('chat')}><span><b>找校园信息，也可以找小心</b><small>问吃喝玩乐，或聊聊今天的事</small></span><Icon name="chat"/></button>
+      {panel === null && hub === null && !snacksOpen && <button className="wall-refresh-top" aria-label="刷新论坛并回到顶部" title="刷新并回到顶部" onClick={() => { setPosts(prev => [...prev]); setNotice('已刷新校园墙'); window.scrollTo({ top: 0, behavior: 'instant' }) }}><Icon name="refresh"/></button>}
     </>}
     <Discover placesData={allPlaces} sharedPosts={posts.filter(p => !p.visibility || p.visibility === 'campus')} likedPosts={liked} createPlace={() => sharePlace()} active={page === 'services'} selectedId={discoverId} select={setDiscoverId} account={session.id} name={nickname} saved={saved} toggleSave={id => setSaved(prev => toggle(prev, id))} openPlace={openPlace}/>
-    {page === 'publish' && <PublishComposer visibility={visibility} setVisibility={setVisibility} placeLink={<div className="place-link-field"><label htmlFor="post-place-link">分享到发现地点</label><select id="post-place-link" value={draftPlaceId} onChange={e => { setDraftPlaceId(e.target.value); const p=allPlaces.find(p => p.id === e.target.value); if(p) setLocation(p.location) }}><option value="">不关联地点</option>{allPlaces.filter(p => p.kind === '好玩').map(p => <option key={p.id} value={p.id}>{p.name} · {p.area}</option>)}<option value="__new__">＋ 新增地点，发布第一篇分享</option></select>{draftPlaceId === '__new__' && <div className="place-new-fields"><label>地点名称<Input aria-label="新地点名称" maxLength={40} value={newPlaceName} onChange={e => setNewPlaceName(e.target.value)} placeholder="例如：北门小花园"/></label><label>具体地址<Input aria-label="新地点地址" maxLength={100} value={newPlaceAddress} onChange={e => setNewPlaceAddress(e.target.value)} placeholder="楼栋、楼层或街道，让同学找得到"/></label><label>范围<select aria-label="新地点范围" value={newPlaceArea} onChange={e => setNewPlaceArea(e.target.value as '校内' | '周边')}><option>校内</option><option>周边</option></select></label><label>类型<select aria-label="新地点类型" value={newPlaceCategory} onChange={e => setNewPlaceCategory(e.target.value)}>{['散步','展览','运动','休闲','其他'].map(c => <option key={c}>{c}</option>)}</select></label></div>}<p>{visibility !== 'campus' ? '好友可见或私密记录不会进入公开地点页；切换为校园内同学可见后才能参与地点分享。' : draftPlaceId ? '发布后同步出现在校园墙和地点页，照片参与地点热门轮播。' : '选择已有地点，或由你创建地点的第一篇分享。'}</p></div>} title={title} text={text} category={postCategory} location={location} anonymous={anonymous} images={images} uploading={uploading} error={formError} categories={wallCategories.slice(1)} name={nickname} fileInput={fileInput} setTitle={setTitle} setText={setText} setCategory={setPostCategory} setLocation={setLocation} setAnonymous={setAnonymous} setImages={setImages} addImages={addImages} publish={publish} leave={() => { setNotice('草稿已保留，可从发布页或我的草稿箱继续编辑；刷新或退出后清空。'); go('home') }}/>}
+    {page === 'publish' && <PublishComposer visibility={visibility} setVisibility={setVisibility} placeLink={<div className="place-link-field"><label htmlFor="post-place-link">分享到发现地点</label><Select id="post-place-link" aria-label="分享到发现地点" value={draftPlaceId} onChange={value => { setDraftPlaceId(value); const p=allPlaces.find(p => p.id === value); if(p) setLocation(p.location) }} options={[{ value:'', label:'不关联地点' }, ...allPlaces.filter(p => p.kind === '好玩').map(p => ({ value:p.id, label:p.name + ' · ' + p.area })), { value:'__new__', label:'＋ 新增地点，发布第一篇分享' }]}/>{draftPlaceId === '__new__' && <div className="place-new-fields"><label>地点名称<Input aria-label="新地点名称" maxLength={40} value={newPlaceName} onChange={e => setNewPlaceName(e.target.value)} placeholder="例如：北门小花园"/></label><label>具体地址<Input aria-label="新地点地址" maxLength={100} value={newPlaceAddress} onChange={e => setNewPlaceAddress(e.target.value)} placeholder="楼栋、楼层或街道，让同学找得到"/></label><label>范围<Select aria-label="新地点范围" value={newPlaceArea} onChange={setNewPlaceArea} options={['校内','周边'].map(value => ({ value:value as '校内' | '周边', label:value }))}/></label><label>类型<Select aria-label="新地点类型" value={newPlaceCategory} onChange={setNewPlaceCategory} options={['散步','展览','运动','休闲','其他'].map(value => ({ value, label:value }))}/></label></div>}<p>{visibility !== 'campus' ? '好友可见或私密记录不会进入公开地点页；切换为校园内同学可见后才能参与地点分享。' : draftPlaceId ? '发布后同步出现在校园墙和地点页，照片参与地点热门轮播。' : '选择已有地点，或由你创建地点的第一篇分享。'}</p></div>} title={title} text={text} category={postCategory} location={location} anonymous={anonymous} images={images} uploading={uploading} error={formError} categories={wallCategories.slice(1)} name={nickname} fileInput={fileInput} setTitle={setTitle} setText={setText} setCategory={setPostCategory} setLocation={setLocation} setAnonymous={setAnonymous} setImages={setImages} addImages={addImages} publish={publish} leave={() => { setNotice('草稿已保留，可从发布页或我的草稿箱继续编辑；刷新或退出后清空。'); go('home') }}/>}
     <SnackShops open={snacksOpen} shopId={snackShopId} selectShop={setSnackShopId} close={() => setSnacksOpen(false)}/>
     <CampusHub onConversation={openService} onAccess={setServiceAccess} page={hub} close={() => setHub(null)} session={session} requests={requests} requestSupport={requestSupport}/>
     <Messenger serviceThreads={serviceThreads} activeService={activeService} openService={openService} closeService={()=>setActiveService(null)} serviceAccess={serviceAccess} active={page === 'chat'} contact={contact} clearContact={() => setContact(null)}/>

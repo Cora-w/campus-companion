@@ -56,11 +56,11 @@ function App() {
   const { shops, setShops, orders:shopOrders, placeOrder, changeOrderStatus } = useCommerceStore(session)
   const [page, setPage] = useState<Page>('home')
   const [pageTrail, setPageTrail] = useState<{page:Page;scroll:number}[]>([])
-  useBackNavigation(!!session && pageTrail.length > 0, () => {
+  const rootPage: Page = session?.role === 'teacher' ? 'workbench' : session?.role === 'merchant' ? 'merchant-home' : session?.role === 'admin' ? 'accounts' : 'home'
+  useBackNavigation(!!session && page !== rootPage, () => {
     const previous = pageTrail.at(-1)
-    if (!previous) return
-    setPageTrail(prev => prev.slice(0,-1)); setPage(previous.page)
-    requestAnimationFrame(() => window.scrollTo(0,previous.scroll))
+    setPageTrail(prev => prev.slice(0,-1)); setPage(previous?.page ?? rootPage)
+    requestAnimationFrame(() => window.scrollTo(0,previous?.scroll ?? 0))
   },0)
   useEffect(() => {
     let active = true
@@ -84,7 +84,7 @@ function App() {
   const [showPrivacy, setShowPrivacy] = useState(false)
   useEffect(installViewportTracking, [])
   const log = (action: string, actor = session ? `${roleNames[session.role]} · ${session.id}` : '演示访客') => setAudits(prev => [{ id: uid(), time: nowLabel(), actor, action }, ...prev])
-  const go = (target: Page) => { if (target === page) return; setPageTrail(prev => [...prev,{page,scroll:window.scrollY}]); setPage(target); window.scrollTo(0, 0) }
+  const go = (target: Page) => { if (target === page) return; setPageTrail(prev => target === rootPage ? [] : [...prev,{page,scroll:window.scrollY}]); setPage(target); window.scrollTo(0, 0) }
   const login = (next: Session) => {
     setPageTrail([]); setSession(next); setPage(next.role === 'student' ? 'home' : next.role === 'teacher' ? 'workbench' : next.role === 'merchant' ? 'merchant-home' : 'accounts')
     log('账号登录演示', roleNames[next.role] + ' · ' + next.id)
@@ -116,7 +116,7 @@ function App() {
   }, [page, nav])
   const merchantPending = shopOrders.filter(o=>o.shopId===merchantShopIds[session?.id || ''] && o.status==='待接单').length
   const pendingHigh = cases.filter(c => c.risk === '高' && c.status === '待处理').length
-  return <ConfigProvider locale={zhCN} theme={{ token: { colorPrimary: palette.accent, colorInfo: palette.accent, colorSuccess: '#248a3d', colorWarning: '#996000', colorError: '#c9342b', borderRadius: 12, controlHeight: 44, fontSize: 14, colorText: '#242321', colorTextSecondary: '#66635f', colorTextPlaceholder: '#77716a', colorBgContainer: '#ffffff', colorBgLayout: palette.canvas, colorBorder: palette.tint, fontFamily: 'inherit' }, components: { Button: { primaryShadow: 'none' }, Drawer: { footerPaddingBlock: 16 }, Input: { activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeShadow: 'none' }, InputNumber: { activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeShadow: 'none' }, DatePicker: { activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeShadow: 'none' }, Select: { optionSelectedBg: palette.soft, activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeOutlineColor: 'transparent' } } }}>
+  return <ConfigProvider locale={zhCN} wave={{ disabled:true }} theme={{ token: { colorPrimary: palette.accent, colorInfo: palette.accent, colorSuccess: '#248a3d', colorWarning: '#996000', colorError: '#c9342b', borderRadius: 12, controlHeight: 44, fontSize: 14, colorText: '#242321', colorTextSecondary: '#66635f', colorTextPlaceholder: '#77716a', colorBgContainer: '#ffffff', colorBgLayout: palette.canvas, colorBorder: palette.tint, fontFamily: 'inherit' }, components: { Button: { primaryShadow: 'none' }, Drawer: { footerPaddingBlock: 16 }, Input: { activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeShadow: 'none' }, InputNumber: { activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeShadow: 'none' }, DatePicker: { activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeShadow: 'none' }, Select: { optionSelectedBg: palette.soft, activeBorderColor: palette.tint, hoverBorderColor: palette.tint, activeOutlineColor: 'transparent' } } }}>
     <AppearanceContext.Provider value={{ themeId, choose: chooseTheme, saved: themeSaved }}>
     <CommerceContext.Provider value={{shops,setShops,orders:shopOrders,placeOrder,changeOrderStatus,promotion,setPromotion,studentId:session?.role==='student'?session.id:''}}>
     <div className={`app-shell ${!session ? 'login-shell' : ''} ${isChat ? 'chatting' : ''}`}>

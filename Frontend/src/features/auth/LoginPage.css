@@ -1,4 +1,4 @@
-.account-login { min-height: 100dvh; padding: max(24px, env(safe-area-inset-top)) 30px 24px; display: flex; flex-direction: column; }
+.account-login { min-height: var(--viewport-height,100dvh); padding: max(24px, env(safe-area-inset-top)) 30px 24px; display: flex; flex-direction: column; }
 .login-topbar { display: flex; align-items: center; justify-content: space-between; color: #77716a; font-size: 11px; }
 .login-topbar button { min-height: 40px; padding: 0; color: #66635f; }
 .account-brand { text-align: center; padding: 25px 0 27px; }
@@ -34,4 +34,7 @@
 .account-role-radios label { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; font-size: 13px; cursor: pointer; white-space: nowrap; }
 .account-role-radios input { appearance: auto; width: 17px; height: 17px; margin: 0; padding: 0; accent-color: var(--login-strong); cursor: pointer; }
 @media(max-width:360px) { .account-login { padding-inline: 24px; } }
-@media(max-height:740px) { .account-brand { padding-top: 12px; padding-bottom: 16px; }.companion-logo { width: 58px; height: 58px; margin-bottom: 11px; }.account-brand h1 { font-size: 30px; }.account-signature { padding-top: 8px; } }
+:root[data-compact-viewport='true'] .account-brand { padding-top:12px; padding-bottom:16px; }
+:root[data-compact-viewport='true'] .companion-logo { width:58px; height:58px; margin-bottom:11px; }
+:root[data-compact-viewport='true'] .account-brand h1 { font-size:30px; }
+:root[data-compact-viewport='true'] .account-signature { padding-top:8px; }

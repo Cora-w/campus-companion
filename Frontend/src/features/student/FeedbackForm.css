@@ -1,0 +1,18 @@
+.feedback-form { gap: 24px; }
+.feedback-attachments-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.feedback-attachments-heading b { font-size: 13px; font-weight: 500; }
+.feedback-attachments-heading span, .feedback-attachments > small { color: var(--text-secondary); font-size: 12px; }
+.feedback-attachments > p { margin: 8px 0 16px; font-size: 12px; line-height: 1.8; color: var(--text-secondary); }
+.feedback-image-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.feedback-image { position: relative; aspect-ratio: 1; min-width: 0; }
+.feedback-image .ant-image { overflow: hidden; border-radius: 12px; }
+.feedback-image img { object-fit: cover; }
+.feedback-image-remove { position: absolute; z-index: 1; right: 3px; top: 3px; width: 32px; height: 32px; border-radius: 50%; color: white; background: #0009; font-size: 22px; line-height: 1; }
+.feedback-image-add { aspect-ratio: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; border: 1px dashed var(--theme-tint); border-radius: 12px; background: var(--canvas); color: var(--text-secondary); font-size: 12px; }
+.feedback-image-add > span { font-size: 28px; line-height: 1; }
+.feedback-image-add:disabled, .feedback-image-remove:disabled { opacity: .5; cursor: wait; }
+.feedback-image-add:focus-visible, .feedback-image-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.feedback-attachments > small { display: block; margin-top: 12px; line-height: 1.8; }
+.feedback-form .feedback-form-hint { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
+.feedback-form .profile-feedback-item { white-space: normal; }
+.feedback-form .profile-feedback-item > p { margin: 0 0 14px; white-space: pre-wrap; line-height: 1.8; font-size: 13px; }

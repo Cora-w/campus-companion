@@ -17,7 +17,7 @@ Android 目录只负责将 Frontend 的构建产物封装成安卓 WebView 应�
 
 项目根目录运行 `./Android/scripts/build.ps1`。默认查找本机 Android Studio 的 JDK 以及 LOCALAPPDATA 下的 Android SDK，也可通过 -Jdk 和 -Sdk 指定路径。脚本强制使用 mock 认证，包名为 com.coraw.campuscompanion，最低 Android 8.0，目标 API 35。
 
-运行 `node Android/scripts/serve-apk.mjs` 后，同一 Wi-Fi 下的手机访问电脑 IP 的 8181 端口下载。也可将 Releases/campus-companion-0.1.4.apk 直接传到手机安装。
+运行 `node Android/scripts/serve-apk.mjs` 后，同一 Wi-Fi 下的手机访问电脑 IP 的 8181 端口下载。也可将 Releases/campus-companion-0.1.10.apk 直接传到手机安装。
 
 此版本支持系统图片选择器，不申请全盘存储权限；不接入相机、录音、后台推送或真实定位权限。地图位置使用现有手动选择和演示流程。手机需有较新的 Android System WebView。
 

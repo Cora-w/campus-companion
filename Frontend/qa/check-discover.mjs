@@ -46,7 +46,7 @@ await check("document.querySelector('.discover-reviews').textContent.includes('�
 await ev("[...document.querySelectorAll('.discover-review-tabs button')].find(b=>b.textContent.includes('商品评价')).click()");await wait();await check("!document.querySelector('.discover-reviews').textContent.includes('店铺测试')",'shop review excluded from product reviews');
 await click('写评价');await check("!!document.querySelector('#discover-review-target') && document.querySelector('#discover-review-target').value===''",'aggregate reviews offers product selection');
 await shot('discover-write');await ev("[...document.querySelectorAll('.ant-drawer-open .ant-drawer-close')].at(-1).click()");await wait(500);
-await ev("document.querySelector('.discover-products button').click()");await wait();await check("document.querySelector('.discover-detail h2').textContent==='番茄牛肉面'",'product detail');
+await ev("document.querySelector('.discover-product-info').click()");await wait();await check("document.querySelector('.discover-detail h2').textContent==='番茄牛肉面'",'product detail');
 await click('写评价');await fill('[aria-label="探店评价"]','商品测试：汤底酸甜，建议少盐');await ev("document.querySelectorAll('.discover-review-form [role=radio]')[3].click()");await wait();await click('发布评价');
 await check("document.querySelector('.discover-reviews').textContent.includes('商品测试') && !document.querySelector('.discover-reviews').textContent.includes('店铺测试')",'product review scoped');
 await ev("document.querySelector('.discover-detail-actions button').click()");await wait();await check("document.querySelector('.discover-detail-actions button').getAttribute('aria-pressed')==='true'",'product like toggled');await shot('discover-product');
@@ -55,7 +55,7 @@ await ev("[...document.querySelectorAll('.discover-review-tabs button')].find(b=
 for(const width of [320,430]){await resize(width);await check("document.querySelector('.ant-drawer-open .ant-drawer-body').scrollWidth<=innerWidth",width+' detail fits')}
 await close();await ev("[...document.querySelectorAll('.discover-tabs button')].find(b=>b.textContent.startsWith('好玩')).click()");await wait();await check("document.querySelectorAll('.discover-outings>.outing-card').length===2",'outings retained');
 await call('Page.reload');await wait(1200);await consent();await click('以学生身份体验 →');await click('发现');await click('查看一食堂 · 老汤面馆');await check("document.querySelector('.discover-reviews').textContent.includes('店铺测试')",'review survives reload');
-await ev("document.querySelector('.discover-products button').click()");await wait();await check("document.querySelector('.discover-detail-actions button').getAttribute('aria-pressed')==='true'",'like survives reload');await check("document.querySelector('.discover-reviews').textContent.includes('商品测试')",'product review survives reload');
+await ev("document.querySelector('.discover-product-info').click()");await wait();await check("document.querySelector('.discover-detail-actions button').getAttribute('aria-pressed')==='true'",'like survives reload');await check("document.querySelector('.discover-reviews').textContent.includes('商品测试')",'product review survives reload');
 await ev("Object.keys(localStorage).filter(k=>k.startsWith('campus-discover-feedback-v1:')).forEach(k=>localStorage.removeItem(k))");
 if(browserErrors.length)throw Error(browserErrors.join(';'));ws.close();console.log('Discover checks passed');
 

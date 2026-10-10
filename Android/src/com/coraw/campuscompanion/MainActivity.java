@@ -13,11 +13,13 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Bundled student demo. No development server or JavaScript-to-native bridge. */
+/** Bundled student demo. Native back delegates to the front-end layer stack. */
 public final class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
+    private boolean backPending;
+    private AlertDialog exitDialog;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -104,9 +106,18 @@ public final class MainActivity extends Activity {
     }
 
     @Override public void onBackPressed() {
-        if (web.canGoBack()) { web.goBack(); return; }
-        new AlertDialog.Builder(this).setMessage("退出心伙伴？")
-            .setNegativeButton("继续体验", null).setPositiveButton("退出", (dialog, which) -> finish()).show();
+        if (backPending || (exitDialog != null && exitDialog.isShowing())) return;
+        backPending = true;
+        web.evaluateJavascript("typeof window.campusBack === 'function' ? window.campusBack() : null", result -> {
+            if (isFinishing() || isDestroyed()) return;
+            // A missing/loading script cannot authorize exiting the app.
+            if ("false".equals(result)) {
+                exitDialog = new AlertDialog.Builder(this).setMessage("退出心伙伴？")
+                    .setNegativeButton("继续体验", null).setPositiveButton("退出", (dialog, which) -> finish()).create();
+                exitDialog.show();
+            }
+            web.postDelayed(() -> backPending = false, 250);
+        });
     }
 
     @Override protected void onDestroy() {

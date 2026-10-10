@@ -1,4 +1,4 @@
-.community-fullscreen.ant-drawer-bottom > .ant-drawer-content-wrapper { height:var(--viewport-height,100dvh)!important; max-height:100dvh; }
+.community-fullscreen.ant-drawer-bottom > .ant-drawer-content-wrapper { height:var(--viewport-height,100dvh)!important; max-height:var(--viewport-height,100dvh); }
 .community-fullscreen .mobile-sheet.ant-drawer-section { border-radius:0; }
 .community-fullscreen .ant-drawer-body { padding:0; background:var(--canvas); }
 .community-fullscreen .ant-drawer-header { padding:12px 18px; background:white; }
@@ -46,8 +46,8 @@
 .place-story-images.single img { height:190px; }
 .place-story-credit { display:block; margin:7px 0; color:#888; font-size:9px; }
 .place-story-reply { width:100%; background:var(--canvas); border-radius:6px; padding:9px; margin:8px 0; text-align:left; color:#73766d; font-size:11px; }
-.place-story-actions { display:flex; justify-content:space-between; gap:16px; margin-top:10px; }
-.place-story-actions button { display:flex; align-items:center; gap:5px; font-size:11px; padding:5px 0; }
+.place-story-actions { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; margin-top:16px; }
+.place-story-actions button { display:flex; align-items:center; gap:5px; font-size:11px; min-height:40px; padding:5px 0; }
 .place-story-actions svg { width:17px; height:17px; }
 .place-story-actions button[aria-pressed=true] { color:var(--accent); }
 .place-community-invite { display:flex; gap:12px; align-items:center; width:100%; padding:20px; text-align:left; background:var(--canvas); color:var(--text-secondary); }
@@ -60,7 +60,7 @@
 .place-community-empty { padding:22px; background:white; }.place-community-empty p { font-size:12px; }.place-community-empty button { display:flex; align-items:center; gap:10px; color:var(--accent); }
 .place-link-field { padding:15px 0; border-bottom:1px solid var(--border); }
 .place-link-field>label { font-size:13px; display:block; margin-bottom:8px; font-weight:600; }
-.place-link-field select { width:100%; padding:10px; border:1px solid var(--border); border-radius:9px; background:var(--canvas); color:var(--text-primary); font-size:12px; }
+.place-link-field .ant-select { width:100%; font-size:12px; }
 .place-link-field>p { margin:8px 0 0; font-size:10px; }
 .place-new-fields { display:grid; gap:9px; margin-top:12px; }
 .place-new-fields label { display:grid; gap:5px; font-size:11px; }

@@ -7,6 +7,7 @@ import { riskColors } from '../../data/data'
 
 export function Icon({ name }: { name: string }) {
   const paths: Record<string, ReactNode> = {
+    refresh: <><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17"/></>,
     settings: <><circle cx="12" cy="12" r="3"/><path d="m9 3-1 3-3 1-2 5 2 5 3 1 1 3h6l1-3 3-1 2-5-2-5-3-1-1-3Z"/></>,
     edit: <><path d="m15 4 5 5M4 20l5-1L21 7l-5-5L4 14Z"/></>,
     bag: <><path d="M4 7h16l1 14H3ZM8 8V6a4 4 0 0 1 8 0v2"/></>,

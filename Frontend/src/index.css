@@ -20,18 +20,26 @@
   --warning: #996000;
   --bottom-height: calc(68px + env(safe-area-inset-bottom, 0px));
 }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; }
 button, input, textarea { font: inherit; }
-button { cursor: pointer; color: inherit; border: 0; background: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button { cursor: pointer; color: inherit; border: 0; background: none; touch-action: manipulation; }
 button:disabled { cursor: not-allowed; opacity: .45; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+button:focus:not(:focus-visible), [role='button']:focus:not(:focus-visible), a:focus:not(:focus-visible) { outline: none !important; }
 /* Typing uses the caret, without an extra focus frame around the field. */
 input:focus, textarea:focus, select:focus, [contenteditable='true']:focus {
   outline: none !important;
   box-shadow: none !important;
 }
-button:active:not(:disabled) { filter: brightness(.94); }
+:root button:active:not(:disabled):not([aria-disabled='true']),
+:root a[href]:active:not([aria-disabled='true']),
+:root [role='button']:active:not([aria-disabled='true']) { scale: .98; filter: none; }
+:root :is(button, a[href], [role='button']) { transition: scale 120ms ease-out !important; }
+@media (prefers-reduced-motion: reduce) {
+  button, a[href], [role='button'] { transition: none !important; }
+  :root button:active:not(:disabled), :root a[href]:active, :root [role='button']:active { scale: 1; }
+}
 h1, h2, h3, p { margin-top: 0; }
 h1 { font-size: 24px; letter-spacing: -.6px; line-height: 1.5; }
 h2 { font-size: 20px; }

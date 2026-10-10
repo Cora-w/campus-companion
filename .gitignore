@@ -8,6 +8,7 @@
 **/*.local
 **/*.log
 **/.preview-browser*/
+**/.preview-edge*/
 **/qa/*-browser/
 **/qa/screenshots/*
 !**/qa/screenshots/.gitkeep

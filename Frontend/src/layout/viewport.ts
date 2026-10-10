@@ -1,4 +1,6 @@
 // Keep the page on the layout viewport; only overlays follow the keyboard.
+import { createOverlayViewportTracking, keepEditorVisible } from './overlayViewport.ts'
+
 export function installViewportTracking() {
   const root = document.documentElement
   const viewport = window.visualViewport
@@ -6,6 +8,8 @@ export function installViewportTracking() {
   let restingHeight = root.clientHeight || window.innerHeight
   let restingWidth = root.clientWidth
   let keyboardOpen = false
+  let revealEditor = true
+  const overlays = createOverlayViewportTracking()
   const write = (name: string, value: number) => {
     const next = `${Math.round(value)}px`
     if (root.style.getPropertyValue(name) !== next) root.style.setProperty(name, next)
@@ -28,25 +32,47 @@ export function installViewportTracking() {
     keyboardOpen = touchDevice && (editing || keyboardOpen) && Math.max(restingHeight, layoutHeight) - visibleHeight > 120
     if (!keyboardOpen && !editing) restingHeight = layoutHeight
     root.dataset.keyboardOpen = String(keyboardOpen)
-    write('--viewport-height', layoutHeight)
+    root.dataset.keyboardEditing = String(touchDevice && editing)
+    root.dataset.overlayOpen = String(overlays.update())
+    // adjustResize shrinks Android's layout viewport during the IME animation.
+    // Keep the underlying page at its resting size while the editor is active.
+    const pageHeight = touchDevice && (editing || keyboardOpen) ? Math.max(restingHeight, layoutHeight) : layoutHeight
+    root.dataset.compactViewport = String(pageHeight <= 740)
+    root.dataset.shortViewport = String(pageHeight <= 600)
+    write('--viewport-height', pageHeight)
+    write('--page-viewport-height', pageHeight)
     write('--overlay-viewport-height', visibleHeight)
+    write('--overlay-top', viewport?.offsetTop ?? 0)
     write('--overlay-bottom', Math.max(0, layoutHeight - visibleHeight - (viewport?.offsetTop ?? 0)))
+    // Background carousels and message updates must not pull a reader back to
+    // the focused input. Reveal it only on focus or viewport changes.
+    if (revealEditor && touchDevice && editing) keepEditorVisible(visibleHeight, viewport?.offsetTop ?? 0)
+    revealEditor = false
   }
   const schedule = () => { if (!frame) frame = requestAnimationFrame(update) }
+  const scheduleEditor = () => { revealEditor = true; schedule() }
   update()
-  window.addEventListener('resize', schedule)
-  document.addEventListener('focusin', schedule)
-  document.addEventListener('focusout', schedule)
-  viewport?.addEventListener('resize', schedule)
-  viewport?.addEventListener('scroll', schedule)
+  const observer = typeof MutationObserver === 'undefined' ? null : new MutationObserver(schedule)
+  observer?.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'] })
+  window.addEventListener('resize', scheduleEditor)
+  document.addEventListener('focusin', scheduleEditor)
+  document.addEventListener('focusout', scheduleEditor)
+  viewport?.addEventListener('resize', scheduleEditor)
+  viewport?.addEventListener('scroll', scheduleEditor)
   return () => {
     cancelAnimationFrame(frame)
-    window.removeEventListener('resize', schedule)
-    document.removeEventListener('focusin', schedule)
-    document.removeEventListener('focusout', schedule)
+    observer?.disconnect()
+    overlays.dispose()
+    window.removeEventListener('resize', scheduleEditor)
+    document.removeEventListener('focusin', scheduleEditor)
+    document.removeEventListener('focusout', scheduleEditor)
     delete root.dataset.keyboardOpen
-    viewport?.removeEventListener('resize', schedule)
-    viewport?.removeEventListener('scroll', schedule)
-    for (const name of ['--viewport-height', '--overlay-viewport-height', '--overlay-bottom']) root.style.removeProperty(name)
+    delete root.dataset.keyboardEditing
+    delete root.dataset.overlayOpen
+    delete root.dataset.compactViewport
+    delete root.dataset.shortViewport
+    viewport?.removeEventListener('resize', scheduleEditor)
+    viewport?.removeEventListener('scroll', scheduleEditor)
+    for (const name of ['--viewport-height', '--page-viewport-height', '--overlay-viewport-height', '--overlay-top', '--overlay-bottom']) root.style.removeProperty(name)
   }
 }
