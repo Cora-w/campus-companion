@@ -1,0 +1,47 @@
+{
+  "source_note": "用户提供的四川航天职业技术学院校园商铺资料，尚未独立核实；名称、位置、楼层及服务以现场为准。营业时间、实际营业状态及价格未知。未命名窗口按档口分组记录，不代表独立品牌店。图片为类别示意，非本店实拍。",
+  "images": {
+    "food": {
+      "url": "https://images.unsplash.com/photo-1671522635775-020f43518663?auto=format&fit=crop&w=960&q=80",
+      "source_url": "https://unsplash.com/photos/a-person-holding-a-spoon-full-of-noodles-yzMuewwRMcY",
+      "author": "Caramel", "license": "Unsplash License", "license_url": "https://unsplash.com/license",
+      "is_illustration": true, "alt": "面食餐饮示意图，非本店菜品或门店实拍"
+    },
+    "grocery": {
+      "url": "https://images.unsplash.com/photo-1722004843679-d0ea752223f4?auto=format&fit=crop&w=960&q=80",
+      "source_url": "https://unsplash.com/photos/a-store-shelf-filled-with-lots-of-coffee-cups-HU-uOAO-FUY",
+      "author": "Ziph", "license": "Unsplash License", "license_url": "https://unsplash.com/license",
+      "is_illustration": true, "alt": "便利店食品货架示意图，非本店实拍"
+    },
+    "dessert": {
+      "url": "https://images.unsplash.com/photo-1771931964566-6c63077c5069?auto=format&fit=crop&w=960&q=80",
+      "source_url": "https://unsplash.com/photos/people-ordering-at-a-food-stand-5FFt0ttBft0",
+      "author": "Haberdoedas", "license": "Unsplash License", "license_url": "https://unsplash.com/license",
+      "is_illustration": true, "alt": "冰淇淋摊位示意图，非蜜雪冰城门店实拍"
+    }
+  },
+  "venues": [
+    {"key":"tianhe","name":"天河食堂","address":"校园东北片区，北部新区域，文体综合楼旁","description":"新食堂，共3层。一楼有茶饮、卤味、超市及快餐；二楼有轻食、特色炒菜和盖饭；三楼为健身房及少量餐饮档口。名称按用户提供录入，未与公开资料中的天和美食城自动合并。","floors":3,"operator":""},
+    {"key":"tianzhou","name":"天舟食堂","address":"校园北部宿舍区旁，致远楼、劝学堂附近，靠近老宿舍","description":"老食堂，共2层。一楼有自选餐、面条、馄饨、快餐和小吃；二楼有特色米饭、面食及风味小吃。","floors":2,"operator":""},
+    {"key":"xuefu","name":"学府食堂（西园齐膳雅餐厅）","address":"校园西侧，图书馆、文汇楼西侧","description":"用户提供名称：西园齐膳雅餐厅。含基础自选套餐（猪肉套餐专供窗口）、面食、炒饭、小吃及粥品档口。用户提供运营方：北京万喜餐饮管理有限公司。","floors":null,"operator":"北京万喜餐饮管理有限公司"},
+    {"key":"sports","name":"学生文体综合楼","address":"食堂片区配套商业楼，紧邻天河食堂","description":"食堂片区配套商铺所在楼栋，不作为独立食堂统计。已知商铺位于一楼115号和二楼214号。","floors":null,"operator":""}
+  ],
+  "stores": [
+    {"key":"mixue","venue":"tianhe","name":"蜜雪冰城（航院校内店）","floor":1,"room":"","category":"茶饮冰淇淋","description":"茶饮、冰淇淋。","image":"dessert","kind":"shop"},
+    {"key":"caoshi","venue":"tianhe","name":"曹氏鸭脖","floor":1,"room":"","category":"冒菜卤味","description":"冒菜、卤鸭脖、素菜套餐。","image":"food","kind":"shop"},
+    {"key":"binguo","venue":"tianhe","name":"缤果超市","floor":1,"room":"","category":"超市百货","description":"零食、水果、日用百货、文具。","image":"grocery","kind":"shop"},
+    {"key":"oden","venue":"tianhe","name":"关东煮档口","floor":1,"room":"","category":"小吃","description":"关东煮小吃，具体档口名称待补充。","image":"food","kind":"stall_group"},
+    {"key":"buffet","venue":"tianhe","name":"自选快餐档口","floor":1,"room":"","category":"自选快餐","description":"米饭套餐、家常菜，具体档口名称待补充。","image":"food","kind":"stall_group"},
+    {"key":"light","venue":"tianhe","name":"轻食档口","floor":2,"room":"","category":"轻食","description":"二楼轻食档口，具体商户待补充。","image":"food","kind":"stall_group"},
+    {"key":"stirfry","venue":"tianhe","name":"特色炒菜档口","floor":2,"room":"","category":"炒菜","description":"二楼特色炒菜档口，具体商户待补充。","image":"food","kind":"stall_group"},
+    {"key":"rice","venue":"tianhe","name":"盖饭档口","floor":2,"room":"","category":"盖饭","description":"二楼各类盖饭档口分组，具体商户待补充。","image":"food","kind":"stall_group"},
+    {"key":"third-floor","venue":"tianhe","name":"三楼餐饮档口","floor":3,"room":"","category":"餐饮","description":"三楼健身房配套的少量餐饮档口，具体商户待补充；健身房仅作为楼层说明。","image":"food","kind":"stall_group"},
+    {"key":"first-floor","venue":"tianzhou","name":"一楼综合餐饮档口","floor":1,"room":"","category":"综合餐饮","description":"自选餐、面条、馄饨、快餐、各类小吃档口分组，非单一品牌店。","image":"food","kind":"stall_group"},
+    {"key":"second-floor","venue":"tianzhou","name":"二楼风味餐饮档口","floor":2,"room":"","category":"风味餐饮","description":"特色米饭、面食、风味小吃档口分组，非单一品牌店。","image":"food","kind":"stall_group"},
+    {"key":"setmeal","venue":"xuefu","name":"基础自选套餐窗口","floor":null,"room":"","category":"自选套餐","description":"含猪肉套餐专供窗口；楼层待确认。","image":"food","kind":"stall_group"},
+    {"key":"noodles","venue":"xuefu","name":"面食窗口","floor":null,"room":"","category":"面食","description":"面食窗口，楼层及具体商户待补充。","image":"food","kind":"stall_group"},
+    {"key":"snacks","venue":"xuefu","name":"炒饭、小吃、粥品档口","floor":null,"room":"","category":"炒饭小吃粥品","description":"炒饭、小吃、粥品档口分组，楼层待确认。","image":"food","kind":"stall_group"},
+    {"key":"xiongmopo","venue":"sports","name":"熊麻婆现炒浇头面・饭","floor":1,"room":"115","category":"面饭","description":"现炒浇头面、拌饭；用户提供信息为免费续面续饭，具体活动以店内为准。","image":"food","kind":"shop"},
+    {"key":"lixiaopang","venue":"sports","name":"广汉市李小胖餐饮店","floor":2,"room":"214","category":"正餐简餐","description":"正餐、简餐。","image":"food","kind":"shop"}
+  ]
+}
