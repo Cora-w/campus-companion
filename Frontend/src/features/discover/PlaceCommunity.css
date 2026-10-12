@@ -66,3 +66,5 @@
 .place-new-fields label { display:grid; gap:5px; font-size:11px; }
 .discover-new-place { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:13px 15px; margin:12px 0; width:100%; border:1px dashed var(--theme-tint); border-radius:12px; background:var(--canvas); color:var(--accent); text-align:left; }
 .discover-new-place b { font-size:12px; }.discover-new-place small { display:block; margin-top:4px; font-size:10px; color:#6a7a6b; }.discover-new-place svg { width:19px; height:19px; }
+/* Grid items must shrink with the phone rather than preserve image min-content width. */
+.place-community,.place-community-feed,.place-story{min-width:0;max-width:100%}.place-community-feed{grid-template-columns:minmax(0,1fr)}.place-story-content{min-width:0}.place-story-content h3,.place-story-author>div,.place-story-reply{overflow-wrap:anywhere}.place-community-feed-heading>div{min-width:0}.place-community-feed-heading>div:last-child{flex-shrink:0}

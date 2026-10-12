@@ -1,90 +1,165 @@
-import type { SupportRequest } from '../../data/hubData'
+import { useProductTheme } from '../../theme/productTheme'
 import { useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
-import { Alert, Button, Checkbox, Input, Progress, Select, Tag } from 'antd'
+import { Alert, Button, ConfigProvider, Input, Modal, Select, Tag } from 'antd'
 import type { CareCase, Risk, Session } from '../../data/data'
-import { initialMoods, nowLabel, uid } from '../../data/data'
-import { DemoNote, Icon, RiskTag, SectionTitle, Sheet, Trend } from '../../components/shared/Shared'
-export type TeacherPage = 'workbench' | 'alerts' | 'archives' | 'overview' | 'profile'
-type Props = { requests: SupportRequest[]; acceptRequest: (id: string) => void; page: TeacherPage; go: (page: TeacherPage) => void; cases: CareCase[]; setCases: Dispatch<SetStateAction<CareCase[]>>; log: (action: string) => void; session: Session; logout: () => void }
-export function TeacherArea({ page, go, cases, setCases, log, session, logout, requests, acceptRequest }: Props) {
-  const [riskFilter, setRiskFilter] = useState('全部')
-  const [statusFilter, setStatusFilter] = useState('全部状态')
-  const [archiveFilter, setArchiveFilter] = useState('全部状态')
+import type { SupportRequest } from '../../data/hubData'
+import { uid } from '../../data/data'
+import { SectionTitle, Trend } from '../../components/shared/Shared'
+import { Drawer } from '../../navigation/BackOverlays'
+import { TeacherLayout } from './TeacherLayout'
+import { Workbench, Roster } from './TeacherViews'
+import { Triage, EscalationForm } from './TeacherTriage'
+import { BookingDialog, Schedule } from './TeacherSchedule'
+import type { Booking } from './TeacherSchedule'
+import type { Appointment } from './workspaceModel'
+import { TeacherHistory } from './TeacherHistory'
+import { recordTemplates } from './recordTemplates'
+import { StaffFormSteps } from '../../components/shared/StaffFormSteps'
+import { TeacherSettings } from './TeacherSettings'
+import { attentionNames, nextFollowUp, schoolToday, statusNames, teacherTimestamp as nowLabel } from './teacherData'
+import './TeacherArea.css'
+import './TeacherVisual.css'
+import '../../theme/StaffRefinement.css'
+
+export type TeacherPage = 'workbench' | 'triage' | 'care' | 'schedule' | 'profile'
+type Props = { appointments: Appointment[]; setAppointments: Dispatch<SetStateAction<Appointment[]>>; requests: SupportRequest[]; acceptRequest: (id: string) => void; page: TeacherPage; go: (page: TeacherPage) => void; cases: CareCase[]; setCases: Dispatch<SetStateAction<CareCase[]>>; log: (action: string) => void; session: Session; logout: () => void }
+const riskOrder: Record<Risk, number> = { 高: 0, 中: 1, 低: 2 }
+
+export function TeacherArea({ page, go, cases, setCases, log, session, logout, requests, acceptRequest, appointments, setAppointments }: Props) {
+  const productTheme = useProductTheme()
+  const [status, setStatus] = useState('全部')
+  const [risk, setRisk] = useState('全部')
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [detailTab, setDetailTab] = useState('概览')
+  const [recordStep,setRecordStep] = useState(0)
+  const [templateChoice, setTemplateChoice] = useState('')
+  const [historyVersion, setHistoryVersion] = useState(0)
+  const [tab, setTab] = useState('状态概览')
+  const [reviewNote, setReviewNote] = useState('')
+  const [observationDate, setObservationDate] = useState('')
   const [method, setMethod] = useState('一对一面谈')
   const [summary, setSummary] = useState('')
   const [plan, setPlan] = useState('')
-  const [nextDate, setNextDate] = useState('')
-  const [recordError, setRecordError] = useState('')
-  const [archiveConfirm, setArchiveConfirm] = useState(false)
-  const [simulationSent, setSimulationSent] = useState(false)
+  const [date, setDate] = useState('')
+  const [closureNote, setClosureNote] = useState('')
+  const [error, setError] = useState('')
   const [toast, setToast] = useState('')
-  const selected = cases.find(c => c.id === selectedId)
-  const active = cases.filter(c => c.status !== '已归档')
-  const pending = cases.filter(c => c.status === '待处理')
-  const open = (item: CareCase) => { setSelectedId(item.id); setDetailTab('概览'); setSummary(''); setPlan(''); setNextDate(''); setRecordError(''); setArchiveConfirm(false); setToast(''); log(`查看授权个案 ${item.id} 摘要`) }
-  const updateCase = (id: string, update: Partial<CareCase>) => setCases(prev => prev.map(c => c.id === id ? { ...c, ...update } : c))
-  const simulate = () => {
-    if (simulationSent) return
-    setCases(prev => [{ id: 'CASE-DEMO-PUSH', student: '同学 D', studentId: 'S***078', group: '计算机专业 · 二年级', risk: '高', topic: '新状态摘要待专业复核', time: nowLabel(), status: '待处理', records: [] }, ...prev])
-    setSimulationSent(true); setToast('收到一条高风险预警样例，已加入待处理列表。未发生真实推送。'); log('触发高风险预警演示事件')
+  const [inbox, setInbox] = useState(false)
+  const [booking, setBooking] = useState<Booking | null>(null)
+  const [response, setResponse] = useState('')
+  const [recordAppointment, setRecordAppointment] = useState('')
+  const [escalationReason, setEscalationReason] = useState('')
+  const [reminders, setReminders] = useState({ priority: true, followUp: true })
+  const [simulated, setSimulated] = useState(false)
+  const [modal, contextHolder] = Modal.useModal()
+  // Demonstration scoping only; production filtering must be enforced by the server.
+  const own = cases.filter(item => item.teacherId === session.id)
+  const selected = own.find(item => item.id === selectedId)
+  const pending = own.filter(item => item.status === '待处理').sort((a, b) => riskOrder[a.risk] - riskOrder[b.risk])
+  const following = own.filter(item => item.status === '跟进中')
+  const ownAppointments = appointments.filter(item => item.teacherId === session.id && own.some(student => student.id === item.caseId))
+  const due = following.filter(item => { const next = nextFollowUp(item); return next && next <= schoolToday() }).sort((a, b) => (nextFollowUp(a) || '').localeCompare(nextFollowUp(b) || ''))
+  const dirty = !!(reviewNote.trim() || observationDate || summary.trim() || plan.trim() || date || closureNote.trim() || response.trim() || recordAppointment || escalationReason.trim())
+  const recordMissing = [!summary.trim() && '沟通记录', !plan.trim() && '跟进计划', !date && '下次跟进日期', date && date < schoolToday() && '选择今天或以后的日期', /\[填写[^\]]*\]/.test(summary+plan) && '替换模板中的填写提示'].filter(Boolean)
+  const recordNextReady = !!summary.trim() && !/\[填写[^\]]*\]/.test(summary)
+  const clearDraft = () => { setRecordStep(0); setTemplateChoice(''); setReviewNote(''); setObservationDate(''); setSummary(''); setPlan(''); setDate(''); setClosureNote(''); setError(''); setToast(''); setMethod('一对一面谈'); setResponse(''); setRecordAppointment('') }
+  const close = (after?: () => void) => {
+    if (!after && tab === '服务记录' && recordStep > 0) { setRecordStep(0); return }
+    const leave = () => { setSelectedId(null); clearDraft(); setEscalationReason(''); after?.() }
+    if (dirty) { modal.confirm({ title: '放弃未保存的内容？', content: '已保存的服务记录会保留。', okText: '放弃修改', cancelText: '继续填写', onOk: leave }); return }
+    leave()
+  }
+  const revealFeedback = () => requestAnimationFrame(() => { const feedback = document.getElementById('teacher-feedback'); feedback?.scrollIntoView({ block: 'start' }); feedback?.focus({ preventScroll: true }) })
+  const fail = (message: string) => { setError(message); revealFeedback() }
+  const announce = (message: string) => { setToast(message); revealFeedback() }
+  const open = (item: CareCase, target = '状态概览') => { clearDraft(); setEscalationReason(''); setHistoryVersion(value => value + 1); setSelectedId(item.id); setTab(target); log(`查看授权个案 ${item.id} 摘要`) }
+  const update = (item: CareCase, fields: Partial<CareCase>) => setCases(previous => previous.map(current => current.id === item.id && current.teacherId === session.id ? { ...current, ...fields } : current))
+  const review = (needsFollowUp: boolean) => {
+    if (!selected || selected.status !== '待处理') return
+    if (!reviewNote.trim()) { fail('请填写复核说明，再确认处理结果。'); return }
+    if (!needsFollowUp && (!/^\d{4}-\d{2}-\d{2}$/.test(observationDate) || observationDate < schoolToday())) { fail('请选择今天或以后的下次复核日期。'); return }
+    update(selected, { status: '跟进中', review: { conclusion: needsFollowUp ? '需要跟进' : '继续观察', note: reviewNote.trim(), time: nowLabel() }, observation: needsFollowUp ? undefined : { note: reviewNote.trim(), nextDate: observationDate, time: nowLabel() }, closure: undefined })
+    log(`复核授权个案 ${selected.id} · ${needsFollowUp ? '接手跟进' : '继续观察'}`)
+    setReviewNote(''); setObservationDate(''); setError(''); announce(needsFollowUp ? '复核已完成，可以安排约谈或记录跟进。' : '已保存观察说明，到期将进入复核待办。')
+    if (needsFollowUp) setTab('服务记录')
+  }
+
+  const applyTemplate = () => {
+    const template = recordTemplates.find(value => value.id === templateChoice)
+    if (!template || selected?.status !== '跟进中') return
+    const apply = () => { setSummary(template.summary); setPlan(template.plan); setMethod(template.method); setError(''); setToast(''); requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>('#care-summary')?.focus()) }
+    if (summary.trim() || plan.trim()) modal.confirm({ title: '替换当前记录内容？', content: '模板将替换沟通记录、跟进计划与沟通方式；学生反馈、关联咨询与日期保留。', okText: '替换内容', cancelText: '保留当前内容', onOk: apply })
+    else apply()
   }
   const saveRecord = () => {
-    if (!selected) return
-    if (!summary.trim() || !plan.trim() || !nextDate) { setRecordError('请填写过程记录、跟进计划和下次跟进日期。'); return }
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    if (new Date(nextDate + 'T00:00:00') < today) { setRecordError('跟进日期不能早于今天。'); return }
-    updateCase(selected.id, { status: '跟进中', records: [...selected.records, { id: uid(), date: nowLabel(), method, summary: summary.trim(), plan: plan.trim(), nextDate }] })
-    log(`新增干预记录 ${selected.id}（不记录内容）`)
-    setSummary(''); setPlan(''); setNextDate(''); setRecordError(''); setDetailTab('记录与跟进'); setToast('干预与跟进记录已保存到本次演示。')
+    if (!selected || selected.status !== '跟进中') return
+    if (!summary.trim() || !plan.trim() || !date) { fail('请填写沟通记录、跟进计划和日期。'); return }
+    if (/\[填写[^\]]*\]/.test(summary + plan)) { fail('请将模板中的填写提示替换为实际沟通内容，再保存。'); return }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < schoolToday()) { fail('请选择今天或以后的跟进日期。'); return }
+    update(selected, { observation: undefined, records: [...selected.records, { id: uid(), date: nowLabel(), method, summary: summary.trim(), plan: plan.trim(), nextDate: date, response: response.trim() || undefined, appointmentId: recordAppointment || undefined }] })
+    setResponse(''); setRecordAppointment(''); setTemplateChoice('')
+    setRecordStep(0); log(`新增服务记录 ${selected.id}`); setSummary(''); setPlan(''); setDate(''); setError(''); announce('服务记录已保存，跟进安排已更新。')
   }
-  const list = (items: CareCase[]) => <div className="case-list">{items.map(item => <button className="case-card" key={item.id} onClick={() => open(item)}><div className="row"><span className="case-student"><span className="avatar">{item.student.slice(-1)}</span><span><b>{item.student}</b><small>{item.studentId} · {item.group}</small></span></span><RiskTag risk={item.risk}/></div><p>{item.topic}</p><div className="row"><small>{item.time} · 样例</small><span className={`status status-${item.status}`}>{item.status} ›</span></div></button>)}{!items.length && <div className="empty"><Icon name="check"/><p>当前筛选下没有记录</p><small>换个条件查看，或等待新的授权预警。</small></div>}</div>
-  return <>
-    {page === 'workbench' && requests.length > 0 && <section className="teacher-support-requests"><SectionTitle title="学生主动联系" sub="来自倾诉空间 · 已获学生授权 · 本次演示"/>{requests.map(r => <article className="surface" key={r.id}><div className="row"><b>{r.studentName}</b><Tag>{r.status}</Tag></div><p>{r.topic}</p><small>{r.studentId} · {r.time}</small><p className="subtle">仅含联系事项，无聊天原文；这不是自动风险判定。</p><Button disabled={r.status === '已受理'} onClick={() => { acceptRequest(r.id); log('受理学生联系请求 ' + r.id) }}>{r.status === '已受理' ? '已受理' : '受理联系请求'}</Button></article>)}</section>}
+  const finish = () => {
+    if (!selected || selected.status !== '跟进中') return
+    if (!selected.records.length || !closureNote.trim()) { fail('请先保存服务记录，并填写结案说明。'); return }
+    if (escalationReason.trim()) { fail('请先保存或清空尚未保存的升级说明。'); return }
+    if (ownAppointments.some(item => item.caseId === selected.id && item.status === '已安排')) { fail('请先处理该学生尚未结束的咨询安排，再结案。'); return }
+    if (summary.trim() || plan.trim() || date || response.trim() || recordAppointment) { fail('请先保存或清空尚未保存的服务记录。'); return }
+    modal.confirm({ title: '确认本阶段结案？', content: '结案后记录保留为只读；如有新的支持需要，可重新跟进。', okText: '确认结案', cancelText: '继续跟进', onOk: () => { update(selected, { status: '已归档', closure: { note: closureNote.trim(), time: nowLabel() } }); log(`结案授权个案 ${selected.id}`); setClosureNote(''); setError(''); setToast('本阶段已结案。') } })
+  }
+  const simulate = () => {
+    if (simulated) return
+    const item: CareCase = { id: uid(), teacherId: session.id, student: '同学 E', studentId: 'S***091', group: '计算机专业 · 一年级', risk: '高', topic: '新状态变化，需要及时复核', time: nowLabel(), status: '待处理', source: '预警到达演示', summary: '虚构事件：近期状态发生变化，等待教师了解实际情况和支持需要。', signals: ['新状态变化待核实'], records: [] }
+    setCases(previous => [item, ...previous]); setSimulated(true); log('接收模拟预警事件'); setToast('收到一条模拟预警，已加入待复核列表。')
+  }
+  const visible = own.filter(item => (status === '全部' || (status === '到期跟进' ? item.status === '跟进中' && !!nextFollowUp(item) && nextFollowUp(item)! <= schoolToday() : item.status === status)) && (risk === '全部' || item.risk === risk) && `${item.student}${item.studentId}${item.group}${item.topic}`.includes(search.trim())).sort((a, b) => riskOrder[a.risk] - riskOrder[b.risk])
 
-    {page === 'workbench' && <>
-      <div className="page-heading"><span className="eyebrow">心理教师工作台 · 授权范围内</span><h1>{session.name}，你好</h1><p>从一条需要关注的变化，开始及时的支持。</p></div>
-      <section className="teacher-highlight"><div><span>待复核预警</span><b>{pending.length.toString().padStart(2, '0')}</b><p>其中 {pending.filter(c => c.risk === '高').length} 条高风险样例</p></div><Icon name="shield"/><Button onClick={() => go('alerts')}>查看并处理 ›</Button></section>
-      <div className="stats"><div><b>{active.length}</b><span>正在关注</span></div><div><b>{cases.filter(c => c.status === '跟进中').length}</b><span>持续跟进</span></div><div><b>{cases.filter(c => c.status === '已归档').length}</b><span>已归档</span></div></div>
-      <SectionTitle title="优先关注" sub="风险摘要需结合专业判断" action={<button className="text-button" onClick={() => go('alerts')}>全部 ›</button>}/>{list(pending.slice(0, 3))}
-      <section className="surface event-demo"><div className="row"><div><h3>预警到达演示</h3><p>体验高风险事件到达后的界面变化</p></div><Icon name="bell"/></div><Button block onClick={simulate} disabled={simulationSent}>{simulationSent ? '演示事件已接收' : '模拟接收高风险预警'}</Button>{toast && <p role="status" className="success-note">{toast}</p>}</section>
-      <section className="gentle-note"><Icon name="shield"/><p>仅显示授权学生的必要摘要与趋势。聊天原文不进入教师工作台。</p></section>
-    </>}
-    {page === 'alerts' && <>
-      <div className="page-heading"><h1>动态监测与预警</h1><p>高、中、低三级分类，按处理进度持续跟进。</p></div>
-      <div className="pills wide">{['全部', '高', '中', '低'].map(r => <button key={r} className={riskFilter === r ? 'selected' : ''} onClick={() => setRiskFilter(r)}>{r === '全部' ? '全部' : `${r}风险`}</button>)}</div>
-      <div className="filter-line"><Input aria-label="搜索授权学生" placeholder="搜索学生代称或脱敏编号" value={search} onChange={e => setSearch(e.target.value)}/><Select aria-label="预警处理状态" value={statusFilter} onChange={setStatusFilter} options={['全部状态', '待处理', '跟进中', '已归档'].map(value => ({ value, label: value }))}/></div>
-      {list(cases.filter(c => (riskFilter === '全部' || c.risk === riskFilter) && (statusFilter === '全部状态' || c.status === statusFilter) && (c.student + c.studentId).includes(search)))}
-      <DemoNote>风险级别来自虚构样例，不由前端分析真实学生对话。</DemoNote>
-    </>}
-    {page === 'archives' && <>
-      <div className="page-heading"><h1>干预与跟进档案</h1><p>留下必要记录，让每一次支持有迹可循。</p></div>
-      <div className="pills wide">{['全部状态', '跟进中', '已归档'].map(s => <button key={s} className={archiveFilter === s ? 'selected' : ''} onClick={() => setArchiveFilter(s)}>{s === '全部状态' ? '全部' : s}</button>)}</div>
-      {list(cases.filter(c => c.records.length > 0 && (archiveFilter === '全部状态' || c.status === archiveFilter)))}
-      <DemoNote>记录仅供授权心理教师使用，操作日志不包含辅导正文。</DemoNote>
-    </>}
-    {page === 'overview' && <>
-      <div className="page-heading"><h1>阶段工作概览</h1><p>授权范围内的汇总样例，支持心理服务工作回顾。</p></div>
-      <section className="surface"><div className="row"><h3>预警分布</h3><Tag>本次演示</Tag></div>{(['高', '中', '低'] as Risk[]).map(risk => <div className="risk-distribution" key={risk}><div className="row"><RiskTag risk={risk}/><small>{cases.filter(c => c.risk === risk).length} 条</small></div><Progress percent={Math.round(cases.filter(c => c.risk === risk).length / Math.max(1, cases.length) * 100)} showInfo={false} strokeColor={risk === '高' ? '#c9342b' : risk === '中' ? '#996000' : '#248a3d'}/></div>)}</section>
-      <SectionTitle title="服务进展"/><div className="stats"><div><b>{cases.length}</b><span>授权个案</span></div><div><b>{cases.reduce((n, c) => n + c.records.length, 0)}</b><span>干预记录</span></div><div><b>{cases.filter(c => c.status === '已归档').length}</b><span>完成归档</span></div></div>
-      <Alert type="info" title="汇总不代表全校情况" description="正式班级汇总的最小样本量、去标识化与访问范围由后端及学校政策确定。当前无真实班级数据。"/>
-    </>}
-    {page === 'profile' && <>
-      <section className="profile-banner"><span className="avatar">陈</span><div><h1>{session.name}</h1><p>{session.id}</p><Tag color="green">授权心理教师 · 演示</Tag></div></section>
-      <section className="surface spaced"><h3>当前访问范围</h3><div className="permission-row"><b>可查阅</b><span>授权个案趋势、三级预警摘要、阶段报告与干预档案</span></div><div className="permission-row"><b>不可查阅</b><span>原始聊天、未授权学生数据、系统角色管理</span></div><p className="subtle">真实访问控制必须由服务端实施。此处仅为前端角色页面演示。</p></section><Button block className="spaced" onClick={logout}>退出当前身份</Button>
-    </>}
-    <Sheet open={!!selected} onClose={() => setSelectedId(null)} title="授权个案详情">
-      {selected && <><div className="row"><div><h2 className="sheet-heading">{selected.student}</h2><p className="subtle">{selected.studentId} · {selected.id}</p></div><RiskTag risk={selected.risk}/></div><div className="pills wide">{['概览', '记录与跟进', '阶段报告'].map(t => <button className={detailTab === t ? 'selected' : ''} key={t} onClick={() => setDetailTab(t)}>{t}</button>)}</div>
-        {detailTab === '概览' && <><Alert type={selected.risk === '高' ? 'warning' : 'info'} title={`${selected.risk}风险样例 · ${selected.status}`} description={selected.topic}/><SectionTitle title="近期状态趋势" sub="授权摘要样例，不含聊天原文"/><Trend entries={initialMoods} metric="stress"/><div className="guidance"><h3>工作流程建议 · {selected.risk}风险 / {selected.topic}</h3><p>{selected.risk === '高' ? '优先由授权心理教师按学校既定流程复核，记录必要联系与处置情况，再制定跟进安排。' : selected.risk === '中' ? '结合状态趋势与专业判断安排沟通，明确下次联系时间，并持续记录变化。' : '按日常服务安排保持关注，记录学生愿意表达的支持需要与后续安排。'}</p><small>流程样例不是自动诊断或临床干预方案。</small></div><Button type="primary" block className="spaced" disabled={selected.status !== '待处理'} onClick={() => { updateCase(selected.id, { status: '跟进中' }); log(`接手预警 ${selected.id}`); setToast('已接手，进入跟进状态。') }}>{selected.status === '待处理' ? '接手并开始跟进' : selected.status}</Button><Button block className="spaced" onClick={() => setDetailTab('记录与跟进')}>填写干预与跟进记录</Button></>}
-        {detailTab === '阶段报告' && <><Tag color="green">授权报告摘要 · 样例</Tag><h3 className="spaced">2026.09.22 — 2026.09.28</h3><Trend entries={initialMoods}/><p>样例阶段内存在状态起伏，需结合实际沟通与专业判断理解。此摘要不含聊天原文，也不对学生作诊断结论。</p><div className="permission-row"><b>当前处理状态</b><span>{selected.status}</span></div><div className="permission-row"><b>已记录服务</b><span>{selected.records.length} 次干预/跟进记录</span></div></>}
-        {detailTab === '记录与跟进' && <><div className="record-timeline">{selected.records.length === 0 ? <p className="subtle">还没有干预记录，填写首次沟通与跟进安排。</p> : selected.records.map(r => <article key={r.id}><small>{r.date} · {r.method}</small><h3>过程记录</h3><p>{r.summary}</p><h3>后续计划</h3><p>{r.plan}</p><Tag>下次跟进 {r.nextDate}</Tag></article>)}</div>{selected.status !== '已归档' ? <form onSubmit={e => { e.preventDefault(); saveRecord() }}><SectionTitle title="新增干预记录"/><label className="field-label">沟通方式</label><Select aria-label="沟通方式" value={method} onChange={setMethod} options={['一对一面谈', '电话联系', '线上沟通', '跟进回访'].map(value => ({ value, label: value }))}/><label className="field-label" htmlFor="care-summary">过程记录</label><Input.TextArea id="care-summary" placeholder="仅填写必要的专业服务记录；请勿复制聊天原文" rows={3} value={summary} maxLength={1000} onChange={e => setSummary(e.target.value)}/><label className="field-label" htmlFor="care-plan">后续跟进计划</label><Input.TextArea id="care-plan" rows={2} value={plan} maxLength={500} onChange={e => setPlan(e.target.value)}/><label className="field-label" htmlFor="care-date">下次跟进日期</label><Input id="care-date" type="date" value={nextDate} onChange={e => setNextDate(e.target.value)}/>{recordError && <p className="error-text" role="alert">{recordError}</p>}<Button block type="primary" htmlType="submit" className="spaced">保存干预记录</Button>{selected.records.length > 0 && <div className="archive-action"><Checkbox checked={archiveConfirm} onChange={e => setArchiveConfirm(e.target.checked)}>已完成专业复核，本阶段服务可以归档（演示）</Checkbox><Button block disabled={!archiveConfirm} className="spaced" onClick={() => { updateCase(selected.id, { status: '已归档' }); log(`归档授权个案 ${selected.id}`); setToast('本阶段档案已归档。') }}>完成本阶段归档</Button></div>}</form> : <Alert type="success" title="本阶段已归档" description="记录以只读形式保留。"/>}</>}
-        {toast && <p role="status" className="success-note">{toast}</p>}
-        <DemoNote>仅保存到当前演示会话，不向真实教师或学生发送信息。</DemoNote>
-      </>}
-    </Sheet>
-  </>
+  const saveAppointment = (value: Appointment) => {
+    setAppointments(previous => previous.some(item => item.id === value.id) ? previous.map(item => item.id === value.id ? value : item) : [...previous, value])
+    log(booking?.appointment ? '重新发送约谈邀请 ' + value.id : '发送约谈邀请 ' + value.id)
+    setBooking(null); setToast('约谈邀请已保存，等待学生确认（演示）。'); if (!selected) go('schedule')
+  }
+  const navigate = (destination: 'triage' | 'care' | 'schedule', filter = '全部') => { setStatus(filter); setRisk('全部'); setSearch(''); go(destination) }
+  return <ConfigProvider theme={productTheme}>
+    <TeacherLayout page={page} go={go} session={session} pending={pending.length}>{contextHolder}
+      {page === 'workbench' && <Workbench items={own} appointments={ownAppointments} open={open} navigate={navigate} book={() => setBooking({})} inbox={() => setInbox(true)}/>}
+      {page === 'triage' && <Triage items={own} open={open} simulate={simulate} simulated={simulated}/>}
+      {page === 'care' && <Roster items={visible} open={open} search={search} setSearch={setSearch} status={status} setStatus={setStatus} risk={risk} setRisk={setRisk} book={() => setBooking({})}/>}
+      {page === 'schedule' && <Schedule appointments={ownAppointments} items={own} open={open} onBook={setBooking} onStatus={(item, nextStatus) => { setAppointments(previous => previous.map(value => value.id === item.id && value.teacherId === session.id ? { ...value, status: nextStatus } : value)); log('更新咨询状态 ' + item.id + ' ' + nextStatus) }}/>}
+      {page === 'profile' && <TeacherSettings session={session} count={own.length} reminders={reminders} setReminders={setReminders} logout={logout}/>}
+      {toast && !selected && <p role="status" className="tw-toast">{toast}</p>}
+    </TeacherLayout>
+    {booking && <BookingDialog booking={booking} items={own} appointments={ownAppointments} session={session} onClose={() => setBooking(null)} onSave={saveAppointment}/>}
+    <Drawer rootClassName="teacher-overlay" className="tw-drawer" placement="right" size="min(480px, 100vw)" title="服务提醒" open={inbox} onClose={() => setInbox(false)}><section className="tw-notice-section"><h3>约谈改期申请</h3>{ownAppointments.filter(item => item.status === '已安排' && item.responseStatus === '申请改期').map(item => <button key={item.id} className="tw-task" onClick={() => { setInbox(false); setBooking({ appointment: item }) }}><span><b>{own.find(student => student.id === item.caseId)?.student} · 申请改期</b><small>{item.changeRequest?.day} {item.changeRequest?.start}</small></span></button>)}<h3>待复核预警 · {pending.length}</h3>{pending.map(item => <button className="tw-task" key={item.id} onClick={() => { setInbox(false); open(item) }}><span><b>{item.student} · {attentionNames[item.risk]}</b><small>{item.topic}</small></span></button>)}<h3>到期跟进 · {due.length}</h3>{due.map(item => <button className="tw-task" key={item.id} onClick={() => { setInbox(false); open(item, item.observation ? '状态概览' : '服务记录') }}><span><b>{item.student} · {item.observation ? '观察复核' : '跟进回访'}</b><small>{nextFollowUp(item)}</small></span></button>)}{requests.length > 0 && <><h3>授权联系请求</h3>{requests.map(item => <section key={item.id}><b>{item.studentName}</b><p>{item.topic}</p><Button disabled={item.status === '已受理'} onClick={() => { acceptRequest(item.id); log('受理联系请求 ' + item.id) }}>{item.status === '已受理' ? '已受理' : '受理请求'}</Button></section>)}</>}<p className="teacher-footnote">工作待办演示，不代表实时通知。</p></section></Drawer>
+    <Drawer zIndex={1100} rootClassName="teacher-overlay" className="tw-drawer tw-case-drawer tw-native-detail" placement="right" size="min(480px, 100vw)" title="学生支持档案" open={!!selected} onClose={() => close()} destroyOnHidden>
+      {selected && <div className="teacher-detail"><div className="teacher-detail-identity"><span className="avatar">{selected.student.slice(-1)}</span><div><h2>{selected.student}</h2><p>{selected.studentId} · {selected.group}</p></div></div><div className="teacher-detail-meta"><span className={`teacher-attention attention-${selected.risk}`}>{attentionNames[selected.risk]}</span><Tag>{statusNames[selected.status]}</Tag></div>
+        <div className="tw-detail-actions"><Button type="primary" disabled={selected.status !== '跟进中' || !selected.review} onClick={() => close(() => setBooking({ caseId: selected.id }))}>约谈该学生</Button><Button onClick={() => close(() => go('schedule'))}>查看咨询日程</Button></div>
+        <div className="teacher-status-tabs">{['状态概览', '服务记录'].map(value => <button key={value} className={tab === value ? 'selected' : ''} aria-pressed={tab === value} onClick={() => { setTab(value); setError('') }}>{value}</button>)}</div>
+        <div id="teacher-feedback" tabIndex={-1} className="tw-detail-feedback">{error && <Alert type="error" showIcon title={error}/>} {toast && <Alert type="success" showIcon title={toast}/>}</div>
+        {tab === '状态概览' && <>
+          <SectionTitle title="发生了什么"/><section className="teacher-summary tw-event-summary"><h3>{selected.topic}</h3><p>{selected.summary || '暂无状态摘要，需通过沟通了解实际支持需要。'}</p><dl className="tw-event-meta"><div><dt>信息来源</dt><dd>{selected.source || '授权状态摘要 · 模拟'}</dd></div><div><dt>摘要时间</dt><dd>{selected.time} · 北京时间</dd></div></dl></section>
+          <div className="tw-detail-provenance"><b>数据范围</b><span>授权状态摘要 · 当前教师负责 · 模拟数据</span></div><div className="tw-case-next"><span><small>下一步</small><b>{selected.status === '待处理' ? '核实摘要，填写教师复核结论' : selected.status === '跟进中' ? selected.observation ? '按观察计划复核学生状态' : selected.records.at(-1)?.nextDate ? '按跟进计划回访并保存服务记录' : '记录沟通，安排下一次跟进' : '本阶段服务已完成，记录保留'}</b></span>{selected.status !== '已归档' && <Button type="link" onClick={() => { const reviewing = selected.status === '待处理' || !!selected.observation; if (selected.observation) update(selected, { status: '待处理' }); const target = reviewing ? 'teacher-review-form' : 'teacher-record-form'; setTab(reviewing ? '状态概览' : '服务记录'); requestAnimationFrame(() => { document.getElementById(target)?.scrollIntoView({ block: 'start' }); document.querySelector<HTMLTextAreaElement>(reviewing ? '#review-note' : '#care-summary')?.focus({ preventScroll: true }) }) }}>{selected.status === '待处理' || selected.observation ? '去复核' : '写记录'}</Button>}</div><SectionTitle title="变化线索"/><div className="teacher-signals">{selected.signals?.map(signal => <Tag key={signal}>{signal}</Tag>) || <p className="subtle">暂无额外线索。</p>}</div>
+          <SectionTitle title="近期状态变化" sub="模拟压力趋势 · 1–5，数值越高表示压力越高"/>{selected.trend?.length ? <Trend entries={selected.trend} metric="stress"/> : <p className="teacher-empty">暂无可展示的趋势数据。</p>}
+          <p className="teacher-helper">AI 摘要用于辅助复核，请结合实际沟通判断学生的支持需要。</p>
+          <EscalationForm key={selected.id} item={selected} reason={escalationReason} setReason={setEscalationReason} onEscalate={(reason, recipient) => { update(selected, { escalations: [...(selected.escalations || []), { id: uid(), reason, recipient, time: nowLabel(), acknowledged: false }] }); log('新增升级事项 ' + selected.id); announce('升级记录已保存，等待接收确认（演示）。') }} onAcknowledge={id => { update(selected, { escalations: selected.escalations?.map(event => event.id === id ? { ...event, acknowledged: true } : event) }); log('模拟确认升级接收 ' + selected.id) }}/>
+          {selected.observation && <section className="teacher-review-result"><h3>继续观察 · 下次复核 {selected.observation.nextDate}</h3><p>{selected.observation.note}</p><Button onClick={() => { update(selected, { status: '待处理' }); setTab('状态概览'); setToast('请填写本次复核说明。') }}>再次复核</Button></section>}
+          {selected.review && <section className="teacher-review-result"><h3>教师复核 · {selected.review.conclusion}</h3><p>{selected.review.note}</p><small>{selected.review.time}</small></section>}
+          {selected.status === '待处理' && <form id="teacher-review-form" onSubmit={event => { event.preventDefault(); review(true) }}><SectionTitle title="复核处理"/><label className="field-label" htmlFor="review-note">复核 / 观察说明</label><Input.TextArea id="review-note" rows={3} maxLength={500} showCount placeholder="填写已核实的情况及处理理由" value={reviewNote} onChange={event => { setReviewNote(event.target.value); setToast(''); setError('') }}/><p className="staff-required-hint">{reviewNote.trim()?'复核说明已填写，可选择处理方式。':'请先填写复核说明。'}</p><Button type="primary" block htmlType="submit" className="spaced" disabled={!reviewNote.trim()}>确认需要跟进，接手处理</Button><label className="field-label" htmlFor="observation-date">下次复核日期（继续观察时必填）</label><Input id="observation-date" type="date" min={schoolToday()} value={observationDate} onChange={event => { setObservationDate(event.target.value); setError('') }}/><p className="staff-required-hint">{!observationDate?'继续观察需填写下次复核日期。':observationDate<schoolToday()?'复核日期不能早于今天。':'复核日期已填写。'}</p><Button block className="spaced" disabled={!reviewNote.trim()||!observationDate||observationDate<schoolToday()} onClick={() => review(false)}>继续观察，安排复核</Button></form>}
+          {selected.status === '跟进中' && <Button type="primary" block className="spaced" onClick={() => setTab('服务记录')}>记录干预与跟进</Button>}
+        </>}
+        {tab === '服务记录' && <>
+          <TeacherHistory key={historyVersion} item={selected} onShowEscalation={() => { setTab('状态概览'); requestAnimationFrame(() => document.getElementById('teacher-escalation')?.scrollIntoView({ block: 'start' })) }}/>
+          {selected.status === '待处理' && <Alert type="info" title="请先完成状态复核" action={<Button onClick={() => setTab('状态概览')}>去复核</Button>}/>}
+          {selected.status === '跟进中' && <>
+            <form noValidate id="teacher-record-form" className="teacher-record-form" onSubmit={event => { event.preventDefault(); if(recordStep===0){if(recordNextReady)setRecordStep(1)}else saveRecord() }}><SectionTitle title="新增服务记录"/><StaffFormSteps labels={['沟通情况','跟进安排']} step={recordStep}/><fieldset hidden={recordStep!==0}><div className="tw-template-picker"><label className="field-label">记录模板（选填）</label><div><Select aria-label="记录模板" value={templateChoice || undefined} placeholder="选择模板，或直接填写" allowClear onChange={value => setTemplateChoice(value || '')} options={recordTemplates.map(value => ({ value: value.id, label: value.name }))}/><Button disabled={!templateChoice} onClick={applyTemplate}>填入模板</Button></div><p>仅提供填写结构，请依据实际沟通修改；模板不会自动保存。</p></div>{ownAppointments.some(item => item.caseId === selected.id && item.status === '已完成') && <><label className="field-label">关联已完成咨询</label><Select aria-label="关联咨询记录" value={recordAppointment || undefined} placeholder="可选择待补记录的会谈" allowClear onChange={value => setRecordAppointment(value || '')} options={ownAppointments.filter(item => item.caseId === selected.id && item.status === '已完成' && !selected.records.some(record => record.appointmentId === item.id)).map(item => ({ value: item.id, label: `${item.day} ${item.start} · ${item.method}` }))}/></>}<label className="field-label">沟通方式</label><Select aria-label="沟通方式" value={method} onChange={setMethod} options={['一对一面谈', '电话联系', '线上沟通', '跟进回访'].map(value => ({ value, label: value }))}/><label className="field-label" htmlFor="care-summary">沟通记录</label><Input.TextArea id="care-summary" value={summary} onChange={event => { setSummary(event.target.value); setToast(''); setError('') }} rows={3} maxLength={1000} placeholder="记录必要的沟通情况与支持措施，请勿复制聊天原文"/><label className="field-label" htmlFor="care-response">学生反馈（选填）</label><Input.TextArea id="care-response" rows={2} maxLength={500} value={response} onChange={event => { setResponse(event.target.value); setToast(''); setError('') }} placeholder="记录学生对本次支持的反馈"/></fieldset><fieldset hidden={recordStep!==1}><label className="field-label" htmlFor="care-plan">跟进计划</label><Input.TextArea id="care-plan" value={plan} onChange={event => { setPlan(event.target.value); setToast(''); setError('') }} rows={2} maxLength={500} placeholder="下一次需要了解什么、提供哪些支持"/><label className="field-label" htmlFor="care-date">下次跟进日期</label><Input id="care-date" type="date" min={schoolToday()} value={date} onChange={event => { setDate(event.target.value); setToast(''); setError('') }}/></fieldset><p className="tw-draft-hint">{summary || plan || date || response || recordAppointment ? '内容尚未保存 · 离开前请保存或放弃修改' : '填写本次沟通与后续支持安排'}</p><p className="staff-required-hint" aria-live="polite">{recordStep===0 ? recordNextReady?'沟通情况已填写，可继续安排跟进。':'请填写沟通记录，并替换模板中的填写提示。' : recordMissing.length?'还需完成：'+recordMissing.join('、'):'必填项已完整，可以保存。'}</p><div className="staff-step-actions">{recordStep===1 && <Button onClick={()=>setRecordStep(0)}>上一步</Button>}<Button type="primary" htmlType="submit" disabled={recordStep===0?!recordNextReady:recordMissing.length>0}>{recordStep===0?'下一步：跟进安排':'保存记录与跟进安排'}</Button></div></form>
+            <details className="teacher-close-section"><summary>结束本阶段服务</summary><label className="field-label" htmlFor="closure-note">结案说明</label><Input.TextArea id="closure-note" rows={2} maxLength={500} placeholder="说明本阶段结束的依据与后续安排" value={closureNote} onChange={event => setClosureNote(event.target.value)}/><Button block className="spaced" onClick={finish}>确认结案</Button></details>
+          </>}
+        </>}
+        {selected.status === '已归档' && <section className="teacher-review-result"><h3>本阶段已结案</h3><p>{selected.closure?.note || '本阶段服务已完成。'}</p><small>{selected.closure?.time}</small><Button block className="spaced" onClick={() => modal.confirm({ title: '重新开始跟进？', content: '原有记录保留，请为新的支持需要安排回访。', okText: '重新跟进', cancelText: '取消', onOk: () => { update(selected, { status: '跟进中', closure: undefined }); log(`重新跟进授权个案 ${selected.id}`); setTab('服务记录'); setToast('已重新进入跟进状态。') } })}>重新跟进</Button></section>}
+        <p className="teacher-footnote">授权摘要样例 · 不含私人聊天原文</p>
+      </div>}
+    </Drawer>
+  </ConfigProvider>
 }
-

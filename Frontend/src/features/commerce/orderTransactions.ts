@@ -2,13 +2,14 @@ import type { ShopOrder } from './commerce'
 import type { SnackShop } from '../../data/snackData'
 
 export type CommerceState = { shops:SnackShop[]; orders:ShopOrder[] }
-type Actor = { role:string; id:string; shopId?:string } | null
+type Actor = { role:string; id:string; shopId?:string; canManageShop?:boolean } | null
 const fail = (state:CommerceState, error:string) => ({ state, error })
 
 export function placeOrderTransaction(state:CommerceState, order:ShopOrder, actor:Actor) {
   if (actor?.role !== 'student' || actor.id !== order.studentId) return fail(state,'请先以学生身份登录。')
   if (state.orders.some(o => o.id === order.id)) return fail(state,'订单已提交，请勿重复提交。')
   const shop = state.shops.find(s => s.id === order.shopId)
+  if (shop?.isOpen === false || shop?.adminSuspended) return fail(state,'店铺已暂停营业，请选择其他店铺。')
   if (!shop || !order.items.length || order.status !== '待接单') return fail(state,'订单无效，请重新选购。')
   const seen = new Set<string>()
   for (const item of order.items) {
@@ -31,7 +32,7 @@ export function changeOrderTransaction(state:CommerceState, id:string, status:Sh
   const order = state.orders.find(o => o.id === id)
   if (!order) return fail(state,'订单不存在。')
   const student = actor?.role === 'student' && actor.id === order.studentId
-  const merchant = actor?.role === 'merchant' && actor.shopId === order.shopId
+  const merchant = actor?.shopId === order.shopId && (actor.role === 'merchant' || (actor.role === 'student' && actor.canManageShop === true && state.shops.some(s => s.id === order.shopId && s.ownerId === actor.id)))
   if (!merchant && !(student && status === '已取消')) return fail(state,'无权操作这笔订单。')
   const next = order.status === '待接单' ? ['备货中','已取消'] : order.status === '备货中' ? [order.mode === '送货上门' ? '配送中' : '待自提'] : ['配送中','待自提'].includes(order.status) ? ['已完成'] : []
   if (!next.includes(status)) return fail(state,'订单状态已变化，当前无法执行此操作。')

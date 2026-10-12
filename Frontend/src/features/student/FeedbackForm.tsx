@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Alert, Button, Image, Input } from 'antd'
 import './FeedbackForm.css'
 
-export type FeedbackRecord = { text: string; images: string[] }
+export type FeedbackRecord = { text: string; images: string[]; status?: string; reply?: string; time?: string }
 type Props = {
   text: string
   setText: (text: string) => void
@@ -77,12 +77,12 @@ export function FeedbackForm({ text, setText, images, setImages, records, save }
       {error && <p className="error-text" role="alert">{error}</p>}
     </section>
     <p className="feedback-form-hint">可直接附图反馈；未附图时，请至少填写 5 个字。</p>
-    <Button block type="primary" htmlType="submit" disabled={!canSave} loading={reading}>保存本次反馈</Button>
-    <p className="demo-note">文字和图片仅保留在本次体验中，尚未发送给客服。</p>
-    {records.length > 0 && <><Alert type="success" title="反馈已保存在本次体验中"/><h3>我的反馈</h3>{records.map((record, index) => <article className="profile-feedback-item" key={index}>
+    <Button block type="primary" htmlType="submit" disabled={!canSave} loading={reading}>提交反馈</Button>
+    <p className="demo-note">反馈提交到本次演示的管理员端，可在下方查看处理状态和回复。</p>
+    {records.length > 0 && <><Alert type="success" title="反馈已提交"/><h3>我的反馈</h3>{records.map((record, index) => <article className="profile-feedback-item" key={index}>
       {record.text && <p>{record.text}</p>}
       {record.images.length > 0 && <div className="feedback-image-grid"><Image.PreviewGroup preview={{ zIndex: 4000 }}>{record.images.map((src, i) => <div className="feedback-image" key={i}><Image src={src} alt={`已保存反馈图片 ${i + 1}`} width="100%" height="100%"/></div>)}</Image.PreviewGroup></div>}
-      <small>本次记录 · 未发送</small>
+      <small>{record.time} · {record.status || '待处理'}</small>{record.reply && <div className="feedback-admin-reply"><b>管理员回复</b><p>{record.reply}</p></div>}
     </article>)}</>}
   </form>
 }

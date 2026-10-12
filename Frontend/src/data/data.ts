@@ -14,8 +14,6 @@ export const initialCases: CareCase[] = [
   { id: 'CASE-003', student: '同学 C', studentId: 'S***052', group: '电子信息专业 · 一年级', risk: '低', topic: '日常状态观察', time: '09-27 14:00', status: '跟进中', records: [] },
 ]
 export const initialAccounts: Account[] = [
-  { id: 'M-DEMO-01', name: '下课零食社店长', role: 'merchant', enabled: true },
-  { id: 'M-DEMO-02', name: '小麦面包房店长', role: 'merchant', enabled: true },
   { id: 'A-DEMO-01', name: '平台管理员', role: 'admin', enabled: true },
   { id: 'T-DEMO-01', name: '陈老师', role: 'teacher', enabled: true },
   { id: 'T-DEMO-02', name: '李老师', role: 'teacher', enabled: false },

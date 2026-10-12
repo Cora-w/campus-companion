@@ -1,0 +1,92 @@
+/* Staff surfaces only: the login and student UI remain unchanged. */
+.teacher-shell-host,.teacher-overlay,.admin-shell-host,.admin-editor,.admin-records,.admin-service-editor,.staff-help-overlay {
+  --staff-line:#e2dfda; --staff-muted:#706c66; --staff-panel:#fff;
+}
+.staff-help-button { width:44px; height:44px; display:grid; place-items:center; padding:10px; color:var(--staff-muted); border-radius:8px; }
+.staff-help-button svg { width:21px; height:21px; }
+.admin-page-back { display:grid; place-items:center; width:40px; min-height:44px; color:var(--brand-primary); padding:9px; flex-shrink:0; }
+.staff-help-overlay { --brand-canvas:#f6f5f3; --brand-soft:#f2f0ed; --brand-border:#e2dfda; }
+.staff-help-overlay .ant-drawer-content-wrapper,.staff-account-overlay .ant-drawer-content-wrapper { right:max(0px,calc((100vw - 480px)/2))!important; width:min(480px,100vw)!important; box-shadow:none; }
+.staff-help-drawer .ant-drawer-header { padding:12px 16px; border-color:var(--staff-line); }
+.staff-help-drawer .ant-drawer-body { background:#f6f5f3; padding:20px; }
+.staff-help-topic { background:#fff; border:1px solid var(--staff-line); padding:16px; border-radius:10px; margin-bottom:14px; }
+.staff-help-topic h2 { font-size:15px; font-weight:600; margin:0 0 8px; }
+.staff-help-topic p { font-size:13px; line-height:1.8; color:#706c66; margin:0; }
+.staff-content-actions { display:flex; gap:10px; justify-content:flex-end; margin:0 0 16px; }
+.staff-content-actions .ant-btn { display:flex; align-items:center; gap:6px; min-height:44px; }
+.staff-content-actions svg { width:17px; height:17px; }
+.staff-reminder-entry { display:flex; align-items:center; gap:6px; min-height:44px; color:var(--staff-muted); padding:0 4px; font-size:12px; }
+.staff-reminder-entry svg { width:17px; height:17px; }
+.tw-shell.tw-native.tw-refresh .tw-focus-heading { margin-bottom:12px; }
+.tw-refresh .tw-priority-banner strong,.tw-refresh .tw-followup-entry strong { font-family:Arial,sans-serif; font-variant-numeric:tabular-nums; }
+.tw-refresh .tw-icon-button { width:44px; height:44px; }
+.tw-shell.tw-native.tw-refresh .tw-today-panel .tw-panel-title { margin-bottom:14px; }
+.tw-shell.tw-native.tw-refresh .tw-today-panel .staff-agenda-add { display:flex; align-items:center; gap:6px; min-height:44px; height:44px; padding:0 12px; border-radius:8px; background:#fff; color:var(--brand-primary); font-size:13px; }
+.staff-agenda-add svg { width:16px; height:16px; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row { display:grid; grid-template-columns:56px minmax(0,1fr) 16px; align-items:start; gap:14px; padding:16px; margin:0 0 14px; border:1px solid var(--staff-line); border-radius:8px; background:#faf9f7; text-align:left; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row > span { margin:0; min-width:0; line-height:1.6; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-time { padding-right:10px; border-right:1px solid var(--staff-line); }
+.tw-shell.tw-native.tw-refresh .staff-agenda-time b { font-family:Arial,sans-serif; font-size:15px; font-weight:600; color:var(--brand-text); line-height:1.6; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-time small { color:var(--staff-muted); font-size:12px; margin:5px 0 0; font-weight:400; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-body b { color:var(--brand-text); font-size:14px; line-height:1.7; font-weight:600; overflow-wrap:anywhere; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-body small { color:var(--staff-muted); font-size:12px; line-height:1.75; font-weight:400; margin:6px 0 0; overflow-wrap:anywhere; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-body .ant-tag { margin:10px 0 0; color:#5e665e; background:#eef1ed; border:0; font-size:11px; line-height:20px; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row > svg { width:15px; height:15px; color:var(--staff-muted); align-self:center; }
+.admin-shell-host .campus-service-item[role='button'],.admin-shell-host .admin-shop-students article[role='button'] { cursor:pointer; }
+.admin-shell-host .campus-service-item[role='button'] .staff-row-link { display:block; text-align:right; margin-top:12px; }
+.tw-refresh .tw-mobile-workbench > .staff-content-actions { order:0; margin-bottom:0; }
+.tw-refresh .tw-focus-panel { order:1; }
+.tw-shell.tw-native.tw-refresh .tw-page-heading h1 { font-size:26px; font-weight:600; letter-spacing:-.4px; }
+.tw-shell.tw-native.tw-refresh .tw-roster-summary { display:block; overflow:visible; -webkit-line-clamp:unset; }
+.tw-shell.tw-native.tw-refresh .tw-roster-summary > small,.tw-roster-latest > small { display:block; font-size:11px; font-weight:500; color:#706c66; margin-bottom:5px; }
+.tw-roster-latest { display:block; padding-top:12px; margin:14px 0; border-top:1px solid var(--staff-line); color:#494641; font-size:13px; line-height:1.75; }
+.tw-shell.tw-native.tw-refresh .tw-triage-list p { display:block; -webkit-line-clamp:unset; overflow:visible; }
+.tw-shell.tw-native.tw-refresh .tw-triage-item-header { align-items:flex-start; flex-wrap:wrap; }
+.tw-shell.tw-native.tw-refresh .tw-triage-item-header > small { font-size:11px; margin-top:4px; }
+.tw-shell.tw-native.tw-refresh .tw-triage-page .tw-filter-tabs { width:100%; }
+.tw-shell.tw-native.tw-refresh .tw-attention-filter { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.tw-shell.tw-native.tw-refresh .tw-attention-filter > span { color:var(--staff-muted); font-size:12px; }
+.tw-shell.tw-native.tw-refresh .tw-attention-filter .ant-select { width:174px; min-height:44px; }
+.tw-shell.tw-native.tw-refresh .tw-triage-list h3 { font-size:17px; font-weight:600; }
+.tw-refresh .tw-alert-case { cursor:pointer; }
+.tw-shell.tw-native.tw-refresh .tw-triage-item-footer { align-items:center; gap:12px; }
+.staff-row-link { font-size:12px!important; color:var(--brand-primary)!important; white-space:nowrap; margin-left:auto; }
+.admin-shell-host .admin-heading h1 { font-size:26px; font-weight:600; letter-spacing:-.4px; }
+.admin-shell-host .admin-panel,.admin-shell-host .admin-summary { border-radius:10px; border-color:var(--staff-line); box-shadow:none; }
+.admin-shell-host .admin-brandmark { border-radius:8px; }
+.admin-shell-host .admin-topbar-title b { font-weight:600; }
+.admin-shell-host .admin-account-list article { position:relative; cursor:pointer; padding:18px 0; grid-template-columns:36px minmax(0,1fr) auto; border-color:var(--staff-line); }
+.admin-shell-host .admin-account-status { grid-column:2/-1; width:100%; margin-top:0; }
+.staff-account-state { color:#706c66; font-size:12px; }
+.staff-account-state::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:#548366; margin-right:6px; }
+.staff-account-state.disabled::before { background:#aaa49b; }
+.admin-shell-host .admin-account-identity > small { font-size:12px; color:#706c66; }
+.admin-shell-host .admin-account-list .ant-tag { font-size:11px; }
+.admin-shell-host .admin-list-caption { font-size:12px; color:#706c66; }
+.admin-shell-host .admin-list-caption > span { display:none; }
+.admin-shell-host .admin-panel-heading h2 { font-size:15px; font-weight:600; }
+.admin-shell-host .admin-panel-heading .ant-btn { min-height:44px; height:44px; padding:0 14px; font-size:13px; color:var(--brand-primary); }
+.admin-shell-host .admin-panel-heading .ant-btn-primary { color:#fff; }
+.admin-shell-host .admin-heading p { font-size:13px; color:#706c66; }
+.staff-account-detail h2 { font-size:22px; font-weight:600; margin:4px 0 20px; }
+.staff-detail-fields { margin:0 0 24px; }
+.staff-detail-fields > div { display:grid; grid-template-columns:64px minmax(0,1fr); gap:12px; padding:16px 0; border-bottom:1px solid var(--staff-line); font-size:14px; }
+.staff-detail-fields dt { color:#706c66; }.staff-detail-fields dd { margin:0; overflow-wrap:anywhere; }
+.staff-detail-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.staff-form-steps { list-style:none; margin:0 0 20px; padding:0; display:flex; gap:12px; }
+.staff-form-steps li { display:flex; align-items:center; flex:1; gap:7px; color:#706c66; font-size:12px; min-width:0; }
+.staff-form-steps li > span { width:23px; height:23px; display:grid; place-items:center; border:1px solid var(--staff-line); border-radius:50%; font-size:11px; flex-shrink:0; }
+.staff-form-steps li b { font-weight:400; }.staff-form-steps li.active { color:var(--brand-primary); }
+.staff-form-steps li.active > span { background:var(--brand-primary); border-color:var(--brand-primary); color:#fff; }
+.staff-form-steps li.complete > span { color:var(--brand-primary); border-color:var(--brand-primary); }
+.staff-step-actions { display:flex; align-items:center; gap:10px; margin-top:18px; }.staff-step-actions .ant-btn:last-child { margin-left:auto; }
+.staff-required-hint { color:#706c66; font-size:12px; line-height:1.7; margin:12px 0 0; }
+.teacher-overlay [hidden],.admin-editor [hidden] { display:none!important; }
+.teacher-overlay fieldset { border:0; padding:0; margin:0; min-width:0; }
+.teacher-overlay .staff-field-error { font-size:12px; color:#ad372b; margin-top:8px; line-height:1.7; }
+.teacher-overlay .tw-dialog-footer .ant-btn > span { color:inherit; }
+.teacher-overlay .tw-detail-feedback .ant-alert,.admin-shell-host .admin-feedback { font-size:13px; padding:10px 12px; border-radius:8px; }
+.teacher-shell-host .ant-btn,.teacher-overlay .ant-btn,.admin-shell-host .ant-btn,.admin-editor .ant-btn,.admin-service-editor .ant-btn { border-radius:8px; }
+.admin-shell-host [role='button']:focus-visible,.tw-refresh [role='button']:focus-visible { outline:2px solid var(--brand-primary); outline-offset:4px; }
+@media(hover:hover) { .admin-account-list article[role='button']:hover,.tw-refresh .tw-alert-case:hover { background:#faf9f7; } }
+@media(max-width:360px) { .tw-shell.tw-native.tw-refresh .tw-page-heading h1 { font-size:25px; }.staff-form-steps { gap:8px; }.staff-form-steps li { font-size:11px; gap:5px; } }

@@ -40,7 +40,7 @@ await ev("document.querySelector('.profile-campus-pass').click()");await wait();
 await click('草稿箱');await fill('#post-title','草稿测试');await click('我的');await click('草稿箱');await check("document.querySelector('#post-title').value==='草稿测试'",'resume draft');await click('我的');
 await ev("document.querySelector('.personal-stats button:nth-child(3)').click()");await wait();await check("document.querySelector('.ant-drawer-open').textContent.includes('我赞过的')",'liked panel');await close();
 await ev("document.querySelector('.profile-order-entry').click()");await wait();await check("document.querySelector('.ant-drawer-open').textContent.includes('还没有零食订单')",'order empty state');await close();
-await click('帮助与反馈');await click('提出建议或反馈问题');await fill('.profile-editor textarea','希望增加更多校园服务');await click('保存本次反馈');await check("document.querySelector('.profile-feedback-item').textContent.includes('希望增加更多校园服务')",'feedback saved');await close();
+await click('帮助与反馈');await click('提出建议或反馈问题');await fill('.profile-editor textarea','希望增加更多校园服务');await click('提交反馈');await check("document.querySelector('.profile-feedback-item').textContent.includes('希望增加更多校园服务')",'feedback saved');await close();
 await click('打开设置');await ev("document.querySelector('.profile-settings>button:not(.ant-btn)').click()");await wait();await click('确认清空');await click('退出当前身份');await click('取消');await close();
 for(const width of [320,390,430]){await resize(width);await check('document.documentElement.scrollWidth<=innerWidth',width+' fits');await shot('profile-'+width)}
 if(browserErrors.length)throw Error(browserErrors.join(';'));ws.close();console.log('Profile checks passed');

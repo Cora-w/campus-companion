@@ -6,7 +6,7 @@ import './HotPosts.css'
 
 export function HotPosts({ posts, openPost, blocked, openShop }: { posts: CampusPost[]; openPost: (post: CampusPost) => void; blocked: boolean; openShop: (id: string) => void }) {
  const { promotion, shops } = useCommerce()
- const store = shops.find(s=>s.id==='afterclass')
+ const store = shops.find(s=>s.id==='afterclass'&&s.isOpen!==false)
  const count = Math.max(1, posts.length + Number(promotion.enabled && !!store))
  const [index,setIndex]=useState(0)
  const current=index%count

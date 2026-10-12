@@ -51,7 +51,7 @@ await ev("Storage.prototype.setItem=window.originalStorageSetItem;delete window.
 await click('确认学校，进入校园');await wait(800)
 await check("!!document.querySelector('.wall-feed') && document.querySelector('.bound-school').innerText.includes('四川航天职业技术学院')",'school binding unlocks own campus')
 await call('Page.reload');await wait(1600)
-await check("!!document.querySelector('.wall-feed') && !document.querySelector('.school-picker')",'restored login retains school')
+await check("!!document.querySelector('#login-account') && !document.querySelector('.wall-feed')",'refresh returns to login'); await login(); await check("!!document.querySelector('.wall-feed') && !document.querySelector('.school-picker')",'explicit login retains school')
 await ev("Object.keys(localStorage).filter(k=>k.startsWith('campus-login-v1:')).forEach(k=>localStorage.removeItem(k))")
 await call('Page.reload');await wait(800);await login()
 await check("!!document.querySelector('.wall-feed') && !document.querySelector('.school-picker')",'school survives logout and fresh login')

@@ -16,3 +16,5 @@
 .feedback-form .feedback-form-hint { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
 .feedback-form .profile-feedback-item { white-space: normal; }
 .feedback-form .profile-feedback-item > p { margin: 0 0 14px; white-space: pre-wrap; line-height: 1.8; font-size: 13px; }
+
+.feedback-admin-reply{padding:14px;background:var(--surface-secondary);border-radius:10px;margin-top:12px}.feedback-admin-reply b{font-size:12px}.feedback-admin-reply p{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}

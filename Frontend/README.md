@@ -1,12 +1,12 @@
 # 心伙伴前端
 
-React、TypeScript、Vite、Ant Design 的校园生活移动端原型。目前仅开放学生演示入口，教师、商家、管理员代码保留但不开放登录。
+React、TypeScript、Vite、Ant Design 的校园生活与心理支持移动端原型。目前开放学生、心理教师与管理员演示入口，商家入口暂未开放。
 
 ## 启动
 
 npm install 后执行 npm run dev。构建用 npm run build。当前 Windows 环境如遇配置加载 spawn EPERM，可使用 npm run dev -- --configLoader native 或 npm run build -- --configLoader native。
 
-学生演示账号 S-DEMO-01，密码 Demo@2026。数据为虚构演示，刷新后恢复样例。
+学生演示账号 S-DEMO-01，心理教师演示账号 T-DEMO-01，管理员演示账号 A-DEMO-01，密码均为 Demo@2026。登录页切换对应身份后登录，首次登录需要绑定演示学校。数据为虚构演示，刷新后恢复样例。
 
 ## 文件和后端协作
 

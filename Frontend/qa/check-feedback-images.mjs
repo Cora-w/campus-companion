@@ -48,12 +48,12 @@ await upload('corrupt');await check("document.querySelector('[role=alert]').text
 await upload('valid',2);await check("document.querySelectorAll('.feedback-image').length===2",'multiple image upload');
 await click('删除反馈图片 1');await check("document.querySelectorAll('.feedback-image').length===1",'remove image');
 await upload('valid',3);await check("document.querySelector('[role=alert]').textContent.includes('最多') && document.querySelectorAll('.feedback-image').length===1",'image limit rejected');
-await click('保存本次反馈');await check("document.querySelectorAll('.profile-feedback-item img').length===1 && document.querySelector('.feedback-form button[type=submit]').disabled",'image-only saved and draft reset');
+await click('提交反馈');await check("document.querySelectorAll('.profile-feedback-item img').length===1 && document.querySelector('.feedback-form button[type=submit]').disabled",'image-only saved and draft reset');
 await fill('[aria-label=反馈内容]','截图说明反馈问题');await upload('valid',3);await shot('feedback-images');
 await ev("document.querySelector('.feedback-attachments .ant-image').click()");await wait(500);
 await check("!!document.querySelector('.ant-image-preview')",'image opens preview');
 await ev("document.querySelector('.ant-image-preview-close').click()");await wait(500);
-await click('保存本次反馈');await check("document.querySelectorAll('.profile-feedback-item')[0].textContent.includes('截图说明反馈问题') && document.querySelectorAll('.profile-feedback-item')[0].querySelectorAll('img').length===3",'text and all images saved');
+await click('提交反馈');await check("document.querySelectorAll('.profile-feedback-item')[0].textContent.includes('截图说明反馈问题') && document.querySelectorAll('.profile-feedback-item')[0].querySelectorAll('img').length===3",'text and all images saved');
 await fill('[aria-label=反馈内容]','未保存草稿');await upload('valid');await close();await click('提出建议或反馈问题');await check("document.querySelector('[aria-label=反馈内容]').value==='未保存草稿' && document.querySelectorAll('.feedback-attachments img').length===1",'draft retained on reopen');
 for(const width of [320,390,480]){await resize(width);await check('document.documentElement.scrollWidth<=innerWidth',width+' fits');}
 if(browserErrors.length)throw Error(browserErrors.join(';'));ws.close();console.log('Feedback image checks passed');

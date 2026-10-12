@@ -1,4 +1,4 @@
-export type SupportRequest = { id: string; studentId: string; studentName: string; topic: string; time: string; status: '待联系' | '已受理' }
+export type SupportRequest = { id: string; studentId: string; studentName: string; topic: string; time: string; status: '待联系' | '已受理'; teacherId?: string }
 export type HubPage = 'guide' | 'market' | 'activities' | 'listen'
 export const hubTitles: Record<HubPage, string> = { guide: '校园指南', market: '校园闲置', activities: '活动搭子', listen: '倾诉空间' }
 export const rooms = [

@@ -1,0 +1,274 @@
+.teacher-shell-host,.teacher-overlay  { --accent:#167d79; --accent-soft:#e8f5f2; --canvas:#f3f6f8; --surface:#fff; --surface-secondary:#f2f6f7; --border:#e2e9ed; --text-primary:#21333b; --text-secondary:#71818b; --theme-tint:#c9e7e1; color:#21333b; }
+.teacher-shell-host  { min-height:100dvh; background:#f3f6f8; }.teacher-shell-host > .bound-school  { background:#fff; color:#71818b; justify-content:flex-end; border-bottom:1px solid #e2e9ed; padding:6px 30px; font-size:11px; }.teacher-shell-host .bound-school-location  { background:#e8f5f2; color:#167d79; }.teacher-shell-host .bound-school-label  { display:none; }
+.tw-shell  { display:block; min-height:calc(100dvh - 37px); font-size:13px; }
+.tw-avatar  { display:grid; place-items:center; width:34px; height:34px; background:#e9f2f0; color:#50837b; border-radius:10px; font-size:13px; flex-shrink:0; }.tw-notification  { position:relative; display:grid; place-items:center; width:34px; height:34px; color:#71818b; }.tw-notification svg  { width:20px; height:20px; }.tw-notification i  { width:6px; height:6px; border-radius:50%; background:#da735e; position:absolute; right:5px; top:5px; border:1px solid #fff; }.tw-content  { padding:30px 32px 0; max-width:1540px; margin:auto; min-width:0; }.tw-page-heading  { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:28px; }.tw-kicker  { color:#8c9bA4; font-size:10px; letter-spacing:1.4px; }.tw-page-heading h1  { margin:9px 0 7px; font-size:27px; color:#21333b; font-weight:650; letter-spacing:-.6px; }.tw-page-heading p  { font-size:12px; color:#71818b; margin:0; }.tw-panel  { background:#fff; border:1px solid #e2e9ed; border-radius:12px; padding:22px; min-width:0; }.tw-panel-title  { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }.tw-panel-title h2  { font-size:15px; font-weight:650; margin:0; letter-spacing:0; }.tw-panel-title p  { color:#8c9ba4; font-size:10px; margin:6px 0 0; }.tw-panel-title .ant-btn  { font-size:11px; padding-inline:0; }.tw-alert-list > button  { display:flex; width:100%; align-items:center; gap:14px; padding:17px 0; text-align:left; }.tw-alert-list > button + button  { border-top:1px solid #edf1f3; }.tw-alert-marker  { display:grid; place-items:center; width:38px; height:42px; border-radius:10px; background:#edf6f3; color:#5d9281; flex-shrink:0; }.tw-alert-marker svg  { width:20px; height:20px; }.marker-高  { color:#c16b5b; background:#fff0eb; }.marker-中  { color:#ad8842; background:#fff7e9; }.tw-alert-list > button > div:nth-child(2)  { flex:1; min-width:0; }.tw-alert-title  { display:flex; align-items:center; gap:12px; }.tw-alert-title b  { font-size:13px; }.tw-alert-list p  { font-size:12px; color:#5d7079; margin:7px 0; }.tw-alert-list small  { font-size:10px; color:#99a6ad; }.tw-alert-list > button > span  { display:flex; gap:3px; align-items:center; color:#167d79; font-size:11px; white-space:nowrap; }.tw-alert-list > button > span svg  { width:13px; height:13px; }.tw-attention  { display:inline-flex; align-items:center; gap:5px; padding:4px 7px; border-radius:5px; background:#eaf5ef; color:#548569; font-size:10px; white-space:nowrap; }.tw-attention i  { width:4px; height:4px; border-radius:50%; background:currentColor; }.tw-attention-高  { color:#bb6253; background:#fff0eb; }.tw-attention-中  { color:#aa8137; background:#fff7e8; }.tw-student-link  { display:flex; align-items:center; gap:9px; padding:0; text-align:left; }.tw-student-link b  { font-size:12px; color:#324750; font-weight:550; }.tw-student-link small  { display:block; color:#99a6ad; font-size:9px; margin-top:5px; }.tw-status  { font-size:10px; color:#8c9ba4; }.tw-status.status-跟进中  { color:#167d79; }.tw-status.status-待处理  { color:#b78444; }
+.tw-agenda-date  { font-size:12px; font-weight:600; color:#506873; padding:12px 0; border-top:1px solid #edf1f3; display:flex; justify-content:space-between; }.tw-agenda-date span  { font-size:9px; font-weight:400; color:#99a6ad; }.tw-agenda-item  { display:block; border-left:2px solid #7bb9ae; padding:0 0 0 13px; margin:15px 0 24px; text-align:left; width:100%; }.tw-agenda-item small  { display:block; color:#167d79; font-size:10px; margin-bottom:9px; }.tw-agenda-item b  { display:block; color:#3a505a; font-size:12px; font-weight:600; }.tw-agenda-item > span  { display:block; font-size:10px; color:#99a6ad; margin-top:8px; line-height:1.7; }.tw-agenda-item .ant-tag  { display:inline-block; font-size:9px; margin-top:10px; background:#f2f7f5; border:none; color:#6f938b; }.tw-icon-button  { width:30px; height:30px; color:#167d79; display:grid; place-items:center; border-radius:8px; background:#e8f5f2; }.tw-icon-button svg  { width:15px; height:15px; }.tw-task  { display:flex; align-items:center; width:100%; gap:10px; text-align:left; padding:13px 0; border-bottom:1px solid #edf1f3; }.tw-task:last-child  { border-bottom:0; }.tw-task > svg  { color:#94aaa8; width:16px; height:16px; }.tw-task span  { flex:1; min-width:0; }.tw-task b  { font-size:11px; font-weight:500; }.tw-task small  { display:block; font-size:10px; color:#99a6ad; margin-top:7px; }.tw-distribution  { display:flex; gap:9px; align-items:center; margin:22px 0; font-size:10px; color:#85959d; }.tw-distribution > span  { width:42px; }.tw-distribution > div  { flex:1; height:5px; background:#f1f5f6; border-radius:4px; overflow:hidden; }.tw-distribution i  { display:block; height:100%; background:#83bbb0; border-radius:4px; }.tw-distribution b  { font-weight:500; color:#506873; }.tw-footer  { display:flex; justify-content:space-between; gap:16px; color:#a1adb4; font-size:9px; padding:28px 0 22px; }.tw-toast  { background:#e8f5f2; border:1px solid #cee5df; border-radius:8px; padding:12px 16px; margin-top:18px; font-size:12px; color:#167d79; }
+.tw-roster-toolbar  { display:flex; align-items:center; gap:14px; justify-content:space-between; margin-bottom:16px; }.tw-roster-toolbar .ant-input-search  { max-width:330px; }.tw-roster-toolbar .ant-select  { min-width:150px; }.tw-filter-tabs  { display:flex; gap:5px; align-items:center; margin-bottom:18px; border-bottom:1px solid #e2e9ed; overflow:auto; }.tw-filter-tabs button  { font-size:11px; color:#8799a2; padding:12px 13px; white-space:nowrap; border-bottom:2px solid transparent; }.tw-filter-tabs button.active  { border-color:#167d79; color:#167d79; }.tw-filter-tabs > span  { margin-left:auto; color:#99a6ad; font-size:10px; white-space:nowrap; }.tw-roster-toolbar .tw-filter-tabs  { margin:0; border:0; }.tw-triage-summary  { display:flex; align-items:center; gap:35px; padding:18px 22px; margin-bottom:22px; border:1px solid #e2e9ed; border-radius:12px; background:#fff; color:#91a0a7; font-size:11px; }.tw-triage-summary span  { display:flex; gap:12px; align-items:center; }.tw-triage-summary b  { font-size:24px; font-weight:550; color:#425c67; }.tw-triage-summary .ant-btn  { margin-left:auto; font-size:11px; }.tw-triage-list  { display:grid; gap:15px; }.tw-triage-list article  { border:1px solid #e2e9ed; padding:20px; border-radius:9px; }.tw-triage-item-header,.tw-triage-item-footer  { display:flex; align-items:center; justify-content:space-between; gap:12px; }.tw-triage-item-header > div  { display:flex; align-items:center; gap:9px; }.tw-triage-item-header .ant-tag  { font-size:10px; }.tw-triage-item-header > small  { color:#99a6ad; font-size:10px; }.tw-triage-list h3  { font-size:14px; margin:17px 0 9px; }.tw-triage-list h3 small  { color:#99a6ad; font-size:10px; font-weight:400; margin-left:12px; }.tw-triage-list p  { font-size:12px; color:#71818b; }.tw-triage-item-footer  { padding-top:13px; border-top:1px solid #f0f4f5; }.tw-triage-item-footer > span  { color:#99a6ad; font-size:10px; }.tw-triage-item-footer .ant-btn  { height:34px; font-size:11px; }
+.tw-calendar-toolbar  { display:flex; align-items:center; gap:12px; margin-bottom:20px; }.tw-calendar-toolbar > .ant-input  { width:180px; }.tw-calendar-toolbar .ant-select  { min-width:135px; margin-left:auto; }.tw-week-strip  { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; border-bottom:1px solid #e2e9ed; padding-bottom:20px; margin-bottom:10px; }.tw-week-strip button  { border:1px solid #e9eef0; padding:12px 3px; border-radius:9px; text-align:center; color:#93a1a9; }.tw-week-strip small  { display:block; font-size:10px; }.tw-week-strip b  { display:block; font-size:19px; margin:8px 0; color:#4c626c; font-weight:500; }.tw-week-strip span  { font-size:9px; }.tw-week-strip .active  { border-color:#167d79; background:#e8f5f2; color:#167d79; }.tw-week-strip .active b  { color:#167d79; }.tw-appointment  { display:flex; align-items:center; gap:22px; padding:24px 0; border-bottom:1px solid #edf1f3; }.tw-appointment-time  { display:grid; gap:8px; min-width:65px; border-right:2px solid #cce6df; }.tw-appointment-time b  { font-size:17px; color:#4b6c71; font-weight:500; }.tw-appointment-time small  { font-size:10px; color:#99a6ad; }.tw-appointment-info  { flex:1; min-width:0; }.tw-appointment-info > div  { display:flex; align-items:center; gap:12px; }.tw-appointment-info h3  { font-size:13px; margin:0; }.tw-appointment-info .ant-tag  { font-size:9px; }.tw-appointment-info p  { color:#83969f; margin:9px 0 7px; font-size:11px; }.tw-appointment-info > small  { color:#99a6ad; font-size:10px; }.tw-appointment-actions  { display:flex; align-items:center; gap:6px; flex-wrap:wrap; max-width:290px; }.tw-appointment-actions .ant-btn  { font-size:10px; }.tw-empty  { text-align:center; color:#99a6ad; padding:32px 15px; font-size:12px; line-height:1.8; }.tw-empty svg  { margin:0 auto 14px; color:#a6b8bd; }.tw-empty h3  { font-size:14px; color:#83969f; }.tw-empty p  { font-size:11px; color:#99a6ad; }
+.tw-drawer .ant-drawer-body  { background:#fff; padding:25px 30px; }.tw-drawer .ant-drawer-header  { padding:21px 30px; border-bottom:1px solid #e2e9ed; }.tw-drawer .ant-drawer-title  { font-size:15px; color:#324750; }.tw-drawer .ant-drawer-footer  { background:#fff; padding:17px 24px; }.teacher-detail  { max-width:none; margin:0; }.teacher-detail-identity  { display:flex; align-items:center; gap:14px; }.teacher-detail-identity .avatar  { width:49px; height:49px; font-size:21px; background:#e8f5f2; color:#50837b; border-radius:12px; }.teacher-detail-identity h2  { margin:0 0 6px; font-size:22px; }.teacher-detail-identity p  { font-size:11px; color:#91a0a7; margin:0; }.teacher-detail-meta  { display:flex; align-items:center; gap:10px; margin:18px 0; }.teacher-attention  { font-size:10px; padding:4px 8px; border-radius:5px; background:#eaf5ef; color:#548569; }.attention-高  { color:#bb6253; background:#fff0eb; }.attention-中  { color:#aa8137; background:#fff7e8; }.teacher-status-tabs  { display:flex; gap:20px; border-bottom:1px solid #e2e9ed; margin:0 0 22px; }.teacher-status-tabs button  { padding:12px 0; font-size:12px; color:#99a6ad; border-bottom:2px solid transparent; }.teacher-status-tabs .selected  { color:#167d79; border-color:#167d79; }.teacher-detail .section-title  { margin:25px 0 13px; }.teacher-detail .section-title h2  { font-size:14px; }.teacher-detail .section-title p  { font-size:10px; color:#99a6ad; }.teacher-summary  { background:#f6f9fa; border-radius:9px; padding:17px 20px; }.teacher-summary h3  { font-size:14px; margin-bottom:9px; }.teacher-summary p  { font-size:12px; line-height:1.9; color:#71818b; }.teacher-summary small  { font-size:9px; color:#99a6ad; }.teacher-signals  { display:flex; flex-wrap:wrap; gap:8px; }.teacher-signals .ant-tag  { border:0; background:#f2f6f7; color:#83969f; font-size:10px; margin:0; }.teacher-helper  { font-size:11px; color:#91a0a7; padding:12px 0; }.tw-detail-provenance  { display:flex; gap:18px; font-size:10px; padding:16px 0; color:#99a6ad; }.tw-detail-provenance b  { font-weight:500; color:#71818b; }.teacher-review-result  { border-top:1px solid #e2e9ed; padding-top:18px; margin-top:20px; }.teacher-review-result h3  { font-size:13px; }.teacher-review-result p  { font-size:12px; line-height:1.9; white-space:pre-wrap; }.teacher-review-result small  { font-size:10px; color:#99a6ad; }.teacher-detail .field-label  { display:block; margin:18px 0 8px; font-size:12px; font-weight:500; }.teacher-detail .ant-select  { width:100%; }.teacher-detail .ant-btn  { font-size:12px; }.teacher-detail .spaced  { margin-top:16px; }.teacher-detail .ant-input  { border-radius:8px; }.teacher-timeline article  { border-left:2px solid #c9e7e1; padding:0 0 15px 17px; margin-bottom:24px; }.teacher-timeline article > small  { color:#99a6ad; font-size:10px; }.teacher-timeline h3  { font-size:12px; margin:15px 0 6px; }.teacher-timeline p  { font-size:12px; line-height:1.9; white-space:pre-wrap; overflow-wrap:anywhere; }.teacher-timeline article > span  { display:inline-block; padding:6px 9px; background:#e8f5f2; color:#167d79; border-radius:5px; font-size:10px; }.teacher-empty  { color:#99a6ad; font-size:12px; text-align:center; padding:20px; }.teacher-error  { font-size:12px; color:#bb6253; line-height:1.8; margin:18px 0; }.teacher-footnote  { color:#99a6ad; font-size:9px; text-align:center; margin:24px 0 8px; }.teacher-close-section  { border-top:1px solid #e2e9ed; padding-top:16px; margin-top:22px; }.teacher-close-section summary  { font-size:12px; cursor:pointer; line-height:32px; color:#71818b; }.teacher-overlay .success-note  { color:#167d79; background:#e8f5f2; border-radius:8px; font-size:12px; }.tw-detail-actions  { display:flex; gap:10px; margin:20px 0; flex-wrap:wrap; }
+.tw-escalation  { margin:24px 0; padding:0 0 20px; border-bottom:1px solid #e2e9ed; }.tw-escalation .tw-panel-title h2  { font-size:14px; }.tw-escalation summary  { font-size:11px; cursor:pointer; color:#167d79; padding:10px 0; }.tw-escalation label,.tw-booking-form label  { display:block; font-size:12px; margin:18px 0 8px; color:#506873; }.tw-escalation .ant-select  { width:100%; }.tw-escalation-event  { padding:14px 0; border-top:1px solid #edf1f3; }.tw-escalation-event b  { font-size:12px; }.tw-escalation-event p  { font-size:12px; margin:8px 0; white-space:pre-wrap; }.tw-escalation-event small  { color:#99a6ad; font-size:10px; }.tw-escalation-event .ant-btn  { margin-left:15px; }.tw-booking-form > p  { font-size:12px; color:#91a0a7; }.tw-booking-form .ant-select  { width:100%; }.tw-booking-form .ant-alert  { margin-top:25px; font-size:12px; }.tw-form-grid  { display:grid; grid-template-columns:1fr 1fr; gap:16px; }.tw-form-grid .ant-input  { width:100%; min-width:0; }.tw-dialog-footer  { display:flex; align-items:center; justify-content:space-between; gap:12px; }.tw-dialog-footer span  { font-size:10px; color:#99a6ad; }.tw-dialog-footer .ant-btn  { font-size:12px; }
+.tw-settings-grid  { display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }.tw-profile-head  { display:flex; align-items:center; gap:15px; margin:24px 0; }.tw-profile-head .tw-avatar  { width:50px; height:50px; font-size:22px; }.tw-profile-head h2  { font-size:19px; margin:0 0 7px; }.tw-profile-head p  { font-size:11px; color:#91a0a7; margin:0; }.tw-definition  { margin:0 0 25px; }.tw-definition > div  { display:flex; gap:20px; border-top:1px solid #edf1f3; padding:15px 0; font-size:11px; }.tw-definition dt  { width:66px; color:#99a6ad; flex-shrink:0; }.tw-definition dd  { margin:0; color:#607780; line-height:1.7; }.teacher-setting  { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:20px 0; border-bottom:1px solid #edf1f3; }.teacher-setting b  { font-size:12px; font-weight:500; }.teacher-setting p  { font-size:10px; color:#99a6ad; margin:8px 0 0; }.tw-settings-help  { font-size:10px; color:#99a6ad; margin:18px 0; }.tw-process > div  { display:flex; align-items:center; gap:15px; padding:13px 0; }.tw-process > div > span  { width:25px; height:25px; border-radius:7px; display:grid; place-items:center; background:#e8f5f2; color:#167d79; font-size:11px; }.tw-process p  { font-size:11px; color:#83969f; margin:0; }.tw-notice-section h3  { font-size:14px; margin:25px 0 15px; }
+ .tw-shell  { display:block; }.tw-content  { padding:22px 16px 75px; }.tw-page-heading  { align-items:start; gap:10px; margin-bottom:22px; }.tw-kicker  { font-size:8px; letter-spacing:.7px; }.tw-page-heading h1  { font-size:21px; margin:8px 0; }.tw-page-heading p  { font-size:10px; max-width:245px; }.tw-panel  { padding:16px; border-radius:10px; }.tw-panel-title h2  { font-size:14px; }.tw-panel-title p  { font-size:9px; }.tw-panel-title .ant-btn  { font-size:10px; }.tw-alert-list > button  { gap:10px; }.tw-alert-marker  { width:30px; height:36px; }.tw-alert-title  { gap:7px; }.tw-alert-list p  { font-size:11px; }.tw-alert-list small  { font-size:9px; }.tw-alert-list > button > span  { font-size:10px; }.tw-footer  { flex-direction:column; gap:8px; font-size:8px; }.tw-roster-toolbar  { flex-wrap:wrap; gap:12px; }.tw-roster-toolbar .ant-input-search  { max-width:none; width:100%; }.tw-roster-toolbar .ant-select  { margin-left:auto; width:155px; }.tw-filter-tabs  { width:100%; }.tw-filter-tabs button  { padding:10px 8px; font-size:10px; }.tw-filter-tabs > span  { display:none; }.tw-triage-summary  { gap:10px; flex-wrap:wrap; padding:15px; }.tw-triage-summary > span  { flex:1; gap:7px; white-space:nowrap; font-size:9px; }.tw-triage-summary b  { font-size:20px; }.tw-triage-summary .ant-btn  { width:100%; margin-top:6px; }.tw-triage-list article  { padding:15px; }.tw-triage-item-header  { flex-wrap:wrap; gap:9px; }.tw-triage-list h3 small  { display:block; margin:7px 0 0; }.tw-triage-list p  { font-size:11px; }.tw-triage-item-footer > span  { font-size:9px; max-width:170px; }.tw-calendar-toolbar  { flex-wrap:wrap; gap:10px; }.tw-calendar-toolbar > .ant-input  { flex:1; width:auto; }.tw-calendar-toolbar .ant-select  { width:100%; }.tw-week-strip  { gap:4px; }.tw-week-strip b  { font-size:17px; }.tw-week-strip small,.tw-week-strip span  { font-size:8px; }.tw-appointment  { gap:12px; }.tw-appointment-time  { min-width:55px; }.tw-appointment-time b  { font-size:15px; }.tw-appointment-info h3  { font-size:11px; }.tw-appointment-info > div  { gap:7px; }.tw-appointment-actions  { margin-left:0; width:100%; }.tw-settings-grid  { grid-template-columns:1fr; gap:16px; }.tw-drawer .ant-drawer-body  { padding:22px 18px; }.tw-drawer .ant-drawer-header  { padding:20px 18px; }.tw-case-drawer .ant-drawer-content-wrapper,.tw-drawer .ant-drawer-content-wrapper  { max-width:100vw; }.teacher-detail-identity p  { font-size:10px; }.tw-detail-provenance  { gap:12px; font-size:9px; }.tw-escalation-event .ant-btn  { display:block; margin:12px 0 0; }.tw-form-grid  { gap:10px; }.tw-dialog-footer span  { font-size:9px; }.teacher-shell-host > .bound-school  { font-size:10px; padding-inline:16px; }.tw-notice-section h3  { font-size:13px; }
+@media(prefers-reduced-motion:reduce) { .tw-shell *  { scroll-behavior:auto; } }
+/* The teacher experience is an app surface at every browser width. */
+.teacher-shell-host  { max-width:480px; width:100%; margin:0 auto; background:#f4f7f8; }
+.tw-shell  { display:block; min-height:calc(100dvh - 37px); }
+.tw-app-header  { position:sticky; top:0; z-index:30; display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:62px; padding:12px 18px; background:#fff; border-bottom:1px solid #e9eff1; }
+.tw-app-header > div  { display:flex; gap:10px; align-items:center; }.tw-app-header b  { font-size:15px; font-weight:650; }.tw-header-symbol  { display:grid; place-items:center; width:30px; height:30px; background:#e8f5f2; color:#167d79; border-radius:9px; }.tw-header-symbol svg  { width:18px; height:18px; }.tw-app-header button  { width:38px; height:38px; display:grid; place-items:center; color:#7b929a; }.tw-app-header button svg  { width:20px; height:20px; }
+.tw-content  { padding:24px 18px calc(85px + env(safe-area-inset-bottom,0px)); }.tw-kicker  { font-size:11px; letter-spacing:.2px; color:#81969d; }.tw-page-heading  { margin-bottom:22px; }.tw-page-heading h1  { font-size:24px; margin:8px 0; }.tw-page-heading p  { font-size:12px; line-height:1.8; max-width:290px; }.tw-book-shortcut.ant-btn  { min-height:40px; padding:0 12px; font-size:12px; margin-top:8px; }.tw-book-shortcut svg  { width:14px; height:14px; }
+.tw-app-nav  { position:fixed; z-index:40; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); background:#fff; border-top:1px solid #e5edef; padding:7px 5px calc(7px + env(safe-area-inset-bottom,0px)); }.tw-app-nav > button  { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:52px; gap:5px; color:#8b9ba3; padding:0; }.tw-app-nav b  { font-size:11px; font-weight:400; }.tw-app-nav svg  { width:21px; height:21px; }.tw-app-nav button > span  { position:relative; padding:4px 12px; border-radius:9px; }.tw-app-nav button.active  { color:#167d79; }.tw-app-nav button.active > span  { background:#e8f5f2; }.tw-app-nav em  { position:absolute; top:-3px; right:4px; font-style:normal; font-size:9px; min-width:14px; line-height:14px; text-align:center; border-radius:8px; color:#fff; background:#cc7968; }
+.tw-mobile-workbench  { display:grid; gap:18px; }.tw-priority-banner  { display:flex; justify-content:space-between; gap:18px; align-items:center; text-align:left; padding:23px 24px; background:#205d5c; color:#fff; border-radius:18px; }.tw-priority-banner > span:first-child  { display:grid; gap:10px; }.tw-priority-banner small  { color:#c4dfd9; font-size:12px; }.tw-priority-banner strong  { font-size:44px; line-height:1; font-weight:500; letter-spacing:-1px; }.tw-priority-banner > span > span  { color:#c4dfd9; font-size:11px; }.tw-priority-right  { display:flex; flex-direction:column; align-items:flex-end; gap:20px; }.tw-priority-right > svg  { width:45px; height:45px; color:#8bb8af; stroke-width:1.2; }.tw-priority-right b  { font-size:11px; font-weight:400; display:flex; align-items:center; gap:3px; color:#e6f4f1; }.tw-priority-right b svg  { width:13px; height:13px; }
+.tw-quick-metrics  { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); background:#fff; padding:13px 0; border-radius:12px; border:1px solid #e5edef; }.tw-quick-metrics button  { display:grid; gap:8px; min-height:52px; padding:4px; }.tw-quick-metrics button + button  { border-left:1px solid #edf1f3; }.tw-quick-metrics b  { font-size:22px; font-weight:550; color:#355b60; }.tw-quick-metrics span  { color:#8b9ba3; font-size:11px; }
+.tw-panel-title h2  { font-size:15px; }.tw-panel-title p  { font-size:11px; }.tw-panel-title .ant-btn  { font-size:12px; min-height:38px; }.tw-alert-title b  { font-size:14px; }.tw-alert-list p  { font-size:12px; }.tw-alert-list small  { font-size:11px; }.tw-alert-list > button  { min-height:96px; }.tw-attention  { font-size:11px; }.tw-agenda-item small  { font-size:12px; }.tw-agenda-item b  { font-size:14px; }.tw-agenda-item > span  { font-size:12px; }.tw-agenda-item .ant-tag  { font-size:11px; }.tw-task  { min-height:65px; }.tw-task b  { font-size:13px; }.tw-task small  { font-size:11px; }.tw-summary-details summary  { display:flex; align-items:center; justify-content:space-between; font-size:14px; font-weight:600; cursor:pointer; min-height:32px; }.tw-summary-details summary span  { color:#91a0a7; font-weight:400; font-size:11px; }.tw-summary-details[open] .tw-panel-title  { margin-top:25px; }
+.tw-student-cards  { display:grid; gap:14px; }.tw-student-card  { width:100%; display:block; text-align:left; border:1px solid #e5edef; padding:16px; border-radius:12px; background:#fff; }.tw-student-card-top  { display:flex; align-items:center; justify-content:space-between; gap:8px; }.tw-student-link  { min-width:0; flex:1; }.tw-student-link b  { font-size:14px; }.tw-student-link small  { font-size:10px; line-height:1.7; }.tw-student-topic  { display:block; font-size:12px; line-height:1.8; margin:16px 0; color:#607983; }.tw-student-card-bottom  { display:flex; align-items:center; gap:10px; border-top:1px solid #f0f4f5; padding-top:12px; }.tw-student-card-bottom small  { font-size:10px; color:#91a0a7; margin-left:auto; }.tw-student-card-bottom svg  { width:13px; height:13px; color:#91a0a7; }.tw-status  { font-size:11px; }
+.tw-roster-toolbar .ant-input-search  { width:100%; max-width:none; }.tw-roster-toolbar  { flex-wrap:wrap; }.tw-filter-tabs button  { min-height:44px; font-size:11px; }.tw-roster-toolbar .ant-select  { min-height:40px; }.tw-roster-toolbar .ant-select-selection-item  { font-size:12px; }.tw-triage-list h3  { font-size:15px; }.tw-triage-list h3 small,.tw-triage-item-header > small  { font-size:11px; }.tw-triage-list p  { font-size:12px; }.tw-triage-item-footer .ant-btn  { min-height:40px; font-size:12px; }.tw-triage-item-footer > span  { font-size:11px; }.tw-triage-summary > span  { font-size:11px; }.tw-triage-summary .ant-btn  { min-height:40px; }
+.tw-drawer .ant-drawer-header  { padding-top:calc(18px + env(safe-area-inset-top,0px)); }.tw-drawer .ant-drawer-body  { padding-bottom:calc(30px + env(safe-area-inset-bottom,0px)); }.tw-drawer .ant-drawer-close  { min-width:40px; min-height:40px; }.teacher-detail-identity p  { font-size:11px; }.teacher-detail .field-label  { font-size:13px; }.teacher-summary p,.teacher-timeline p  { font-size:13px; }.teacher-summary small  { font-size:10px; }.teacher-detail .ant-btn  { min-height:44px; font-size:13px; }.teacher-status-tabs button  { min-height:46px; font-size:13px; }.tw-escalation summary  { min-height:44px; font-size:12px; }.tw-escalation label,.tw-booking-form label  { font-size:13px; }.tw-detail-provenance  { font-size:10px; }.tw-dialog-footer .ant-btn  { min-height:44px; }.tw-week-strip button  { min-height:85px; }.tw-week-strip small  { font-size:10px; }.tw-week-strip span  { font-size:9px; }.tw-appointment-info h3  { font-size:13px; }.tw-appointment-info p  { font-size:12px; }.tw-appointment-info > small  { font-size:11px; }.tw-appointment-actions .ant-btn  { min-height:38px; padding:0 9px; font-size:12px; }.teacher-setting b  { font-size:14px; }.teacher-setting p  { font-size:12px; }.tw-definition > div,.tw-process p  { font-size:12px; }.tw-profile-head p  { font-size:12px; }.tw-footer  { font-size:10px; }
+@media(max-width:360px) { .tw-content  { padding-inline:14px; }.tw-page-heading h1  { font-size:22px; }.tw-book-shortcut.ant-btn  { padding-inline:9px; }.tw-priority-banner  { padding:21px; }.tw-student-card  { padding:13px; }.tw-student-card-top  { gap:5px; }.tw-student-link  { gap:7px; }.tw-student-link small  { font-size:9px; }.tw-attention  { font-size:10px; }.tw-app-header  { padding-inline:14px; }.tw-triage-item-footer > span  { font-size:10px; }.tw-form-grid  { grid-template-columns:1fr; } }
+.tw-appointment  { display:grid; grid-template-columns:55px minmax(0,1fr); align-items:start; gap:14px; }
+.tw-appointment-info > div  { flex-wrap:wrap; align-items:start; }
+.tw-appointment-info h3  { line-height:1.7; }
+.tw-appointment-actions  { grid-column:1/-1; width:100%; max-width:none; }
+.tw-panel-title .ant-btn:not(.ant-btn-link)  { padding-inline:12px; flex-shrink:0; }
+
+/* Apple HIG inspired refinement: grouped content, clear type and material navigation. */
+.teacher-shell-host, .teacher-overlay {
+  --canvas:#f2f2f7;
+  --surface-secondary:#f2f2f7;
+  --border:#e5e5ea;
+  --text-primary:#1c1c1e;
+  --text-secondary:#636366;
+  color:#1c1c1e;
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.teacher-shell-host { background:#f2f2f7; }
+.teacher-shell-host > .bound-school { background:#f2f2f7; border-bottom:0; color:#6e6e73; padding:8px 20px 0; }
+.teacher-shell-host .bound-school-location { background:transparent; color:#8e8e93; }
+.tw-app-header {
+  min-height:58px; padding:8px 20px; background:rgba(242,242,247,.88);
+  border-bottom:0; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+}
+.tw-app-header b { font-size:15px; font-weight:600; letter-spacing:-.3px; }
+.tw-header-symbol { background:transparent; width:24px; color:#167d79; }
+.tw-app-header button { width:44px; height:44px; color:#636366; }
+.tw-notification i { width:7px; height:7px; background:#e77760; }
+.tw-content { padding:20px 20px calc(116px + env(safe-area-inset-bottom,0px)); }
+.tw-page-heading { gap:12px; margin-bottom:26px; }
+.tw-kicker { color:#6e6e73; font-size:12px; letter-spacing:0; }
+.tw-page-heading h1 { color:#1c1c1e; font-size:30px; line-height:1.25; letter-spacing:-1.1px; font-weight:700; margin:9px 0; }
+.tw-page-heading p { color:#636366; font-size:13px; line-height:1.7; }
+.tw-book-shortcut.ant-btn { border-radius:22px; min-height:44px; margin-top:19px; padding-inline:14px; box-shadow:none; }
+.tw-mobile-workbench { gap:18px; }
+.tw-panel, .tw-quick-metrics, .tw-triage-summary {
+  border:0; border-radius:20px; background:#fff;
+  box-shadow:0 2px 8px rgba(28,28,30,.025);
+}
+.tw-panel { padding:20px; }
+.tw-panel-title { margin-bottom:12px; }
+.tw-panel-title h2 { color:#1c1c1e; font-size:17px; font-weight:650; letter-spacing:-.4px; }
+.tw-panel-title p { font-size:12px; color:#6e6e73; line-height:1.6; }
+.tw-panel-title .ant-btn { font-size:13px; }
+.tw-priority-banner {
+  background:linear-gradient(120deg,#e3f0ed 0%,#edf5f3 100%); color:#1c1c1e;
+  border-radius:24px; padding:24px; box-shadow:inset 0 0 0 1px rgba(22,125,121,.04);
+}
+.tw-priority-banner > span:first-child { gap:11px; }
+.tw-priority-banner small { color:#43645f; font-size:14px; font-weight:500; }
+.tw-priority-banner strong { color:#184f4c; font-size:56px; letter-spacing:-2.6px; font-weight:600; font-variant-numeric:tabular-nums; }
+.tw-priority-banner > span > span { color:#526a65; font-size:12px; }
+.tw-priority-right { gap:25px; }
+.tw-priority-right > svg { width:50px; height:50px; color:#79a69c; stroke-width:1.2; }
+.tw-priority-right b { color:#167d79; font-size:12px; }
+.tw-quick-metrics { padding:16px 0; }
+.tw-quick-metrics button { gap:9px; min-height:58px; }
+.tw-quick-metrics button + button { border-color:#ededf0; }
+.tw-quick-metrics b { color:#1c1c1e; font-size:25px; font-weight:600; letter-spacing:-.7px; }
+.tw-quick-metrics span { color:#636366; font-size:12px; }
+.tw-alert-list > button { min-height:100px; gap:12px; padding:18px 0; }
+.tw-alert-list > button + button, .tw-task, .tw-appointment { border-color:#ededf0; }
+.tw-alert-title b, .tw-student-link b { color:#1c1c1e; font-size:15px; font-weight:600; }
+.tw-alert-list p { color:#48484a; font-size:13px; line-height:1.65; }
+.tw-alert-list small { color:#6e6e73; font-size:12px; }
+.tw-alert-marker { width:36px; height:36px; border-radius:12px; }
+.tw-attention, .teacher-attention { border-radius:6px; font-size:11px; }
+.tw-attention-高, .attention-高 { color:#aa493c; background:#fcf0ed; }
+.tw-attention-中, .attention-中 { color:#966815; background:#fff6e5; }
+.tw-attention-低, .attention-低 { color:#3f715b; background:#edf5ee; }
+.tw-agenda-item { border-left-width:3px; margin:16px 0 22px; }
+.tw-agenda-item b { color:#1c1c1e; font-size:15px; }
+.tw-agenda-item > span { color:#636366; }
+.tw-icon-button { width:36px; height:36px; border-radius:50%; }
+.tw-task b { color:#1c1c1e; font-size:14px; }
+.tw-task small { color:#6e6e73; font-size:12px; }
+.tw-student-card { border:0; border-radius:16px; background:#f7f7fa; padding:18px; }
+.tw-student-cards { gap:12px; }
+.tw-avatar { width:40px; height:40px; border-radius:50%; background:#e5eeec; color:#3d6f65; font-weight:500; }
+.tw-student-link { gap:12px; }
+.tw-student-link small { color:#6e6e73; font-size:11px; }
+.tw-student-topic { color:#48484a; font-size:13px; margin:15px 0; }
+.tw-student-card-bottom { border-color:#e8e8ed; }
+.tw-student-card-bottom small, .tw-status { color:#636366; font-size:11px; }
+.tw-filter-tabs, .teacher-status-tabs { padding:4px; background:#e9e9ef; border:0; border-radius:11px; gap:3px; }
+.tw-filter-tabs button, .teacher-status-tabs button {
+  flex:1; min-height:36px; padding:8px 10px; border:0; border-radius:8px; color:#636366; font-size:12px;
+}
+.tw-filter-tabs button.active, .teacher-status-tabs button.selected { background:#fff; color:#1c1c1e; font-weight:600; box-shadow:0 1px 4px rgba(0,0,0,.09); }
+.teacher-status-tabs { margin-top:22px; margin-bottom:24px; }
+.teacher-status-tabs button { min-height:38px; }
+.tw-filter-tabs > span { display:none; }
+.tw-triage-summary { gap:16px; padding:20px; }
+.tw-triage-summary > span { color:#636366; }
+.tw-triage-summary b { color:#1c1c1e; font-size:26px; }
+.tw-triage-list article { background:#f7f7fa; border:0; border-radius:16px; padding:18px; }
+.tw-triage-list h3 { color:#1c1c1e; font-size:16px; }
+.tw-triage-list p { color:#48484a; font-size:13px; line-height:1.8; }
+.tw-triage-item-header > small, .tw-triage-list h3 small, .tw-triage-item-footer > span { color:#6e6e73; }
+.tw-triage-item-header > div { flex-wrap:wrap; }
+.tw-week-strip { gap:4px; border-color:#ededf0; padding-bottom:18px; }
+.tw-week-strip button { border:0; border-radius:13px; min-height:85px; color:#6e6e73; }
+.tw-week-strip b { color:#1c1c1e; font-weight:600; }
+.tw-week-strip .active { background:#e6f1ee; }
+.tw-appointment-info h3 { color:#1c1c1e; font-size:14px; }
+.tw-appointment-info p, .tw-appointment-info > small { color:#636366; }
+.tw-appointment-time b { color:#167d79; font-weight:600; font-variant-numeric:tabular-nums; }
+.tw-appointment-time small { color:#6e6e73; }
+.tw-app-nav {
+  width:calc(100% - 24px); max-width:456px; bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  padding:7px 5px; border:1px solid rgba(255,255,255,.82); border-radius:28px;
+  background:rgba(255,255,255,.9); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  box-shadow:0 6px 28px rgba(28,28,30,.1), 0 1px 3px rgba(28,28,30,.03);
+}
+.tw-app-nav > button { min-height:54px; color:#636366; gap:3px; }
+.tw-app-nav b { font-size:10px; font-weight:500; }
+.tw-app-nav button > span { padding:4px 13px; border-radius:18px; }
+.tw-app-nav button.active > span { background:#e4f1ed; }
+.tw-app-nav button.active b { font-weight:600; }
+.tw-app-nav em { background:#cc5c49; top:-2px; }
+.tw-drawer .ant-drawer-header { background:#f8f8fa; border-color:#ededf0; }
+.tw-drawer .ant-drawer-title { color:#1c1c1e; font-size:17px; font-weight:600; }
+.tw-drawer .ant-drawer-body { padding:24px 20px calc(30px + env(safe-area-inset-bottom,0px)); }
+.teacher-detail-identity .avatar { border-radius:50%; width:52px; height:52px; }
+.teacher-detail-identity h2 { color:#1c1c1e; font-size:25px; letter-spacing:-.5px; }
+.teacher-detail-identity p { color:#6e6e73; font-size:12px; line-height:1.6; }
+.teacher-summary { background:#f2f2f7; border-radius:16px; padding:18px; }
+.teacher-summary h3 { color:#1c1c1e; font-size:15px; }
+.teacher-summary p, .teacher-timeline p { color:#48484a; font-size:14px; line-height:1.85; }
+.teacher-summary small, .teacher-helper, .tw-detail-provenance, .teacher-footnote { color:#6e6e73; }
+.teacher-detail .section-title h2 { font-size:16px; }
+.tw-profile-head h2 { color:#1c1c1e; letter-spacing:-.5px; }
+.teacher-setting p, .tw-definition dt, .tw-settings-help, .tw-definition dd, .tw-profile-head p { color:#636366; }
+.tw-footer { color:#6e6e73; line-height:1.6; }
+.teacher-shell-host button:focus-visible, .teacher-overlay button:focus-visible { outline:3px solid #79b8b3; outline-offset:3px; }
+.tw-priority-banner, .tw-student-card, .tw-app-nav button { transition:background-color .18s ease, opacity .18s ease; }
+.tw-priority-banner:active, .tw-student-card:active { opacity:.78; }
+/* Keep content and controls legible without transparency or motion. */
+@media(prefers-reduced-transparency:reduce) { .tw-app-header { background:#f2f2f7; }.tw-app-nav { background:#fff; backdrop-filter:none; -webkit-backdrop-filter:none; } }
+@media(prefers-reduced-motion:reduce) { .tw-priority-banner, .tw-student-card, .tw-app-nav button { transition:none; } }
+@media(max-width:360px) {
+  .tw-content { padding-inline:16px; }
+  .tw-page-heading h1 { font-size:26px; }
+  .tw-panel { padding:16px; }
+  .tw-priority-banner { padding:21px; }
+  .tw-priority-banner strong { font-size:50px; }
+  .tw-filter-tabs button { padding-inline:8px; font-size:11px; }
+  .tw-student-card { padding:15px; }
+  .tw-student-link { gap:8px; }
+  .tw-student-link small { font-size:10px; }
+}
+.tw-activity-chart { display:flex; align-items:flex-end; justify-content:space-between; gap:8px; height:112px; }
+.tw-activity-chart > div { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:6px; }
+.tw-activity-chart b { color:#6e6e73; font-size:11px; font-weight:400; }
+.tw-activity-chart span { width:65%; max-width:24px; min-height:4px; background:#81bdb4; border-radius:5px 5px 0 0; }
+.tw-activity-chart small { color:#6e6e73; font-size:10px; }
+/* Dedicated teacher task surfaces; schedule styling is deliberately preserved. */
+.tw-shell:not(.tw-page-schedule) { background:#f5f6f8; }
+.tw-shell:not(.tw-page-schedule) .tw-app-header { background:rgba(245,246,248,.92); }
+.tw-shell:not(.tw-page-schedule) .tw-content { padding-top:16px; }
+.tw-shell:not(.tw-page-schedule) .tw-page-heading { margin-bottom:24px; }
+.tw-shell:not(.tw-page-schedule) .tw-page-heading h1 { font-size:28px; letter-spacing:-.8px; }
+.tw-shell:not(.tw-page-schedule) .tw-page-heading p { color:#6e7781; font-size:12px; }
+.tw-shell:not(.tw-page-schedule) .tw-book-shortcut.ant-btn { background:#fff; color:#167d79; border:1px solid #dde5e6; border-radius:12px; margin-top:14px; }
+.tw-mobile-workbench { gap:22px; }
+.tw-mobile-workbench .tw-priority-banner { display:flex; gap:14px; min-height:84px; padding:16px; background:#fff; border:1px solid #e1e7e8; border-radius:14px; box-shadow:none; }
+.tw-priority-banner .tw-queue-count { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border-radius:12px; background:#edf3f2; }
+.tw-mobile-workbench .tw-priority-banner strong { font-size:22px; letter-spacing:-.5px; color:#245a56; }
+.tw-priority-banner .tw-queue-copy { display:grid; gap:7px; flex:1; }
+.tw-queue-copy b { font-size:14px; color:#26343e; font-weight:600; }
+.tw-mobile-workbench .tw-priority-banner small { font-size:11px; color:#697680; font-weight:400; line-height:1.6; }
+.tw-priority-banner > svg { width:15px; height:15px; color:#8a969e; }
+.tw-mobile-workbench .tw-quick-metrics { padding:0 4px; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.tw-mobile-workbench .tw-quick-metrics button { display:flex; align-items:center; justify-content:center; gap:7px; min-height:30px; padding:0 3px; }
+.tw-mobile-workbench .tw-quick-metrics b { font-size:16px; color:#354650; }
+.tw-mobile-workbench .tw-quick-metrics span { font-size:11px; color:#6e7781; }
+.tw-mobile-workbench .tw-quick-metrics button + button { border-color:#dce2e5; }
+.tw-mobile-workbench > .tw-panel { border-radius:0; padding:0; background:transparent; box-shadow:none; }
+.tw-mobile-workbench .tw-panel-title { margin-bottom:10px; }
+.tw-mobile-workbench .tw-panel-title h2 { font-size:16px; color:#26343e; }
+.tw-mobile-workbench .tw-alert-list { background:#fff; padding:0 16px; border-radius:16px; border:1px solid #e8ebee; }
+.tw-mobile-workbench .tw-alert-list > button { gap:10px; min-height:105px; }
+.tw-mobile-workbench .tw-alert-marker { width:3px; height:48px; border-radius:2px; background:#9bb6a9; }
+.tw-mobile-workbench .tw-alert-marker svg { display:none; }
+.tw-mobile-workbench .marker-高 { background:#cd8574; }.tw-mobile-workbench .marker-中 { background:#c1a16a; }
+.tw-mobile-workbench .tw-alert-list p { color:#4c5a65; font-size:13px; }
+.tw-mobile-workbench .tw-alert-list small { color:#77848d; font-size:11px; }
+.tw-mobile-workbench .tw-agenda-item { padding:14px 16px; margin:0 0 10px; border:1px solid #e8ebee; border-left:3px solid #9bbdb5; border-radius:0 12px 12px 0; background:#fff; }
+.tw-mobile-workbench .tw-task { background:#fff; padding:14px; border:1px solid #e8ebee; border-radius:12px; margin-bottom:9px; }
+.tw-mobile-workbench .tw-summary-details { padding:16px 0; border-top:1px solid #dfe5e8; }
+.tw-roster-page, .tw-triage-page { padding:0; }
+.tw-roster-page .tw-roster-toolbar { gap:10px; }
+.tw-roster-page .tw-filter-tabs, .tw-triage-page .tw-filter-tabs { background:transparent; border-radius:0; border-bottom:1px solid #dfe5e8; padding:0 0 8px; }
+.tw-roster-page .tw-filter-tabs button, .tw-triage-page .tw-filter-tabs button { min-height:34px; font-size:12px; border-radius:8px; padding:6px 8px; }
+.tw-roster-page .tw-filter-tabs button.active, .tw-triage-page .tw-filter-tabs button.active { background:#e3eeeb; color:#245a56; box-shadow:none; }
+.tw-roster-caption { display:flex; justify-content:space-between; align-items:center; margin:20px 0 12px; font-size:14px; color:#354650; }
+.tw-roster-caption span { font-size:11px; color:#77848d; }
+.tw-roster-page .tw-student-cards { gap:0; padding:0 16px; border:1px solid #e8ebee; background:#fff; border-radius:14px; }
+.tw-roster-page .tw-student-card { padding:18px 0; border-radius:0; background:transparent; }
+.tw-roster-page .tw-student-card + .tw-student-card { border-top:1px solid #e8ebee; }
+.tw-roster-page .tw-avatar { width:34px; height:34px; border-radius:9px; font-size:12px; background:#f0f3f5; color:#667983; }
+.tw-roster-page .tw-student-topic { margin:12px 0 10px; font-size:13px; }
+.tw-roster-page .tw-student-card-bottom { border:0; padding-top:0; }
+.tw-page-triage .tw-triage-summary { padding:0 0 18px; margin:0 0 20px; border-bottom:1px solid #dfe5e8; border-radius:0; background:transparent; box-shadow:none; gap:12px; }
+.tw-page-triage .tw-triage-summary > span { display:grid; gap:6px; flex:1; font-size:11px; color:#77848d; }
+.tw-page-triage .tw-triage-summary b { font-size:24px; color:#354650; }
+.tw-triage-page .tw-panel-title p { color:#77848d; }
+.tw-triage-page .tw-triage-list { gap:14px; }
+.tw-triage-page .tw-alert-case { background:#fff; border:1px solid #e8ebee; border-left:3px solid #9bb6a9; border-radius:0 14px 14px 0; padding:16px; }
+.tw-triage-page .tw-alert-case-高 { border-left-color:#cd8574; }.tw-triage-page .tw-alert-case-中 { border-left-color:#c1a16a; }
+.tw-triage-page h4 { margin:14px 0 8px; font-size:14px; font-weight:600; color:#354650; line-height:1.6; }
+.tw-triage-page .tw-triage-list p { font-size:12px; color:#697680; line-height:1.85; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.tw-triage-page .tw-triage-list h3 { margin:12px 0 0; }
+.tw-triage-page .tw-triage-list h3 small { font-size:11px; }
+.tw-demo-tools { margin-top:24px; font-size:12px; color:#77848d; }
+.tw-demo-tools summary { cursor:pointer; padding:12px 0; }
+.tw-professional-settings { display:grid; gap:24px; }
+.tw-staff-identity { display:flex; align-items:center; gap:14px; padding:22px 18px; background:#e9eff0; border-radius:14px; }
+.tw-staff-mark { width:40px; height:52px; display:grid; place-items:center; border-right:1px solid #cdd9da; color:#45686b; padding-right:12px; }
+.tw-staff-mark svg { width:25px; height:25px; }
+.tw-staff-identity h2 { font-size:22px; margin:6px 0; color:#2a4049; }
+.tw-staff-identity p, .tw-staff-identity small { font-size:11px; color:#6c8088; margin:0; }
+.tw-staff-role { font-size:10px; align-self:flex-start; margin-left:auto; padding:4px 6px; border:1px solid #cdd9da; border-radius:4px; color:#55727a; }
+.tw-setting-group > h2 { font-size:15px; color:#354650; margin:0 0 12px; }
+.tw-setting-group .tw-definition { background:#fff; padding:0 16px; border:1px solid #e8ebee; border-radius:12px; margin:0; }
+.tw-setting-group .tw-definition > div { font-size:12px; padding:14px 0; gap:12px; }
+.tw-setting-group .tw-definition > div:first-child { border-top:0; }
+.tw-setting-group .teacher-setting { background:#fff; padding:16px; border:1px solid #e8ebee; }
+.tw-setting-group .teacher-setting:nth-child(2) { border-radius:12px 12px 0 0; }
+.tw-setting-group .teacher-setting:nth-child(3) { border-top:0; border-radius:0 0 12px 12px; }
+.tw-setting-group .teacher-setting b { font-size:13px; }
+.tw-setting-group .teacher-setting p { font-size:11px; color:#77848d; }
+.tw-service-guide { border-block:1px solid #dfe5e8; padding:14px 0; }
+.tw-service-guide summary { display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:13px; font-weight:500; color:#354650; min-height:28px; }
+.tw-service-guide summary svg { width:14px; color:#77848d; }
+.tw-service-guide p, .tw-service-guide li { font-size:12px; color:#697680; line-height:1.9; }
+.tw-service-guide ol { padding-left:22px; }
+.tw-confidential-note { display:flex; gap:10px; align-items:flex-start; color:#77848d; }
+.tw-confidential-note svg { width:18px; flex-shrink:0; margin-top:2px; }
+.tw-confidential-note p { margin:0; font-size:11px; line-height:1.9; }
+.tw-sign-out.ant-btn { color:#697680; background:transparent; border-color:#dfe5e8; }
+@media(max-width:360px) {
+  .tw-shell:not(.tw-page-schedule) .tw-page-heading h1 { font-size:25px; }
+  .tw-roster-page .tw-student-link small { font-size:9px; }
+  .tw-roster-page .tw-filter-tabs button { font-size:11px; padding-inline:6px; }
+  .tw-priority-banner .tw-queue-copy small { font-size:10px; }
+  .tw-staff-identity { gap:10px; padding-inline:14px; }
+}

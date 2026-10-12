@@ -32,7 +32,7 @@ export function SnackShops({ open, shopId, selectShop, close }: { open: boolean;
   const [cartOpen, setCartOpen] = useState(false)
   const [product, setProduct] = useState<SnackProduct | null>(null)
   const commerce = useCommerce()
-  const snackShops = commerce.shops.map(s => ({ ...s, products:s.products.filter(p => p.active !== false) }))
+  const snackShops = commerce.shops.filter(s => s.isOpen !== false).map(s => ({ ...s, products:s.products.filter(p => p.active !== false) }))
   const orders = commerce.orders.filter(o => o.studentId === commerce.studentId)
   const submitted = useRef(false)
   const [ordersOpen, setOrdersOpen] = useState(false)

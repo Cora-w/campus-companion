@@ -38,8 +38,8 @@ export function SectionTitle({ title, sub, action }: { title: string; sub?: stri
   return <div className="section-title"><div><h2>{title}</h2>{sub && <p>{sub}</p>}</div>{action}</div>
 }
 export function RiskTag({ risk }: { risk: Risk }) { return <Tag color={riskColors[risk]}>{risk}风险</Tag> }
-export function Sheet({ title, open, onClose, children, zIndex, footer, fullScreen }: { zIndex?: number; title: string; open: boolean; onClose: () => void; children: ReactNode; footer?: ReactNode; fullScreen?: boolean }) {
-  return <Drawer rootClassName={fullScreen ? 'community-fullscreen' : undefined} zIndex={zIndex} footer={footer} title={title} placement="bottom" open={open} onClose={onClose} size="default" className="mobile-sheet" closable={{ placement: 'end' }} destroyOnHidden>{children}</Drawer>
+export function Sheet({ title, open, onClose, children, zIndex, footer, fullScreen, compact }: { zIndex?: number; title: string; open: boolean; onClose: () => void; children: ReactNode; footer?: ReactNode; fullScreen?: boolean; compact?: boolean }) {
+  return <Drawer rootClassName={compact ? 'compact-sheet' : fullScreen ? 'community-fullscreen' : undefined} zIndex={zIndex} footer={footer} title={title} placement="bottom" open={open} onClose={onClose} size="default" className="mobile-sheet" closable={{ placement: 'end' }} destroyOnHidden>{children}</Drawer>
 }
 export function Trend({ entries, metric = 'mood' }: { entries: MoodEntry[]; metric?: 'mood' | 'stress' }) {
   const gradientId = useId()

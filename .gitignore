@@ -25,3 +25,6 @@ Releases/*.idsig
 .site-publish/
 .site-archive.zip
 .site-archive.tar.gz
+# Local QA captures and one-off working files
+/tmp/
+/output/

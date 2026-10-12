@@ -1,4 +1,11 @@
 /* Shared phone shell */
+/* Side pages share the same phone canvas as the main app, including portals. */
+.ant-drawer:is(.ant-drawer-right, .ant-drawer-left) > .ant-drawer-content-wrapper {
+  width: min(480px, 100vw) !important;
+  max-width: min(480px, 100vw);
+}
+.ant-drawer.ant-drawer-right > .ant-drawer-content-wrapper { right: max(0px, calc((100vw - 480px) / 2)); }
+.ant-drawer.ant-drawer-left > .ant-drawer-content-wrapper { left: max(0px, calc((100vw - 480px) / 2)); }
 /* Keyboard changes resize the active overlay, not the page underneath it. */
 .ant-drawer.ant-drawer-bottom { --viewport-height: var(--overlay-viewport-height, 100dvh); bottom: var(--overlay-bottom, 0px); }
 /* Animate drawer entrances only; keyboard geometry must update in the same frame. */
@@ -382,3 +389,5 @@ input::placeholder, textarea::placeholder { color: var(--text-tertiary); }
 :root[data-keyboard-open='true']:not([data-overlay-open='true']) .app-shell:has(.publish-studio) { padding-bottom:0; --bottom-height:0px; }
 :root:is([data-keyboard-editing='true'],[data-keyboard-open='true']):not([data-overlay-open='true']) .app-shell:has(.publish-studio) { height:var(--overlay-viewport-height,100dvh); }
 :root[data-keyboard-open='true']:not([data-overlay-open='true']) .compose-publish-bar { padding-bottom:8px; }
+/* Short single-action forms size to their content; long detail sheets retain scrolling. */
+.compact-sheet.ant-drawer-bottom > .ant-drawer-content-wrapper{height:auto!important;max-height:min(85dvh,var(--overlay-viewport-height,85dvh))}.compact-sheet .ant-drawer-section{height:auto;max-height:inherit}.compact-sheet .ant-drawer-body{max-height:calc(var(--overlay-viewport-height,100dvh) - 120px);overflow-y:auto;padding-bottom:calc(24px + env(safe-area-inset-bottom))}

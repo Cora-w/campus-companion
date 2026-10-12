@@ -34,13 +34,24 @@ test('network, timeout and invalid JSON are distinct failures', async () => {
   await assert.rejects(createHttpClient('', waiting, 5).request('/a'), e => e.code === 'TIMEOUT')
 })
 test('unsupported identity and malformed login responses never authorize', async () => {
-  for (const body of [null, {}, {user:{id:'a',name:'管理',role:'admin'},accessToken:'token'}]) {
+  for (const body of [null, {}, {user:{id:'a',name:'商家',role:'merchant'},accessToken:'token'}]) {
     const calls=[]
     const client=createHttpClient('',async (_,options)=>{calls.push(options);return json(body)})
     await assert.rejects(createRemoteAuth(client).login({account:'a',password:'x'}))
     await client.request('/probe')
     assert.equal(calls[1].headers.Authorization,undefined)
   }
+})
+test('teacher identity is accepted only from a valid server response', async () => {
+  const calls = []
+  const client = createHttpClient('', async (_, options) => {
+    calls.push(options)
+    return json({ user: { id: 't1', name: '心理教师', role: 'teacher' }, accessToken: 'teacher-token' })
+  })
+  assert.equal((await createRemoteAuth(client).login({ account: 't1', password: 'secret' })).role, 'teacher')
+  await client.request('/probe')
+  assert.equal(calls[1].headers.Authorization, 'Bearer teacher-token')
+  assert.deepEqual(JSON.parse(calls[0].body), { account: 't1', password: 'secret' })
 })
 test('failed logout clears local token', async () => {
   const calls=[]
@@ -49,4 +60,9 @@ test('failed logout clears local token', async () => {
   await assert.rejects(createRemoteAuth(client).logout())
   await assert.rejects(client.request('/probe'))
   assert.equal(calls[1].headers.Authorization,undefined)
+})
+
+test('admin identity is accepted from the authenticated server response', async () => {
+  const client = createHttpClient('', async () => json({ user: { id: 'a1', name: '管理员', role: 'admin' }, accessToken: 'admin-token' }))
+  assert.equal((await createRemoteAuth(client).login({ account: 'a1', password: 'secret' })).role, 'admin')
 })

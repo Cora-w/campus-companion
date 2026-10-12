@@ -1,5 +1,5 @@
 export type SnackProduct = { active?: boolean; id: string; name: string; category: string; price: number; unit: string; icon: string; color: string; stock: number; note: string }
-export type SnackShop = { id: string; name: string; avatar: string; tagline: string; location: string; hours: string; color: string; products: SnackProduct[] }
+export type SnackShop = { id: string; ownerId?: string; isOpen?: boolean; adminSuspended?: boolean; name: string; avatar: string; tagline: string; location: string; hours: string; color: string; products: SnackProduct[] }
 export const snackShops: SnackShop[] = [
   { id: 'afterclass', name: '下课零食社', avatar: '下', tagline: '课间十分钟，也要吃点喜欢的', location: '第一食堂旁 · 生活服务街 03 号', hours: '09:00–22:00', color: '#f3d6ad', products: [
     { id:'chips', name:'海盐脆薯片', category:'咸味小食', price:650, unit:'60g / 袋', icon:'🥔', color:'#f6dfaf', stock:12, note:'薄切酥脆，咸香刚刚好。' },

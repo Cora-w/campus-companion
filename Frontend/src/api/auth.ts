@@ -11,8 +11,8 @@ export function createRemoteAuth(client: ReturnType<typeof createHttpClient>): A
           !['student', 'teacher', 'merchant', 'admin'].includes(result.user.role)) {
         throw new ApiError('登录响应格式不正确，请联系管理员。', 502, 'INVALID_RESPONSE')
       }
-      // This release exposes only the student experience. Server authorization is still required.
-      if (result.user.role !== 'student') throw new ApiError('当前仅开放学生端。', 403, 'ROLE_NOT_AVAILABLE')
+      // Role comes from the authenticated server response, never the login selector.
+      if (!['student', 'teacher', 'admin'].includes(result.user.role)) throw new ApiError('该身份暂未开放，请联系管理员。', 403, 'ROLE_NOT_AVAILABLE')
       client.setToken(result.accessToken)
       return result.user
     },

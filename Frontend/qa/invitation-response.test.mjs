@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict'
+import { invitationResponse } from '../src/features/student/invitationResponse.ts'
+const now = new Date('2030-01-01T10:00:00+08:00').getTime()
+const item = { id: 'invite', caseId: 'case', teacherId: 'teacher', studentAccountId: 'student', day: '2030-01-02', start: '15:00', duration: 45, method: '面谈', location: '咨询室', status: '已安排', responseStatus: '待确认' }
+const respond = (item, reply, id = 'student') => invitationResponse(item, id, reply, now)
+assert.ok(respond(item, { status: '已接受' }, 'other').error)
+assert.ok(respond({ ...item, status: '已取消' }, { status: '已接受' }).error)
+assert.ok(respond({ ...item, day: '2029-01-01' }, { status: '已接受' }).error)
+const accepted = respond(item, { status: '已接受' })
+assert.equal(accepted.error, '')
+assert.equal(accepted.appointment.responseStatus, '已接受')
+assert.ok(respond(accepted.appointment, { status: '已接受' }).error)
+assert.ok(respond(accepted.appointment, { status: '已婉拒', declineReason: '无法参加' }).error)
+assert.ok(respond(item, { status: '已婉拒', declineReason: ' ' }).error)
+const declined = respond(item, { status: '已婉拒', declineReason: ' 暂不方便参加 ' })
+assert.equal(declined.appointment.declineReason, '暂不方便参加')
+assert.ok(respond(declined.appointment, { status: '已接受' }).error)
+assert.ok(respond(item, { status: '申请改期', changeRequest: { day: '2030-01-03', start: '15:00', reason: '' } }).error)
+assert.ok(respond(item, { status: '申请改期', changeRequest: { day: '2029-01-01', start: '15:00', reason: '时间不方便' } }).error)
+const changed = respond(accepted.appointment, { status: '申请改期', changeRequest: { day: '2030-01-03', start: '16:00', reason: ' 希望调整到下课后 ' } })
+assert.equal(changed.appointment.changeRequest.reason, '希望调整到下课后')
+assert.ok(respond(changed.appointment, { status: '已接受' }).error)
+console.log('Invitation ownership, expiration, acceptance, decline and change request checks passed')
