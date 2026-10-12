@@ -1,12 +1,18 @@
 export type SupportRequest = { id: string; studentId: string; studentName: string; topic: string; time: string; status: '待联系' | '已受理'; teacherId?: string }
 export type HubPage = 'guide' | 'market' | 'activities' | 'listen'
 export const hubTitles: Record<HubPage, string> = { guide: '校园指南', market: '校园闲置', activities: '活动搭子', listen: '倾诉空间' }
+// Names follow the official 2024 map; no invented office numbers or routes.
 export const rooms = [
-  { id:'a', name:'高等数学课堂', building:'第一教学楼', room:'3 层 · A305', hours:'按课表上课', route:'南门 → 中央步道 → 第一教学楼东门 → 东侧楼梯上三楼，右转第二间', x:25,y:30 },
-  { id:'b', name:'陈老师 · 辅导员办公室', building:'学生服务中心', room:'2 层 · 208', hours:'工作日 14:00–17:00（样例）', route:'南门 → 右侧步道 → 学生服务中心正门 → 电梯二楼，左侧走廊', x:72,y:65 },
-  { id:'c', name:'李老师 · 计算机教研室', building:'实验楼', room:'4 层 · B402', hours:'工作日 15:00–16:30（样例），建议提前预约', route:'南门 → 中央步道 → 图书馆前右转 → 实验楼 → 电梯四楼', x:74,y:28 },
-  { id:'d', name:'大学英语课堂', building:'第二教学楼', room:'2 层 · 206', hours:'按课表上课', route:'南门 → 中央步道 → 左侧第二栋楼 → 西侧楼梯二楼', x:24,y:65 },
-  { id:'e', name:'心理支持预约处', building:'学生服务中心', room:'3 层 · 302', hours:'工作日 09:00–17:00（样例）', route:'南门 → 右侧步道 → 学生服务中心 → 电梯三楼，出门右侧', x:72,y:65 },
+  { id:'scavc-0', name:'图书馆', building:'图书馆', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-1', name:'文汇楼', building:'文汇楼', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-2', name:'致远楼', building:'致远楼', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-3', name:'劝学楼', building:'劝学楼', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-4', name:'明志楼', building:'明志楼', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-5', name:'知行楼', building:'知行楼', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-6', name:'天和食堂', building:'天和食堂', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-7', name:'天舟食堂', building:'天舟食堂', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-8', name:'西园综合楼', building:'西园综合楼', room:'三星堆校区 · 位置见官方地图' },
+  { id:'scavc-9', name:'体育馆', building:'体育馆', room:'三星堆校区 · 位置见官方地图' },
 ]
 export const schoolNotices = [
   {id:'n1',type:'校历',title:'假期与返校安排',detail:'样例：假期前请整理宿舍电源，返校安排与补课时间以教务处校历为准。学校尚未提供真实日期。',action:'订阅校历提醒',open:true},

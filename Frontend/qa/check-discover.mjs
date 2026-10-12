@@ -29,12 +29,12 @@ const select=async(label,choice)=>{await ev(`document.querySelector('[aria-label
 
 
 await call('Runtime.enable');await call('Page.enable');await resize(390);await call('Page.navigate',{url:'http://127.0.0.1:5174'});await wait(3000);await consent();await click('以学生身份体验 →');await click('发现');
-await check("document.querySelectorAll('.discover-shop-card').length===4",'four shops');
+await check("document.querySelectorAll('.discover-shop-card').length===20",'campus directory and sample shops');
 await check("!document.querySelector('.discover-page').textContent.includes('校园服务')",'duplicate services removed');
 for(const width of [320,390,430]){await resize(width);await check('document.documentElement.scrollWidth<=innerWidth',width+' page fits');await shot('discover-'+width)}
 await fill('[aria-label="搜索发现"]','生椰');await check("document.querySelectorAll('.discover-shop-card').length===1",'search matches products');
 await fill('[aria-label="搜索发现"]','不存在的店');await check("document.querySelector('.discover-page').textContent.includes('没有找到')",'empty result');await click('清除筛选');
-await click('校内');await check("document.querySelectorAll('.discover-shop-card').length===2",'area filter');await click('全部');
+await click('校内');await check("document.querySelectorAll('.discover-shop-card').length===18",'area filter');await click('全部');
 await click('查看一食堂 · 老汤面馆');await check("document.querySelector('.discover-detail').textContent.includes('第一食堂二楼 06 窗口')",'address visible');
 await check("document.querySelector('.discover-products button h3').textContent==='番茄牛肉面'",'popular product first');await shot('discover-shop');
 await check("(()=>{const r=document.querySelector('.discover-write-bar').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight})()",'write entry visible without scrolling');

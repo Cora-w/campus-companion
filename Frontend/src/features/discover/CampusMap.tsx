@@ -1,15 +1,16 @@
+import { useState } from 'react'
+import { Image } from 'antd'
 import { rooms } from '../../data/hubData'
-export function CampusMap({ selected, select }: { selected: string | null; select: (id: string) => void }) {
- const current=rooms.find(r=>r.building===selected)
- return <div className="guide-map-v2"><svg viewBox="0 0 400 300" role="img" aria-label="样例校园地图，可选择楼栋">
- <rect width="400" height="300" fill="#edf0e8"/><path d="M8 35Q90 65 75 150T40 280M350 0Q315 65 351 126T370 300" stroke="#d9e4d4" strokeWidth="28" fill="none"/>
- <rect x="143" y="14" width="106" height="50" rx="5" fill="#d3d8cc"/><text x="196" y="43" textAnchor="middle" fill="#687665" fontSize="11">图书馆</text>
- <ellipse cx="335" cy="238" rx="44" ry="22" fill="#d9e7e9"/><text x="335" y="242" textAnchor="middle" fill="#678185" fontSize="9">湖畔步道</text>
- <path d="M200 300V76M0 146H400M60 254H306" stroke="#fffdf8" strokeWidth="21" fill="none"/>
- <path d="M200 300V76M0 146H400" stroke="#ddd7ca" strokeWidth="1" strokeDasharray="3 5" fill="none"/>
- {rooms.filter((r,i,all)=>all.findIndex(x=>x.building===r.building)===i).map(r=><g key={r.id}><rect x={r.x*4-51} y={r.y*3-23} width="102" height="46" rx="5" fill={r.building===current?.building?'var(--accent)':'#ded7c9'} stroke="#cfc6b7"/><path d={`M${r.x*4-40} ${r.y*3-13}h80`} stroke="#fff8" strokeWidth="3"/></g>)}
- <circle cx="200" cy="282" r="6" fill="var(--accent)" stroke="white" strokeWidth="3"/><text x="217" y="286" fontSize="10" fill="#746354">南门</text>
- <text x="369" y="24" fontSize="12" fill="#746354">N ↑</text>
- </svg><div className="map-select-layer">{rooms.filter((r,i,all)=>all.findIndex(x=>x.building===r.building)===i).map(r=><button key={r.id} style={{left:`${r.x}%`,top:`${r.y}%`}} aria-pressed={r.building===current?.building} className={r.building===current?.building?'chosen':''} onClick={()=>select(r.building)}>{r.building}</button>)}</div><span className="map-sample">样例校园 · 非实景地图</span></div>
-}
+import { useBackNavigation } from '../../navigation/useBackNavigation'
+import './CampusMap.css'
 
+export function CampusMap({ selected, select }: { selected: string | null; select: (id: string) => void }) {
+ const [preview, setPreview] = useState(false)
+ useBackNavigation(preview, () => setPreview(false), 4000)
+ return <section className="scavc-map" aria-label="四川航天职业技术学院校园地图">
+  <header><div><small>四川航天职业技术学院</small><h3>三星堆校区 · 校园地图</h3></div><span>广汉</span></header>
+  <Image src={`${import.meta.env.BASE_URL}maps/scavc-sanxingdui-2024.jpg`} alt="四川航天职业技术学院2024年三星堆校区平面示意图，包含教学楼、图书馆、食堂和宿舍位置" width="100%" preview={{ open:preview, onOpenChange:setPreview, zIndex:4000, mask:'点击放大校园地图' }}/>
+  <p className="scavc-map-source">学校官方 2024 年版 · 点击图片可放大查看<br/>地图可能与当前现场有变化，请以校内标识为准。<a href="https://www.scavc.com/info/1518/24357.htm" target="_blank" rel="noreferrer">查看学校原图与发布说明 ↗</a></p>
+  <div className="scavc-map-places" aria-label="地图地点目录">{rooms.map(room => <button key={room.id} type="button" aria-pressed={room.building === selected} onClick={() => select(room.building)}>{room.building}</button>)}</div>
+ </section>
+}

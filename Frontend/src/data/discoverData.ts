@@ -1,11 +1,24 @@
+import directory from './scavc-stores.json'
 export type DiscoverProduct = { id: string; name: string; price: number; likes: number; image: string; description: string }
-export type DiscoverShop = { id: string; name: string; area: string; category: string; address: string; hours: string; price: number; likes: number; image: string; tags: string[]; products: DiscoverProduct[] }
+export type DiscoverShop = { id: string; name: string; area: string; category: string; address: string; hours: string; price: number | null; source?: string; description?: string; venue?: string; likes: number; image: string; tags: string[]; products: DiscoverProduct[] }
 const photo = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=640&q=80`
 const noodles = photo('photo-1569718212165-3a8278d5f624')
 const coffee = photo('photo-1509042239860-f550ce710b93')
 const meal = photo('photo-1547592180-85f173990554')
 const bread = photo('photo-1509440159596-0249088772ff')
+const campusShops: DiscoverShop[] = directory.stores.map(store => {
+  const venue = directory.venues.find(item => item.key === store.venue)!
+  const image = directory.images[store.image as keyof typeof directory.images]
+  return {
+    id:`scavc-${store.venue}-${store.key}`, name:store.name, area:'校内', category:store.category,
+    address:[venue.name, store.floor ? `${store.floor}楼` : '', store.room ? `${store.room}号` : '', venue.address].filter(Boolean).join(' · '),
+    hours:'待补充，以现场公示为准', price:null, likes:0, image:image.url,
+    tags:[venue.name, store.kind === 'stall_group' ? '档口分组' : '校园商铺'], products:[],
+    source:directory.source_note, description:store.description, venue:venue.name,
+  }
+})
 export const discoverShops: DiscoverShop[] = [
+  ...campusShops,
   { id:'place-1', name:'一食堂 · 老汤面馆', area:'校内', category:'面食', address:'第一食堂二楼 06 窗口', hours:'10:30–20:00', price:15, likes:328, image:noodles, tags:['课间快餐','热汤暖胃'], products:[
     {id:'noodle-tomato',name:'番茄牛肉面',price:15,likes:216,image:noodles,description:'番茄酸甜、汤底浓郁，喜欢清淡可以备注少盐。'},
     {id:'noodle-braised',name:'红烧牛肉面',price:16,likes:158,image:noodles,description:'浓香红烧汤底，口味偏重，可选择辣度。'},
