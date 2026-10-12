@@ -1663,6 +1663,686 @@ CREATE OR REPLACE VIEW app.public_stores WITH (security_barrier=true) AS
 COMMENT ON COLUMN app.stores.cover_url IS 'Illustrative image URL; consult image_credit before presenting as a storefront photograph.';
 COMMENT ON COLUMN app.stores.seed_key IS 'Stable import identifier; not a merchant identity or account.';
 
+
+-- SOURCE: db/migrations/011_staff_foundation.sql
+-- Frontend contract reviewed at be31998 (2026-10-12). Never auto-bind existing users.
+CREATE TABLE app.schools (
+  id text PRIMARY KEY CHECK (id ~ '^[a-z0-9][a-z0-9-]{0,119}$'),
+  name text NOT NULL CHECK (length(btrim(name)) BETWEEN 1 AND 160),
+  city text NOT NULL DEFAULT '', binding_enabled boolean NOT NULL DEFAULT false
+);
+INSERT INTO app.schools VALUES ('sichuan-aerospace-polytechnic','四川航天职业技术学院','广汉 / 成都',true);
+CREATE TABLE app.school_memberships (
+  user_id uuid PRIMARY KEY REFERENCES app.users(id) ON DELETE RESTRICT,
+  school_id text NOT NULL REFERENCES app.schools(id),
+  assigned_by uuid REFERENCES app.users(id), created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(user_id,school_id)
+);
+CREATE INDEX school_memberships_school_idx ON app.school_memberships(school_id,user_id);
+CREATE FUNCTION app.request_school() RETURNS text
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT school_id FROM app.school_memberships WHERE user_id=app.current_user_id() AND app.request_role() IS NOT NULL
+$$;
+CREATE FUNCTION app.school_admin(target text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT coalesce(app.request_admin() AND target=app.request_school(),false)
+$$;
+REVOKE ALL ON FUNCTION app.request_school(),app.school_admin(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.request_school(),app.school_admin(text) TO app_backend,app_agent;
+ALTER TABLE app.schools ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app.schools FORCE ROW LEVEL SECURITY;
+ALTER TABLE app.school_memberships ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app.school_memberships FORCE ROW LEVEL SECURITY;
+GRANT SELECT ON app.schools,app.school_memberships TO app_backend;
+CREATE POLICY school_catalog ON app.schools FOR SELECT TO app_backend USING(binding_enabled OR id=app.request_school());
+CREATE POLICY membership_read ON app.school_memberships FOR SELECT TO app_backend
+ USING(app.request_role() IS NOT NULL AND (user_id=app.current_user_id() OR app.school_admin(school_id)));
+CREATE FUNCTION app.bind_my_school(target text) RETURNS text
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE existing text;
+BEGIN
+ IF app.request_role() IS DISTINCT FROM 'student' THEN RAISE EXCEPTION 'Student session required' USING ERRCODE='42501'; END IF;
+ PERFORM 1 FROM app.users WHERE id=app.current_user_id() FOR UPDATE;
+ SELECT school_id INTO existing FROM app.school_memberships WHERE user_id=app.current_user_id();
+ IF existing=target THEN RETURN existing; END IF;
+ IF existing IS NOT NULL THEN RAISE EXCEPTION 'School already bound' USING ERRCODE='23514'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM app.schools WHERE id=target AND binding_enabled) THEN RAISE EXCEPTION 'School unavailable' USING ERRCODE='23514'; END IF;
+ INSERT INTO app.school_memberships(user_id,school_id) VALUES(app.current_user_id(),target);
+ RETURN target;
+END $$;
+REVOKE ALL ON FUNCTION app.bind_my_school(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.bind_my_school(text) TO app_backend;
+
+ALTER TABLE app.users ADD COLUMN version bigint NOT NULL DEFAULT 1 CHECK(version>0);
+ALTER TABLE app.audit_logs ADD COLUMN school_id text REFERENCES app.schools(id);
+DROP POLICY audit_read ON app.audit_logs;
+CREATE POLICY audit_read ON app.audit_logs FOR SELECT TO app_backend USING(app.school_admin(school_id));
+CREATE INDEX audit_school_idx ON app.audit_logs(school_id,created_at DESC);
+CREATE VIEW app.admin_accounts WITH(security_barrier=true) AS
+ SELECT u.id,u.login_account,u.display_name,u.role,u.status,u.version,m.school_id
+ FROM app.users u JOIN app.school_memberships m ON m.user_id=u.id WHERE app.school_admin(m.school_id);
+GRANT SELECT ON app.admin_accounts TO app_backend;
+CREATE FUNCTION app.staff_audit(action_name text,kind text,target text) RETURNS void
+LANGUAGE sql SECURITY DEFINER SET search_path=pg_catalog AS $$
+ INSERT INTO app.audit_logs(actor_id,school_id,action,resource_type,resource_id)
+ VALUES(app.current_user_id(),app.request_school(),action_name,kind,target)
+$$;
+REVOKE ALL ON FUNCTION app.staff_audit(text,text,text) FROM PUBLIC;
+
+CREATE FUNCTION app.admin_update_account(target uuid,expected bigint,new_name text,new_role text,new_status text) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE old app.users; school text;
+BEGIN
+ school:=app.request_school();
+ IF NOT app.school_admin(school) THEN RAISE EXCEPTION 'School administrator required' USING ERRCODE='42501'; END IF;
+ -- Lock school first to serialize concurrent last-admin changes.
+ PERFORM 1 FROM app.schools WHERE id=school FOR UPDATE;
+ SELECT u.* INTO old FROM app.users u JOIN app.school_memberships m ON m.user_id=u.id
+ WHERE u.id=target AND m.school_id=school FOR UPDATE OF u;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Account unavailable' USING ERRCODE='42501'; END IF;
+ IF expected IS NULL OR old.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001'; END IF;
+ IF new_name IS NULL OR new_role IS NULL OR new_status IS NULL THEN RAISE EXCEPTION 'Required fields missing' USING ERRCODE='23514';END IF;
+ IF target=app.current_user_id() AND (new_role<>old.role OR new_status<>'active') THEN RAISE EXCEPTION 'Cannot disable or change own role' USING ERRCODE='23514'; END IF;
+ IF old.role='admin' AND old.status='active' AND (new_role<>'admin' OR new_status<>'active') AND NOT EXISTS(
+ SELECT 1 FROM app.users u JOIN app.school_memberships m ON m.user_id=u.id WHERE m.school_id=school AND u.id<>target AND u.role='admin' AND u.status='active') THEN
+ RAISE EXCEPTION 'Last administrator' USING ERRCODE='23514'; END IF;
+ UPDATE app.users SET display_name=new_name,role=new_role,status=new_status,version=version+1 WHERE id=target;
+ IF new_role IS DISTINCT FROM old.role OR new_status IS DISTINCT FROM old.status THEN DELETE FROM app.auth_sessions WHERE user_id=target; END IF;
+ PERFORM app.staff_audit('account.updated','user',target::text);
+ RETURN expected+1;
+END $$;
+REVOKE ALL ON FUNCTION app.admin_update_account(uuid,bigint,text,text,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.admin_update_account(uuid,bigint,text,text,text) TO app_backend;
+REVOKE UPDATE ON app.users FROM app_backend;
+REVOKE DELETE ON app.users FROM app_backend;
+GRANT UPDATE(password_hash,email,email_ciphertext,email_lookup,private_profile_ciphertext,profile,last_login_at,login_account) ON app.users TO app_backend;
+-- Authentication/registration is still a trusted backend capability. Account
+-- display/role/state mutations require the scoped administrative function.
+
+-- Supply the UUID before encrypting email so authenticated encryption can bind
+-- the ciphertext to this user. Password hashing remains in the trusted service.
+CREATE FUNCTION app.admin_create_account(target uuid,account text,name text,role_value text,hash text,email_data bytea,email_index bytea) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE school text:=app.request_school();
+BEGIN
+ IF NOT app.school_admin(school) THEN RAISE EXCEPTION 'School administrator required' USING ERRCODE='42501';END IF;
+ IF target IS NULL OR account IS NULL OR role_value IS NULL OR role_value NOT IN('student','teacher','admin')
+ OR coalesce(octet_length(email_data),0)=0 OR coalesce(octet_length(email_index),0)<>32 THEN RAISE EXCEPTION 'Invalid account data' USING ERRCODE='23514';END IF;
+ INSERT INTO app.users(id,email,login_account,password_hash,display_name,role,email_ciphertext,email_lookup)
+ VALUES(target,target::text||'@private.invalid',lower(btrim(account)),hash,name,role_value,email_data,email_index);
+ INSERT INTO app.school_memberships(user_id,school_id,assigned_by) VALUES(target,school,app.current_user_id());
+ PERFORM app.staff_audit('account.created','user',target::text);
+ RETURN target;
+END $$;
+REVOKE ALL ON FUNCTION app.admin_create_account(uuid,text,text,text,text,bytea,bytea) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.admin_create_account(uuid,text,text,text,text,bytea,bytea) TO app_backend;
+
+CREATE TABLE app.student_feedback (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(), school_id text NOT NULL REFERENCES app.schools(id),
+ student_id uuid NOT NULL, body text NOT NULL DEFAULT '' CHECK(length(body)<=500),
+ images jsonb NOT NULL DEFAULT '[]' CHECK(jsonb_typeof(images)='array' AND jsonb_array_length(images)<=3),
+ status text NOT NULL DEFAULT 'pending' CHECK(status IN('pending','processing','replied')),
+ reply text NOT NULL DEFAULT '' CHECK(length(reply)<=1000), replied_by uuid REFERENCES app.users(id),
+ request_key uuid NOT NULL,version bigint NOT NULL DEFAULT 1,
+ created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),
+ FOREIGN KEY(student_id,school_id) REFERENCES app.school_memberships(user_id,school_id),
+ UNIQUE(student_id,request_key),
+ CHECK(length(btrim(body))>=5 OR jsonb_array_length(images)>0),
+ CHECK(status<>'replied' OR (length(btrim(reply))>0 AND replied_by IS NOT NULL))
+);
+CREATE INDEX feedback_school_idx ON app.student_feedback(school_id,status,created_at DESC);
+ALTER TABLE app.student_feedback ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app.student_feedback FORCE ROW LEVEL SECURITY;
+GRANT SELECT,INSERT ON app.student_feedback TO app_backend;
+GRANT UPDATE(status,reply,replied_by,version) ON app.student_feedback TO app_backend;
+CREATE POLICY feedback_read ON app.student_feedback FOR SELECT TO app_backend USING(app.school_admin(school_id) OR (school_id=app.request_school() AND student_id=app.current_user_id() AND app.request_role()='student'));
+CREATE POLICY feedback_create ON app.student_feedback FOR INSERT TO app_backend WITH CHECK(school_id=app.request_school() AND student_id=app.current_user_id() AND app.request_role()='student' AND status='pending' AND reply='' AND replied_by IS NULL AND version=1);
+CREATE POLICY feedback_reply ON app.student_feedback FOR UPDATE TO app_backend USING(app.school_admin(school_id)) WITH CHECK(app.school_admin(school_id) AND (replied_by IS NULL OR replied_by=app.current_user_id()));
+CREATE FUNCTION app.feedback_guard() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE image jsonb;
+BEGIN
+ FOR image IN SELECT value FROM jsonb_array_elements(NEW.images) LOOP
+ IF jsonb_typeof(image)<>'string' OR (image #>> '{}') !~ '^https://' THEN RAISE EXCEPTION 'Use authorized HTTPS image URLs, not base64' USING ERRCODE='23514'; END IF;
+ END LOOP;
+ IF TG_OP='UPDATE' THEN
+ IF NEW.version IS NULL OR NEW.version<>OLD.version+1 THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001'; END IF;
+ IF OLD.status='replied' AND NEW.status<>'replied' THEN RAISE EXCEPTION 'Cannot reopen replied feedback' USING ERRCODE='23514'; END IF;
+ NEW.updated_at:=now(); PERFORM app.staff_audit('feedback.updated','feedback',NEW.id::text);
+ END IF;
+ RETURN NEW;
+END $$;
+CREATE TRIGGER feedback_guard BEFORE INSERT OR UPDATE ON app.student_feedback FOR EACH ROW EXECUTE FUNCTION app.feedback_guard();
+REVOKE ALL ON FUNCTION app.feedback_guard() FROM PUBLIC;
+
+ALTER TABLE app.campus_notices ADD COLUMN school_id text REFERENCES app.schools(id), ADD COLUMN version bigint NOT NULL DEFAULT 1;
+DROP POLICY notice_read ON app.campus_notices;
+CREATE POLICY notice_read ON app.campus_notices FOR SELECT TO app_backend USING(app.school_admin(school_id) OR (school_id=app.request_school() AND status='published' AND (starts_at IS NULL OR starts_at<=now()) AND (ends_at IS NULL OR ends_at>now())));
+GRANT INSERT ON app.campus_notices TO app_backend;
+GRANT UPDATE(title,detail,status,starts_at,ends_at,version) ON app.campus_notices TO app_backend;
+CREATE POLICY notice_insert ON app.campus_notices FOR INSERT TO app_backend WITH CHECK(app.school_admin(school_id) AND created_by=app.current_user_id());
+CREATE POLICY notice_update ON app.campus_notices FOR UPDATE TO app_backend USING(app.school_admin(school_id)) WITH CHECK(app.school_admin(school_id));
+CREATE OR REPLACE VIEW app.public_campus_notices WITH(security_barrier=true) AS
+ SELECT id,notice_type,title,detail,action_label,starts_at,ends_at,created_at,school_id,version FROM app.campus_notices
+ WHERE school_id=app.request_school() AND status='published' AND (starts_at IS NULL OR starts_at<=now()) AND (ends_at IS NULL OR ends_at>now());
+CREATE FUNCTION app.notice_guard() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+ IF TG_OP='UPDATE' AND NEW.version<>OLD.version+1 THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001'; END IF;
+ IF length(btrim(NEW.title)) NOT BETWEEN 1 AND 60 OR length(btrim(NEW.detail)) NOT BETWEEN 1 AND 2000 THEN RAISE EXCEPTION 'Invalid notice content' USING ERRCODE='23514'; END IF;
+ NEW.updated_at:=now();PERFORM app.staff_audit('notice.'||NEW.status,'notice',NEW.id::text);RETURN NEW;
+END $$;
+CREATE TRIGGER notice_guard BEFORE INSERT OR UPDATE ON app.campus_notices FOR EACH ROW EXECUTE FUNCTION app.notice_guard();
+REVOKE ALL ON FUNCTION app.notice_guard() FROM PUBLIC;
+
+
+-- SOURCE: db/migrations/012_teacher_workflows.sql
+ALTER TABLE app.care_cases
+ ADD COLUMN school_id text REFERENCES app.schools(id),
+ ADD COLUMN version bigint NOT NULL DEFAULT 1 CHECK(version>0),
+ ADD COLUMN analysis_source text NOT NULL DEFAULT '', ADD COLUMN analyzed_at timestamptz,
+ ADD COLUMN summary_ciphertext bytea, ADD COLUMN signals_ciphertext bytea,
+ ADD COLUMN consent_revoked_at timestamptz,
+ ADD COLUMN review_conclusion text CHECK(review_conclusion IN('follow_up','observe')),
+ ADD COLUMN review_note_ciphertext bytea, ADD COLUMN reviewed_at timestamptz,
+ ADD COLUMN observation_note_ciphertext bytea, ADD COLUMN observation_due_on date,
+ ADD COLUMN closure_note_ciphertext bytea,
+ ADD CONSTRAINT care_student_school_fk FOREIGN KEY(student_id,school_id) REFERENCES app.school_memberships(user_id,school_id),
+ ADD CONSTRAINT care_teacher_school_fk FOREIGN KEY(teacher_id,school_id) REFERENCES app.school_memberships(user_id,school_id);
+CREATE INDEX care_school_teacher_idx ON app.care_cases(school_id,teacher_id,status,observation_due_on);
+CREATE FUNCTION app.can_read_case(target uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT EXISTS(SELECT 1 FROM app.care_cases c JOIN app.users s ON s.id=c.student_id
+ WHERE c.id=target AND c.school_id=app.request_school() AND c.teacher_id=app.current_user_id()
+ AND app.request_role()='teacher' AND app.request_verified() AND s.status='active' AND s.role='student'
+ AND c.consent_at<=now() AND c.consent_revoked_at IS NULL AND (c.consent_expires_at IS NULL OR c.consent_expires_at>now()))
+$$;
+REVOKE ALL ON FUNCTION app.can_read_case(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.can_read_case(uuid) TO app_backend;
+DROP POLICY care_case_teacher_read ON app.care_cases;
+DROP POLICY care_snapshot_teacher_read ON app.wellbeing_snapshots;
+DROP POLICY care_record_teacher_read ON app.care_records;
+DROP POLICY care_record_teacher_write ON app.care_records;
+DROP POLICY report_teacher_read ON app.wellbeing_reports;
+CREATE POLICY care_case_teacher_read ON app.care_cases FOR SELECT TO app_backend USING(app.can_read_case(id));
+CREATE POLICY care_snapshot_teacher_read ON app.wellbeing_snapshots FOR SELECT TO app_backend USING(app.can_read_case(case_id));
+CREATE POLICY care_record_teacher_read ON app.care_records FOR SELECT TO app_backend USING(app.can_read_case(case_id));
+CREATE POLICY report_teacher_read ON app.wellbeing_reports FOR SELECT TO app_backend USING(app.can_read_case(case_id));
+REVOKE INSERT ON app.care_records FROM app_backend;
+
+CREATE TABLE app.care_case_events (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),case_id uuid NOT NULL REFERENCES app.care_cases(id),
+ actor_id uuid NOT NULL REFERENCES app.users(id),action text NOT NULL,
+ note_ciphertext bytea,request_key uuid NOT NULL,payload_hash bytea NOT NULL,
+ result_version bigint NOT NULL,created_at timestamptz NOT NULL DEFAULT now(),
+ UNIQUE(case_id,actor_id,request_key)
+);
+CREATE TABLE app.care_appointments (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),case_id uuid NOT NULL REFERENCES app.care_cases(id),
+ teacher_id uuid NOT NULL REFERENCES app.teacher_profiles(user_id), student_id uuid NOT NULL REFERENCES app.student_profiles(user_id),
+ starts_at timestamptz NOT NULL, duration_minutes integer NOT NULL CHECK(duration_minutes IN(30,45,60)),
+ method text NOT NULL CHECK(method IN('in_person','online','phone','follow_up')),
+ location_ciphertext bytea NOT NULL CHECK(octet_length(location_ciphertext)>0),
+ status text NOT NULL DEFAULT 'scheduled' CHECK(status IN('scheduled','completed','no_show','cancelled')),
+ response_status text NOT NULL DEFAULT 'pending' CHECK(response_status IN('pending','accepted','reschedule_requested','declined')),
+ requested_start timestamptz, response_note_ciphertext bytea,responded_at timestamptz,
+ version bigint NOT NULL DEFAULT 1 CHECK(version>0),request_key uuid NOT NULL,
+ created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),
+ UNIQUE(teacher_id,request_key), UNIQUE(id,case_id,teacher_id),
+ CHECK(status<>'completed' OR response_status='accepted'),
+ CHECK((response_status='reschedule_requested')=(requested_start IS NOT NULL)),
+ CHECK(response_status NOT IN('reschedule_requested','declined') OR coalesce(octet_length(response_note_ciphertext),0)>0)
+);
+CREATE INDEX appointment_teacher_time_idx ON app.care_appointments(teacher_id,starts_at) WHERE status='scheduled';
+CREATE INDEX appointment_student_idx ON app.care_appointments(student_id,starts_at DESC);
+ALTER TABLE app.care_records ADD COLUMN response_ciphertext bytea,
+ ADD COLUMN appointment_id uuid,
+ ADD CONSTRAINT record_appointment_fk FOREIGN KEY(appointment_id,case_id,teacher_id) REFERENCES app.care_appointments(id,case_id,teacher_id);
+CREATE UNIQUE INDEX record_appointment_unique ON app.care_records(appointment_id) WHERE appointment_id IS NOT NULL;
+CREATE TABLE app.care_escalations (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),case_id uuid NOT NULL REFERENCES app.care_cases(id),
+ teacher_id uuid NOT NULL REFERENCES app.teacher_profiles(user_id),recipient_id uuid NOT NULL REFERENCES app.teacher_profiles(user_id),
+ recipient_label text NOT NULL CHECK(length(btrim(recipient_label)) BETWEEN 1 AND 120),
+ reason_ciphertext bytea NOT NULL CHECK(octet_length(reason_ciphertext)>0),measures_ciphertext bytea,
+ acknowledged_at timestamptz,created_at timestamptz NOT NULL DEFAULT now(),
+ CHECK(teacher_id<>recipient_id)
+);
+CREATE TABLE app.teacher_reminder_preferences (
+ teacher_id uuid PRIMARY KEY REFERENCES app.teacher_profiles(user_id),
+ priority_enabled boolean NOT NULL DEFAULT true,follow_up_enabled boolean NOT NULL DEFAULT true,
+ updated_at timestamptz NOT NULL DEFAULT now()
+);
+DO $$ DECLARE t text; BEGIN
+ FOREACH t IN ARRAY ARRAY['care_case_events','care_appointments','care_escalations','teacher_reminder_preferences'] LOOP
+ EXECUTE format('ALTER TABLE app.%I ENABLE ROW LEVEL SECURITY',t);
+ EXECUTE format('ALTER TABLE app.%I FORCE ROW LEVEL SECURITY',t);
+ EXECUTE format('GRANT SELECT ON app.%I TO app_backend',t);
+ END LOOP;
+END $$;
+CREATE POLICY case_event_read ON app.care_case_events FOR SELECT TO app_backend USING(app.can_read_case(case_id));
+-- Students receive appointment logistics only; not case risk, summary or records.
+CREATE FUNCTION app.can_read_invitation(target uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT EXISTS(SELECT 1 FROM app.care_cases c JOIN app.users t ON t.id=c.teacher_id
+ WHERE c.id=target AND c.student_id=app.current_user_id() AND c.school_id=app.request_school()
+ AND app.request_role()='student' AND app.request_verified() AND t.status='active' AND t.role='teacher'
+ AND c.consent_at<=now() AND c.consent_revoked_at IS NULL AND (c.consent_expires_at IS NULL OR c.consent_expires_at>now()))
+$$;
+REVOKE ALL ON FUNCTION app.can_read_invitation(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.can_read_invitation(uuid) TO app_backend;
+CREATE POLICY appointment_read ON app.care_appointments FOR SELECT TO app_backend USING(app.can_read_case(case_id) OR app.can_read_invitation(case_id));
+CREATE FUNCTION app.can_receive_escalation(target uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT EXISTS(SELECT 1 FROM app.care_escalations e JOIN app.care_cases c ON c.id=e.case_id
+ WHERE e.id=target AND e.recipient_id=app.current_user_id() AND app.request_role()='teacher' AND app.request_verified()
+ AND c.school_id=app.request_school() AND c.consent_revoked_at IS NULL AND c.consent_at<=now()
+ AND (c.consent_expires_at IS NULL OR c.consent_expires_at>now()))
+$$;
+REVOKE ALL ON FUNCTION app.can_receive_escalation(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.can_receive_escalation(uuid) TO app_backend;
+CREATE POLICY escalation_read ON app.care_escalations FOR SELECT TO app_backend USING(app.can_read_case(case_id) OR app.can_receive_escalation(id));
+-- Recipient acknowledgements use a narrowly scoped function, not a simulated sender acknowledgement.
+CREATE POLICY reminder_own ON app.teacher_reminder_preferences FOR ALL TO app_backend
+ USING(teacher_id=app.current_user_id() AND app.request_role()='teacher' AND app.request_verified() AND app.request_school() IS NOT NULL)
+ WITH CHECK(teacher_id=app.current_user_id() AND app.request_role()='teacher' AND app.request_verified() AND app.request_school() IS NOT NULL);
+GRANT INSERT,UPDATE ON app.teacher_reminder_preferences TO app_backend;
+CREATE TRIGGER reminder_updated BEFORE UPDATE ON app.teacher_reminder_preferences FOR EACH ROW EXECUTE FUNCTION app.touch_updated_at();
+
+CREATE FUNCTION app.care_child_integrity() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE c app.care_cases;
+BEGIN
+ SELECT * INTO c FROM app.care_cases WHERE id=NEW.case_id;
+ IF TG_TABLE_NAME IN('wellbeing_snapshots','care_appointments') THEN
+ IF NEW.student_id<>c.student_id THEN RAISE EXCEPTION 'Student mismatch' USING ERRCODE='23514'; END IF; END IF;
+ IF TG_TABLE_NAME IN('care_records','wellbeing_reports','care_appointments','care_escalations') THEN
+ IF NEW.teacher_id<>c.teacher_id THEN RAISE EXCEPTION 'Teacher mismatch' USING ERRCODE='23514'; END IF; END IF;
+ RETURN NEW;
+END $$;
+DO $$ DECLARE t text; BEGIN FOREACH t IN ARRAY ARRAY['wellbeing_snapshots','care_records','wellbeing_reports','care_appointments','care_escalations'] LOOP
+ EXECUTE format('CREATE TRIGGER care_child_integrity BEFORE INSERT OR UPDATE ON app.%I FOR EACH ROW EXECUTE FUNCTION app.care_child_integrity()',t);
+ END LOOP;END $$;
+REVOKE ALL ON FUNCTION app.care_child_integrity() FROM PUBLIC;
+
+-- Ciphertext fields are base64 transport of authenticated ciphertext produced by
+-- the trusted service, not plaintext/base64 encoding as a substitute for encryption.
+CREATE FUNCTION app.teacher_case_action(target uuid,expected bigint,key uuid,operation text,payload jsonb) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE c app.care_cases; previous app.care_case_events; n bytea; hash bytea; recipient uuid;
+BEGIN
+ IF key IS NULL OR operation IS NULL OR payload IS NULL OR jsonb_typeof(payload)<>'object' THEN RAISE EXCEPTION 'Invalid request' USING ERRCODE='23514'; END IF;
+ SELECT * INTO c FROM app.care_cases WHERE id=target FOR UPDATE;
+ IF NOT app.can_read_case(target) THEN RAISE EXCEPTION 'Assigned verified teacher required' USING ERRCODE='42501'; END IF;
+ hash:=sha256(convert_to(operation||payload::text,'UTF8'));
+ SELECT * INTO previous FROM app.care_case_events WHERE case_id=target AND actor_id=app.current_user_id() AND request_key=key;
+ IF FOUND THEN IF previous.payload_hash<>hash THEN RAISE EXCEPTION 'Idempotency conflict' USING ERRCODE='23514'; END IF;RETURN previous.result_version;END IF;
+ IF expected IS NULL OR c.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001';END IF;
+ n:=decode(payload->>'note','base64');
+ IF operation<>'reopen' AND coalesce(octet_length(n),0)=0 THEN RAISE EXCEPTION 'Encrypted note required' USING ERRCODE='23514'; END IF;
+ IF operation='reopen' THEN
+ IF c.status<>'archived' THEN RAISE EXCEPTION 'Case is not closed' USING ERRCODE='23514';END IF;
+ UPDATE app.care_cases SET status='following',archived_at=NULL,closure_note_ciphertext=NULL WHERE id=target;
+ ELSE
+ IF c.status='archived' THEN RAISE EXCEPTION 'Archived case is read only' USING ERRCODE='23514'; END IF;
+ CASE operation
+ WHEN 'review_follow_up','review_observe' THEN
+ IF operation='review_observe' AND ((payload->>'nextDate') IS NULL OR (payload->>'nextDate')::date<(now() AT TIME ZONE 'Asia/Shanghai')::date) THEN RAISE EXCEPTION 'Observation date required' USING ERRCODE='23514'; END IF;
+ UPDATE app.care_cases SET status='following',review_conclusion=CASE WHEN operation='review_observe' THEN 'observe' ELSE 'follow_up' END,
+ review_note_ciphertext=n,reviewed_at=now(),observation_note_ciphertext=CASE WHEN operation='review_observe' THEN n END,
+ observation_due_on=CASE WHEN operation='review_observe' THEN (payload->>'nextDate')::date END WHERE id=target;
+ WHEN 'record' THEN
+ IF c.status<>'following' OR c.reviewed_at IS NULL OR coalesce(octet_length(decode(payload->>'plan','base64')),0)=0
+ OR (payload->>'nextDate') IS NULL OR (payload->>'nextDate')::date<(now() AT TIME ZONE 'Asia/Shanghai')::date THEN RAISE EXCEPTION 'Review, plan and follow up date required' USING ERRCODE='23514'; END IF;
+ IF payload->>'appointmentId' IS NOT NULL AND NOT EXISTS(SELECT 1 FROM app.care_appointments WHERE id=(payload->>'appointmentId')::uuid AND case_id=target AND status='completed') THEN RAISE EXCEPTION 'Completed appointment required' USING ERRCODE='23514'; END IF;
+ INSERT INTO app.care_records(case_id,teacher_id,method,summary_ciphertext,plan_ciphertext,next_follow_up_on,response_ciphertext,appointment_id)
+ VALUES(target,c.teacher_id,payload->>'method',n,decode(payload->>'plan','base64'),(payload->>'nextDate')::date,decode(payload->>'response','base64'),(payload->>'appointmentId')::uuid);
+ UPDATE app.care_cases SET observation_note_ciphertext=NULL,observation_due_on=NULL WHERE id=target;
+ WHEN 'close' THEN
+ IF c.status<>'following' OR NOT EXISTS(SELECT 1 FROM app.care_records WHERE case_id=target)
+ OR EXISTS(SELECT 1 FROM app.care_appointments WHERE case_id=target AND status='scheduled')
+ OR EXISTS(SELECT 1 FROM app.care_escalations WHERE case_id=target AND acknowledged_at IS NULL) THEN RAISE EXCEPTION 'Unfinished care workflow' USING ERRCODE='23514';END IF;
+ UPDATE app.care_cases SET status='archived',archived_at=now(),closure_note_ciphertext=n,observation_note_ciphertext=NULL,observation_due_on=NULL WHERE id=target;
+ WHEN 'escalate' THEN
+ recipient:=(payload->>'recipientId')::uuid;
+ IF NOT EXISTS(SELECT 1 FROM app.users u JOIN app.school_memberships m ON m.user_id=u.id WHERE u.id=recipient AND u.role='teacher' AND u.status='active' AND m.school_id=c.school_id) THEN RAISE EXCEPTION 'Same school teacher recipient required' USING ERRCODE='23514'; END IF;
+ INSERT INTO app.care_escalations(case_id,teacher_id,recipient_id,recipient_label,reason_ciphertext,measures_ciphertext)
+ VALUES(target,c.teacher_id,recipient,payload->>'recipientLabel',n,decode(payload->>'measures','base64'));
+ ELSE RAISE EXCEPTION 'Unknown operation' USING ERRCODE='23514';
+ END CASE;END IF;
+ UPDATE app.care_cases SET version=version+1 WHERE id=target;
+ INSERT INTO app.care_case_events(case_id,actor_id,action,note_ciphertext,request_key,payload_hash,result_version)
+ VALUES(target,app.current_user_id(),operation,n,key,hash,expected+1);
+ -- Confidential case events stay in teacher-only storage, not administrator logs.
+ RETURN expected+1;
+END $$;
+REVOKE ALL ON FUNCTION app.teacher_case_action(uuid,bigint,uuid,text,jsonb) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.teacher_case_action(uuid,bigint,uuid,text,jsonb) TO app_backend;
+
+CREATE FUNCTION app.save_care_appointment(target uuid,appointment uuid,expected bigint,key uuid,start_time timestamptz,duration integer,kind text,location_data bytea) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE c app.care_cases; a app.care_appointments; result uuid; hash bytea; previous record;
+BEGIN
+ -- Global per-teacher lock serializes overlaps across different cases.
+ PERFORM pg_advisory_xact_lock(hashtextextended('care-booking:'||app.current_user_id()::text,0));
+ SELECT * INTO c FROM app.care_cases WHERE id=target FOR UPDATE;
+ IF NOT app.can_read_case(target) THEN RAISE EXCEPTION 'Unauthorized case' USING ERRCODE='42501'; END IF;
+ IF key IS NULL THEN RAISE EXCEPTION 'Request key required' USING ERRCODE='23514'; END IF;
+ hash:=sha256(convert_to(jsonb_build_array(target,appointment,expected,extract(epoch FROM start_time),duration,kind,encode(location_data,'base64'))::text,'UTF8'));
+ SELECT * INTO previous FROM app.care_appointment_events WHERE actor_id=app.current_user_id() AND request_key=key;
+ IF FOUND THEN
+ IF previous.payload_hash<>hash THEN RAISE EXCEPTION 'Idempotency conflict' USING ERRCODE='23514';END IF;
+ RETURN previous.appointment_id;END IF;
+ IF appointment IS NOT NULL THEN
+ SELECT * INTO a FROM app.care_appointments WHERE id=appointment AND case_id=target FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Appointment unavailable' USING ERRCODE='42501'; END IF;
+ IF expected IS NULL OR a.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001'; END IF;
+ IF a.status<>'scheduled' THEN RAISE EXCEPTION 'Appointment already ended' USING ERRCODE='23514'; END IF;
+ END IF;
+ IF key IS NULL OR start_time IS NULL OR duration IS NULL OR kind IS NULL OR coalesce(octet_length(location_data),0)=0 OR c.status<>'following' OR c.reviewed_at IS NULL OR start_time<=now() OR duration NOT IN(30,45,60)
+ OR (start_time AT TIME ZONE 'Asia/Shanghai')+make_interval(mins=>duration)>date_trunc('day',start_time AT TIME ZONE 'Asia/Shanghai')+interval '1 day'
+ THEN RAISE EXCEPTION 'Invalid booking' USING ERRCODE='23514';END IF;
+ IF EXISTS(SELECT 1 FROM app.care_appointments b WHERE b.teacher_id=c.teacher_id AND b.status='scheduled' AND (appointment IS NULL OR b.id<>appointment)
+ AND b.starts_at<start_time+make_interval(mins=>duration) AND start_time<b.starts_at+make_interval(mins=>b.duration_minutes)) THEN RAISE EXCEPTION 'Appointment overlap' USING ERRCODE='23P01';END IF;
+ IF appointment IS NULL THEN
+ INSERT INTO app.care_appointments(case_id,teacher_id,student_id,starts_at,duration_minutes,method,location_ciphertext,request_key)
+ VALUES(target,c.teacher_id,c.student_id,start_time,duration,kind,location_data,key) RETURNING id INTO result;
+ ELSE
+ UPDATE app.care_appointments SET starts_at=start_time,duration_minutes=duration,method=kind,location_ciphertext=location_data,
+ response_status='pending',requested_start=NULL,response_note_ciphertext=NULL,responded_at=NULL,version=version+1,updated_at=now() WHERE id=appointment;result:=appointment;
+ END IF;
+ UPDATE app.care_appointment_events SET request_key=key,payload_hash=hash
+ WHERE appointment_id=result AND version=(SELECT version FROM app.care_appointments WHERE id=result);
+ RETURN result;
+END $$;
+CREATE FUNCTION app.respond_care_appointment(target uuid,expected bigint,response text,requested timestamptz,note bytea) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE a app.care_appointments;
+BEGIN
+ SELECT * INTO a FROM app.care_appointments WHERE id=target FOR UPDATE;
+ IF NOT FOUND OR NOT app.can_read_invitation(a.case_id) THEN RAISE EXCEPTION 'Unauthorized invitation' USING ERRCODE='42501'; END IF;
+ IF expected IS NULL OR a.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001';END IF;
+ IF a.status<>'scheduled' OR a.response_status<>'pending' OR a.starts_at<=now() OR response IS NULL OR response NOT IN('accepted','reschedule_requested','declined')
+ OR (response='reschedule_requested' AND (requested IS NULL OR requested<=now()))
+ OR (response IN('reschedule_requested','declined') AND coalesce(octet_length(note),0)=0) THEN RAISE EXCEPTION 'Invalid invitation response' USING ERRCODE='23514'; END IF;
+ UPDATE app.care_appointments SET response_status=response,requested_start=CASE WHEN response='reschedule_requested' THEN requested END,
+ response_note_ciphertext=CASE WHEN response<>'accepted' THEN note END,responded_at=now(),version=version+1,updated_at=now() WHERE id=target;
+ RETURN expected+1;
+END $$;
+CREATE FUNCTION app.finish_care_appointment(target uuid,expected bigint,new_status text) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE a app.care_appointments; c uuid;
+BEGIN
+ SELECT case_id INTO c FROM app.care_appointments WHERE id=target;
+ PERFORM 1 FROM app.care_cases WHERE id=c FOR UPDATE;
+ SELECT * INTO a FROM app.care_appointments WHERE id=target FOR UPDATE;
+ IF NOT FOUND OR NOT app.can_read_case(a.case_id) THEN RAISE EXCEPTION 'Unauthorized invitation' USING ERRCODE='42501'; END IF;
+ IF expected IS NULL OR a.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001';END IF;
+ IF a.status<>'scheduled' OR new_status IS NULL OR new_status NOT IN('completed','no_show','cancelled') OR (new_status='completed' AND a.response_status<>'accepted') THEN RAISE EXCEPTION 'Invalid appointment state' USING ERRCODE='23514';END IF;
+ UPDATE app.care_appointments SET status=new_status,version=version+1,updated_at=now() WHERE id=target;RETURN expected+1;
+END $$;
+CREATE FUNCTION app.acknowledge_care_escalation(target uuid) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE e app.care_escalations; c app.care_cases;
+BEGIN
+ SELECT * INTO e FROM app.care_escalations WHERE id=target;
+ SELECT * INTO c FROM app.care_cases WHERE id=e.case_id FOR UPDATE;
+ IF e.recipient_id IS DISTINCT FROM app.current_user_id() OR app.request_role() IS DISTINCT FROM 'teacher' OR NOT app.request_verified()
+ OR c.school_id IS DISTINCT FROM app.request_school() OR c.consent_at>now() OR c.consent_revoked_at IS NOT NULL OR c.consent_expires_at<=now() THEN RAISE EXCEPTION 'Recipient permission required' USING ERRCODE='42501';END IF;
+ UPDATE app.care_escalations SET acknowledged_at=coalesce(acknowledged_at,now()) WHERE id=target;
+END $$;
+REVOKE ALL ON FUNCTION app.save_care_appointment(uuid,uuid,bigint,uuid,timestamptz,integer,text,bytea),app.respond_care_appointment(uuid,bigint,text,timestamptz,bytea),app.finish_care_appointment(uuid,bigint,text),app.acknowledge_care_escalation(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.save_care_appointment(uuid,uuid,bigint,uuid,timestamptz,integer,text,bytea),app.respond_care_appointment(uuid,bigint,text,timestamptz,bytea),app.finish_care_appointment(uuid,bigint,text),app.acknowledge_care_escalation(uuid) TO app_backend;
+CREATE VIEW app.teacher_workbench WITH(security_barrier=true) AS
+ SELECT c.id,c.status,c.risk_level,c.version,c.observation_due_on,
+ (SELECT r.next_follow_up_on FROM app.care_records r WHERE r.case_id=c.id ORDER BY r.created_at DESC,r.id DESC LIMIT 1) AS next_follow_up_on
+ FROM app.care_cases c WHERE app.can_read_case(c.id);
+GRANT SELECT ON app.teacher_workbench TO app_backend;
+
+CREATE TABLE app.care_appointment_events (
+ id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+ appointment_id uuid NOT NULL REFERENCES app.care_appointments(id),
+ actor_id uuid REFERENCES app.users(id),version bigint NOT NULL,
+ status text NOT NULL,response_status text NOT NULL,starts_at timestamptz NOT NULL,
+ requested_start timestamptz,response_note_ciphertext bytea,
+ request_key uuid,payload_hash bytea,
+ created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(appointment_id,version)
+);
+CREATE UNIQUE INDEX appointment_request_unique ON app.care_appointment_events(actor_id,request_key) WHERE request_key IS NOT NULL;
+ALTER TABLE app.care_appointment_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app.care_appointment_events FORCE ROW LEVEL SECURITY;
+GRANT SELECT ON app.care_appointment_events TO app_backend;
+CREATE POLICY appointment_event_read ON app.care_appointment_events FOR SELECT TO app_backend USING(EXISTS(
+ SELECT 1 FROM app.care_appointments a WHERE a.id=appointment_id AND (app.can_read_case(a.case_id) OR app.can_read_invitation(a.case_id))));
+CREATE FUNCTION app.log_appointment_event() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+ INSERT INTO app.care_appointment_events(appointment_id,actor_id,version,status,response_status,starts_at,requested_start,response_note_ciphertext)
+ VALUES(NEW.id,app.current_user_id(),NEW.version,NEW.status,NEW.response_status,NEW.starts_at,NEW.requested_start,NEW.response_note_ciphertext);
+ RETURN NEW;
+END $$;
+CREATE TRIGGER appointment_event AFTER INSERT OR UPDATE ON app.care_appointments FOR EACH ROW EXECUTE FUNCTION app.log_appointment_event();
+REVOKE ALL ON FUNCTION app.log_appointment_event() FROM PUBLIC;
+
+
+-- SOURCE: db/migrations/013_campus_governance.sql
+CREATE TABLE app.shop_permissions (
+ user_id uuid PRIMARY KEY,school_id text NOT NULL REFERENCES app.schools(id),
+ enabled boolean NOT NULL DEFAULT false,granted_by uuid NOT NULL REFERENCES app.users(id),
+ updated_at timestamptz NOT NULL DEFAULT now(),
+ FOREIGN KEY(user_id,school_id) REFERENCES app.school_memberships(user_id,school_id)
+);
+ALTER TABLE app.shop_permissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app.shop_permissions FORCE ROW LEVEL SECURITY;
+GRANT SELECT ON app.shop_permissions TO app_backend;
+CREATE POLICY shop_permission_read ON app.shop_permissions FOR SELECT TO app_backend USING(app.school_admin(school_id) OR (user_id=app.current_user_id() AND school_id=app.request_school()));
+ALTER TABLE app.stores ADD COLUMN school_id text REFERENCES app.schools(id),
+ ADD COLUMN student_owned boolean NOT NULL DEFAULT false,
+ ADD COLUMN is_open boolean NOT NULL DEFAULT true,ADD COLUMN admin_suspended boolean NOT NULL DEFAULT false,
+ ADD COLUMN opening_hours text NOT NULL DEFAULT '', ADD COLUMN avatar text NOT NULL DEFAULT '',
+ ADD COLUMN tagline text NOT NULL DEFAULT '', ADD COLUMN color text NOT NULL DEFAULT '',
+ ADD COLUMN version bigint NOT NULL DEFAULT 1,
+ ADD CONSTRAINT student_store_owner CHECK(NOT student_owned OR (owner_id IS NOT NULL AND school_id IS NOT NULL));
+CREATE UNIQUE INDEX student_one_shop ON app.stores(owner_id) WHERE student_owned;
+ALTER TABLE app.products ADD COLUMN category text NOT NULL DEFAULT '',ADD COLUMN unit text NOT NULL DEFAULT '',
+ ADD COLUMN icon text NOT NULL DEFAULT '',ADD COLUMN color text NOT NULL DEFAULT '';
+CREATE FUNCTION app.has_shop_permission(target uuid,school text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT EXISTS(SELECT 1 FROM app.shop_permissions p JOIN app.users u ON u.id=p.user_id
+ WHERE p.user_id=target AND p.school_id=school AND p.enabled AND u.status='active' AND u.role='student')
+$$;
+CREATE FUNCTION app.store_accepting_orders(target uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT EXISTS(SELECT 1 FROM app.stores s WHERE s.id=target AND s.status='open' AND s.is_open AND NOT s.admin_suspended
+ AND (NOT s.student_owned OR app.has_shop_permission(s.owner_id,s.school_id)))
+$$;
+REVOKE ALL ON FUNCTION app.has_shop_permission(uuid,text),app.store_accepting_orders(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.has_shop_permission(uuid,text),app.store_accepting_orders(uuid) TO app_backend,app_agent;
+CREATE OR REPLACE FUNCTION app.request_store_staff(target uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT app.request_verified() AND EXISTS(SELECT 1 FROM app.stores s WHERE s.id=target AND
+ ((s.student_owned AND s.school_id=app.request_school() AND s.owner_id=app.current_user_id() AND app.has_shop_permission(s.owner_id,s.school_id))
+ OR (NOT s.student_owned AND (s.school_id IS NULL OR s.school_id=app.request_school()) AND
+ (s.owner_id=app.current_user_id() OR EXISTS(SELECT 1 FROM app.store_staff f WHERE f.store_id=s.id AND f.user_id=app.current_user_id() AND f.active)))))
+$$;
+CREATE FUNCTION app.admin_shop_permission(target uuid,enabled_value boolean) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE school text:=app.request_school();
+BEGIN
+ IF NOT app.school_admin(school) THEN RAISE EXCEPTION 'Administrator required' USING ERRCODE='42501';END IF;
+ PERFORM 1 FROM app.users u JOIN app.school_memberships m ON m.user_id=u.id
+ WHERE u.id=target AND m.school_id=school AND (NOT enabled_value OR (u.role='student' AND u.status='active')) FOR UPDATE OF u;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Eligible same school account required' USING ERRCODE='42501';END IF;
+ INSERT INTO app.shop_permissions(user_id,school_id,enabled,granted_by) VALUES(target,school,enabled_value,app.current_user_id())
+ ON CONFLICT(user_id) DO UPDATE SET enabled=EXCLUDED.enabled,granted_by=EXCLUDED.granted_by,updated_at=now();
+ PERFORM app.staff_audit('shop.permission_changed','user',target::text);
+END $$;
+CREATE FUNCTION app.admin_suspend_shop(target uuid,expected bigint,suspended boolean) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE s app.stores;
+BEGIN
+ SELECT * INTO s FROM app.stores WHERE id=target FOR UPDATE;
+ IF NOT FOUND OR NOT app.school_admin(s.school_id) THEN RAISE EXCEPTION 'Same school administrator required' USING ERRCODE='42501';END IF;
+ IF expected IS NULL OR s.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001';END IF;
+ UPDATE app.stores SET admin_suspended=suspended,version=version+1 WHERE id=target;
+ PERFORM app.staff_audit('shop.moderated','store',target::text);RETURN expected+1;
+END $$;
+-- Explicit field lists prevent owner requests changing school, owner or suspension.
+CREATE FUNCTION app.save_student_shop(target uuid,expected bigint,shop_name text,shop_location text,hours text,tag text,open_value boolean) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE school text:=app.request_school();s app.stores;result uuid;
+BEGIN
+ PERFORM 1 FROM app.users WHERE id=app.current_user_id() FOR UPDATE;
+ IF app.request_role() IS DISTINCT FROM 'student' OR NOT app.request_verified() OR NOT app.has_shop_permission(app.current_user_id(),school) THEN RAISE EXCEPTION 'Shop permission required' USING ERRCODE='42501';END IF;
+ IF shop_name IS NULL OR shop_location IS NULL OR hours IS NULL OR length(btrim(shop_name)) NOT BETWEEN 1 AND 24 OR length(btrim(shop_location)) NOT BETWEEN 1 AND 80 OR length(btrim(hours)) NOT BETWEEN 1 AND 40 THEN RAISE EXCEPTION 'Invalid shop details' USING ERRCODE='23514';END IF;
+ IF target IS NULL THEN
+ INSERT INTO app.stores(name,store_type,location,owner_id,school_id,student_owned,is_open,opening_hours,tagline,avatar)
+ VALUES(shop_name,'campus_store',shop_location,app.current_user_id(),school,true,open_value,hours,coalesce(tag,''),left(shop_name,1)) RETURNING id INTO result;
+ ELSE
+ SELECT * INTO s FROM app.stores WHERE id=target AND student_owned AND owner_id=app.current_user_id() AND school_id=school FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Own shop required' USING ERRCODE='42501';END IF;
+ IF expected IS NULL OR s.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001';END IF;
+ UPDATE app.stores SET name=shop_name,location=shop_location,opening_hours=hours,tagline=coalesce(tag,''),avatar=left(shop_name,1),
+ is_open=CASE WHEN s.admin_suspended THEN s.is_open ELSE open_value END,version=version+1 WHERE id=target;result:=target;
+ END IF;RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION app.admin_shop_permission(uuid,boolean),app.admin_suspend_shop(uuid,bigint,boolean),app.save_student_shop(uuid,bigint,text,text,text,text,boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.admin_shop_permission(uuid,boolean),app.admin_suspend_shop(uuid,bigint,boolean),app.save_student_shop(uuid,bigint,text,text,text,text,boolean) TO app_backend;
+-- Scope legacy permissive administrative policies on store resources.
+CREATE POLICY store_school_gate ON app.stores AS RESTRICTIVE TO app_backend
+ USING(school_id IS NULL OR school_id=app.request_school()) WITH CHECK(school_id=app.request_school());
+-- Administrative store writes now use explicit functions; owners never write governance fields.
+REVOKE INSERT,UPDATE,DELETE ON app.stores FROM app_backend;
+CREATE POLICY product_school_gate ON app.products AS RESTRICTIVE TO app_backend
+ USING(EXISTS(SELECT 1 FROM app.stores s WHERE s.id=store_id AND (s.school_id IS NULL OR s.school_id=app.request_school())))
+ WITH CHECK(EXISTS(SELECT 1 FROM app.stores s WHERE s.id=store_id AND s.school_id=app.request_school()));
+CREATE POLICY product_owner_insert ON app.products FOR INSERT TO app_backend WITH CHECK(app.request_store_staff(store_id) AND price_cents>0 AND length(btrim(category))>0 AND length(btrim(unit))>0);
+CREATE POLICY product_owner_update ON app.products FOR UPDATE TO app_backend USING(app.request_store_staff(store_id)) WITH CHECK(app.request_store_staff(store_id) AND price_cents>0);
+CREATE POLICY staff_school_gate ON app.store_staff AS RESTRICTIVE TO app_backend
+ USING(EXISTS(SELECT 1 FROM app.stores s WHERE s.id=store_id AND s.school_id=app.request_school()))
+ WITH CHECK(EXISTS(SELECT 1 FROM app.stores s WHERE s.id=store_id AND s.school_id=app.request_school()));
+CREATE FUNCTION app.product_owner_guard() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+BEGIN
+ IF NEW.store_id<>OLD.store_id THEN RAISE EXCEPTION 'Product store cannot change' USING ERRCODE='23514';END IF;RETURN NEW;
+END $$;
+CREATE TRIGGER product_owner_guard BEFORE UPDATE ON app.products FOR EACH ROW EXECUTE FUNCTION app.product_owner_guard();
+REVOKE ALL ON FUNCTION app.product_owner_guard() FROM PUBLIC;
+CREATE OR REPLACE VIEW app.public_stores WITH(security_barrier=true) AS
+ SELECT id,name,store_type,description,location,place_id,category,floor,room_number,cover_url,image_credit,source_note,
+ school_id,is_open,admin_suspended,opening_hours,avatar,tagline,color,version FROM app.stores
+ WHERE status='open' AND (school_id IS NULL OR school_id=app.request_school());
+CREATE OR REPLACE VIEW app.public_products WITH(security_barrier=true) AS
+ SELECT p.id,p.store_id,p.name,p.description,p.image_url,p.price_cents,p.stock_quantity,p.category,p.unit,p.icon,p.color
+ FROM app.products p JOIN app.stores s ON s.id=p.store_id WHERE p.status='on_sale' AND app.store_accepting_orders(s.id)
+ AND (s.school_id IS NULL OR s.school_id=app.request_school());
+CREATE FUNCTION app.order_store_guard() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE s app.stores;
+BEGIN
+ -- Lock owner before store, matching permission/account and owner-edit functions.
+ SELECT * INTO s FROM app.stores WHERE id=NEW.store_id;
+ IF s.student_owned THEN PERFORM 1 FROM app.users WHERE id=s.owner_id FOR UPDATE;END IF;
+ SELECT * INTO s FROM app.stores WHERE id=NEW.store_id FOR UPDATE;
+ IF NOT app.store_accepting_orders(s.id) OR (s.school_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM app.school_memberships WHERE user_id=NEW.buyer_id AND school_id=s.school_id)) THEN RAISE EXCEPTION 'Store not accepting orders' USING ERRCODE='23514';END IF;
+ RETURN NEW;
+END $$;
+CREATE TRIGGER order_store_guard BEFORE INSERT ON app.shop_orders FOR EACH ROW EXECUTE FUNCTION app.order_store_guard();
+REVOKE ALL ON FUNCTION app.order_store_guard() FROM PUBLIC;
+CREATE OR REPLACE FUNCTION app.request_order(target uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog AS $$
+ SELECT EXISTS(SELECT 1 FROM app.shop_orders o JOIN app.stores s ON s.id=o.store_id WHERE o.id=target AND
+ (app.school_admin(s.school_id) OR (app.request_verified() AND (o.buyer_id=app.current_user_id() OR app.request_store_staff(o.store_id)))))
+$$;
+CREATE POLICY order_school_write ON app.shop_orders AS RESTRICTIVE TO app_backend
+ USING(app.request_order(id)) WITH CHECK(EXISTS(SELECT 1 FROM app.stores s WHERE s.id=store_id AND app.school_admin(s.school_id)));
+CREATE POLICY order_item_school_write ON app.shop_order_items AS RESTRICTIVE TO app_backend
+ USING(app.request_order(order_id)) WITH CHECK(EXISTS(SELECT 1 FROM app.stores s WHERE s.id=store_id AND app.school_admin(s.school_id)));
+
+ALTER TABLE app.wall_posts ADD COLUMN school_id text REFERENCES app.schools(id),ADD COLUMN version bigint NOT NULL DEFAULT 1;
+CREATE TABLE app.post_reports (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),school_id text NOT NULL REFERENCES app.schools(id),
+ post_id uuid NOT NULL REFERENCES app.wall_posts(id),reporter_id uuid NOT NULL REFERENCES app.users(id),
+ reason text NOT NULL CHECK(reason IN('不友善或冒犯内容','泄露个人信息','广告或虚假信息','其他')),
+ resolved_at timestamptz,created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(school_id,post_id,reporter_id)
+);
+CREATE TABLE app.post_moderation_decisions (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),school_id text NOT NULL REFERENCES app.schools(id),post_id uuid NOT NULL REFERENCES app.wall_posts(id),
+ actor_id uuid NOT NULL REFERENCES app.users(id),action text NOT NULL CHECK(action IN('keep','delete')),
+ reason text NOT NULL CHECK(length(btrim(reason)) BETWEEN 1 AND 300),
+ evidence jsonb NOT NULL,request_key uuid NOT NULL,payload_hash bytea NOT NULL,
+ created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(actor_id,request_key)
+);
+CREATE INDEX post_reports_queue_idx ON app.post_reports(school_id,post_id) WHERE resolved_at IS NULL;
+DO $$ DECLARE t text; BEGIN FOREACH t IN ARRAY ARRAY['post_reports','post_moderation_decisions'] LOOP
+ EXECUTE format('ALTER TABLE app.%I ENABLE ROW LEVEL SECURITY',t);EXECUTE format('ALTER TABLE app.%I FORCE ROW LEVEL SECURITY',t);
+ EXECUTE format('GRANT SELECT ON app.%I TO app_backend',t);END LOOP;END $$;
+CREATE POLICY report_own ON app.post_reports FOR SELECT TO app_backend USING(reporter_id=app.current_user_id() AND school_id=app.request_school() AND app.request_role()='student');
+CREATE POLICY decision_admin ON app.post_moderation_decisions FOR SELECT TO app_backend USING(app.school_admin(school_id));
+CREATE FUNCTION app.report_public_post(target uuid,reason_text text) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE p app.wall_posts; result uuid;
+BEGIN
+ SELECT * INTO p FROM app.wall_posts WHERE id=target FOR UPDATE;
+ IF NOT FOUND OR app.request_role() IS DISTINCT FROM 'student' OR NOT app.request_verified() OR p.school_id IS DISTINCT FROM app.request_school()
+ OR p.school_id IS NULL OR p.author_id=app.current_user_id() OR p.visibility<>'campus' OR p.status<>'published' THEN RAISE EXCEPTION 'Public same school post required' USING ERRCODE='42501';END IF;
+ INSERT INTO app.post_reports(school_id,post_id,reporter_id,reason) VALUES(p.school_id,target,app.current_user_id(),reason_text) RETURNING id INTO result;RETURN result;
+END $$;
+CREATE FUNCTION app.moderate_public_post(target uuid,expected bigint,key uuid,decision text,reason_text text) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog AS $$
+DECLARE p app.wall_posts; prior app.post_moderation_decisions; hash bytea;result uuid;
+BEGIN
+ SELECT * INTO p FROM app.wall_posts WHERE id=target FOR UPDATE;
+ IF NOT FOUND OR NOT app.school_admin(p.school_id) OR p.visibility<>'campus' THEN RAISE EXCEPTION 'Public same school post required' USING ERRCODE='42501';END IF;
+ IF key IS NULL OR decision IS NULL OR reason_text IS NULL THEN RAISE EXCEPTION 'Required moderation fields missing' USING ERRCODE='23514';END IF;
+ hash:=sha256(convert_to(target::text||decision||reason_text,'UTF8'));
+ SELECT * INTO prior FROM app.post_moderation_decisions WHERE actor_id=app.current_user_id() AND request_key=key;
+ IF FOUND THEN IF prior.payload_hash<>hash THEN RAISE EXCEPTION 'Idempotency conflict' USING ERRCODE='23514';END IF;RETURN prior.id;END IF;
+ IF expected IS NULL OR p.version<>expected THEN RAISE EXCEPTION 'Version conflict' USING ERRCODE='40001'; END IF;
+ IF p.status<>'published' THEN RAISE EXCEPTION 'Post already unavailable' USING ERRCODE='23514';END IF;
+ INSERT INTO app.post_moderation_decisions(school_id,post_id,actor_id,action,reason,evidence,request_key,payload_hash)
+ VALUES(p.school_id,target,app.current_user_id(),decision,reason_text,
+ jsonb_build_object('title',p.title,'content',p.content,'media',p.media,'category',p.category,'isAnonymous',p.is_anonymous),key,hash) RETURNING id INTO result;
+ UPDATE app.wall_posts SET status=CASE WHEN decision='delete' THEN 'deleted' ELSE status END,version=version+1 WHERE id=target;
+ UPDATE app.post_reports SET resolved_at=now() WHERE post_id=target AND resolved_at IS NULL;
+ PERFORM app.staff_audit('post.'||decision,'post',target::text);RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION app.report_public_post(uuid,text),app.moderate_public_post(uuid,bigint,uuid,text,text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION app.report_public_post(uuid,text),app.moderate_public_post(uuid,bigint,uuid,text,text) TO app_backend;
+CREATE VIEW app.admin_post_queue WITH(security_barrier=true) AS
+ SELECT p.id,p.title,p.content,p.category,p.media,p.is_anonymous,p.status,p.school_id,p.version,
+ (SELECT count(*) FROM app.post_reports r WHERE r.post_id=p.id AND r.resolved_at IS NULL) AS pending_reports,
+ (SELECT count(*)>=3 FROM app.post_reports r WHERE r.post_id=p.id AND r.resolved_at IS NULL) AS priority
+ FROM app.wall_posts p WHERE app.school_admin(p.school_id) AND p.visibility='campus' AND p.status IN('published','deleted');
+CREATE VIEW app.admin_post_report_reasons WITH(security_barrier=true) AS
+ SELECT r.post_id,r.reason,count(*) AS reports FROM app.post_reports r WHERE app.school_admin(r.school_id) GROUP BY r.post_id,r.reason;
+GRANT SELECT ON app.admin_post_queue,app.admin_post_report_reasons TO app_backend;
+-- Staff never obtain anonymous author identity via raw moderation tables.
+DROP POLICY posts_private_read ON app.wall_posts;
+CREATE POLICY posts_private_read ON app.wall_posts FOR SELECT TO app_backend USING(author_id=app.current_user_id() AND app.request_verified() AND status<>'deleted');
+REVOKE UPDATE(status) ON app.wall_posts FROM app_backend;
+CREATE POLICY wall_school_gate ON app.wall_posts AS RESTRICTIVE TO app_backend
+ USING(school_id IS NULL OR school_id=app.request_school()) WITH CHECK(school_id=app.request_school());
+CREATE OR REPLACE VIEW app.wall_public_posts WITH(security_barrier=true) AS
+ SELECT p.id,p.title,p.content,p.category,p.location,p.media,p.is_anonymous,p.created_at,p.updated_at,
+ CASE WHEN p.is_anonymous THEN NULL::uuid ELSE p.author_id END AS author_id,
+ CASE WHEN p.is_anonymous THEN '匿名用户' ELSE u.display_name END AS display_name
+ FROM app.wall_posts p JOIN app.users u ON u.id=p.author_id
+ WHERE p.status='published' AND p.visibility='campus' AND (p.school_id IS NULL OR p.school_id=app.request_school());
+CREATE OR REPLACE VIEW app.wall_public_comments WITH(security_barrier=true) AS
+ SELECT c.id,c.post_id,c.content,c.is_anonymous,c.created_at,c.updated_at,
+ CASE WHEN c.is_anonymous THEN NULL::uuid ELSE c.author_id END AS author_id,
+ CASE WHEN c.is_anonymous THEN '匿名用户' ELSE u.display_name END AS display_name
+ FROM app.wall_comments c JOIN app.wall_posts p ON p.id=c.post_id JOIN app.users u ON u.id=c.author_id
+ WHERE c.status='published' AND p.status='published' AND p.visibility='campus' AND (p.school_id IS NULL OR p.school_id=app.request_school());
+-- New post reporting replaces the legacy post/comment report write path.
+REVOKE INSERT,UPDATE,DELETE ON app.wall_reports FROM app_backend;
+DROP POLICY reports_read ON app.wall_reports;
+CREATE POLICY reports_read ON app.wall_reports FOR SELECT TO app_backend USING(reporter_id=app.current_user_id() AND app.request_verified());
+DROP POLICY comments_private_read ON app.wall_comments;
+CREATE POLICY comments_private_read ON app.wall_comments FOR SELECT TO app_backend USING(author_id=app.current_user_id() AND app.request_verified() AND EXISTS(SELECT 1 FROM app.wall_public_posts p WHERE p.id=post_id));
+REVOKE UPDATE(status) ON app.wall_comments FROM app_backend;
+-- Existing support requests are confidential, not general administrator feedback.
+DROP POLICY support_request_read ON app.support_requests;
+DROP POLICY support_request_update ON app.support_requests;
+CREATE POLICY support_request_read ON app.support_requests FOR SELECT TO app_backend USING(app.request_verified() AND
+ (student_id=app.current_user_id() OR (assigned_teacher_id=app.current_user_id() AND app.request_role()='teacher' AND EXISTS(
+ SELECT 1 FROM app.school_memberships m WHERE m.user_id=student_id AND m.school_id=app.request_school()))));
+REVOKE UPDATE,DELETE ON app.support_requests FROM app_backend;
+
 -- Fresh installs require encrypted identity columns; no plaintext backfill is needed.
 ALTER TABLE app.users ALTER COLUMN email_ciphertext SET NOT NULL, ALTER COLUMN email_lookup SET NOT NULL;
 COMMIT;

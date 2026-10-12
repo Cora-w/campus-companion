@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { randomUUID, createHash } from 'node:crypto';
 import pg from 'pg';
 import { seedStores } from '../scripts/seed-stores.mjs';
+import { testStaffWorkflows } from './staff-workflows.mjs';
 
 test('campus complete DDL and database authorization contract (temporary database only)', async t => {
   const url = new URL(process.env.ADMIN_DATABASE_URL);
@@ -23,7 +24,7 @@ test('campus complete DDL and database authorization contract (temporary databas
     await t.test('all tables, constraints, views and policies execute on PostgreSQL',async()=>{
       await owner.query(await readFile('db/design/campus-platform.full.sql','utf8'));
       const count=await owner.query("SELECT count(*)::int AS n FROM information_schema.tables WHERE table_schema='app' AND table_type='BASE TABLE'");
-      assert.equal(count.rows[0].n,66);
+      assert.equal(count.rows[0].n,77);
     });
     const connect=async key=>{const u=new URL(process.env[key]);u.pathname='/'+name;const db=new pg.Client({connectionString:u.toString()});await db.connect();return db;};
     backend=await connect('BACKEND_DATABASE_URL');agent=await connect('AGENT_DATABASE_URL');
@@ -207,6 +208,7 @@ test('campus complete DDL and database authorization contract (temporary databas
       }catch(error){await owner.query('ROLLBACK');throw error;}
       await asUser(ids.studentB,async db=>assert.equal((await db.query('SELECT * FROM app.errand_tasks')).rowCount,1));
     });
+    await testStaffWorkflows(t,{owner,backend,agent,ids,connect});
   } finally {
     for(const db of [agent,backend,owner])if(db){try{await db.query('ROLLBACK');}catch{}await db.end();}
     if(created)await control.query(`DROP DATABASE "${name}"`);
