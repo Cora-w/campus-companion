@@ -27,6 +27,7 @@ const CHAT_SYSTEM_PROMPT = `你是「心伙伴」，一所校园里的 AI 心理
    - 出现严重的自伤行为描述。
    示例回应："听到你这样说，我很担心你。你现在的痛苦值得被认真对待——请一定联系学校的心理老师，或者拨打 12356（全国心理援助热线），让专业的人陪着你，好吗？你不是一个人。"
 6. 记录用户零散透露的重要信息（关系、事件、状态变化），为后续风险评估提供素材，但不要打断对话流。
+7. 当用户问现在几点、今天日期、今天星期几时，根据下面提供的当前时间信息直接回答，不要说"我不知道时间"或"我无法获取时间"。
 当前对话环境为校园场景，用户可能是学生、教师或家长。始终以安全、保密、不评判为第一原则。`;
 
 const RISK_ASSESS_PROMPT = `
@@ -68,6 +69,13 @@ function extractJson(text) {
   const end = cleaned.lastIndexOf("}");
   if (start === -1 || end === -1 || end <= start) throw new Error("模型输出中未找到JSON");
   return JSON.parse(cleaned.slice(start, end + 1));
+}
+
+function nowString() {
+  const d = new Date();
+  const days = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+  const pad = (n) => String(n).padStart(2, "0");
+  return `【当前时间】${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${days[d.getDay()]} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 async function riskScoreLLM(dialogText, env, keywordLevel = "none") {
@@ -112,7 +120,7 @@ async function riskScoreLLM(dialogText, env, keywordLevel = "none") {
 }
 
 function buildChatMessages(history, userMessage) {
-  const messages = [{ role: "system", content: CHAT_SYSTEM_PROMPT }];
+  const messages = [{ role: "system", content: CHAT_SYSTEM_PROMPT + "\n" + nowString() }];
   const recent = history.slice(-12);
   for (const h of recent) {
     if (h.role === "user" || h.role === "assistant") {
@@ -144,6 +152,7 @@ export default {
           status: "ok",
           mode: hasKey ? "real" : "mock",
           model: env.LLM_MODEL || DEFAULT_CONFIG.model,
+          serverTime: nowString(),
         }), {
           headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
         });
