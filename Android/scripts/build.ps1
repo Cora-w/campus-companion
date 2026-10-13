@@ -5,7 +5,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $androidRoot = Join-Path $projectRoot 'Android'
-$build = Join-Path $androidRoot ('build\' + [DateTime]::Now.ToString('yyyyMMdd-HHmmss'))
+[xml]$manifest = Get-Content -LiteralPath "$androidRoot/AndroidManifest.xml" -Raw
+$version = $manifest.manifest.GetAttribute('versionName', 'http://schemas.android.com/apk/res/android')
+if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid application version' }
+$build = Join-Path $androidRoot ('build\' + ([DateTime]::Now.ToString('yyyyMMdd-HHmmss') + '-' + [Guid]::NewGuid().ToString('N').Substring(0,8)))
 if (-not $build.StartsWith($androidRoot + '\')) { throw 'Invalid build path' }
 $tools = (Get-ChildItem (Join-Path $Sdk 'build-tools') -Directory | Sort-Object Name -Descending | Select-Object -First 1).FullName
 $platform = (Get-ChildItem (Join-Path $Sdk 'platforms') -Directory | Sort-Object Name -Descending | Select-Object -First 1).FullName
@@ -20,9 +23,12 @@ Push-Location "$projectRoot\Frontend"
 $previousMode = $env:VITE_API_MODE
 try {
     $env:VITE_API_MODE = 'mock'
-    Run 'npm.cmd' @('run', 'build', '--', '--configLoader', 'native')
+    Run 'npm.cmd' @('ci')
+    # Build directly into this invocation's isolated APK assets directory.
+    # Existing Frontend/dist and previous Android/build outputs are never reused.
+    Run 'npm.cmd' @('run', 'build', '--', '--configLoader', 'native', '--outDir', "$build/assets/web")
+    Run 'node' @("$PSScriptRoot/verify-web.mjs", "$build/assets/web", '--write-integrity')
 } finally { $env:VITE_API_MODE = $previousMode; Pop-Location }
-Copy-Item "$projectRoot\Frontend\dist\*" "$build\assets\web" -Recurse
 Run "$tools\aapt2.exe" @('compile', '--dir', "$androidRoot\res", '-o', "$build\resources.zip")
 Run "$tools\aapt2.exe" @('link', '-o', "$build\unsigned.apk", '-I', $androidJar, '--manifest', "$androidRoot\AndroidManifest.xml", "$build\resources.zip")
 $sources = @(Get-ChildItem "$androidRoot\src" -Filter *.java -Recurse | ForEach-Object FullName)
@@ -41,6 +47,12 @@ try {
         $relative = [IO.Path]::GetRelativePath($build, $file.FullName).Replace('\', '/')
         $entry = $archive.GetEntry($relative)
         if (!$entry -or $entry.Length -ne $file.Length) { throw "Missing or truncated asset: $relative" }
+        $stream = $entry.Open()
+        $sha = [Security.Cryptography.SHA256]::Create()
+        try {
+            $actual = ([BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '')
+            if ($actual -ne (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash) { throw "Packaged asset differs: $relative" }
+        } finally { $stream.Dispose(); $sha.Dispose() }
     }
     Write-Output 'Verified homepage and all bundled asset paths.'
 } finally { $archive.Dispose() }
@@ -54,10 +66,11 @@ if (!(Test-Path $key)) {
     [IO.File]::WriteAllText($passwordFile, $env:CAMPUS_SIGN_PASSWORD)
     Run "$Jdk\bin\keytool.exe" @('-genkeypair', '-keystore', $key, '-storepass:env', 'CAMPUS_SIGN_PASSWORD', '-keypass:env', 'CAMPUS_SIGN_PASSWORD', '-alias', 'campus-demo', '-keyalg', 'RSA', '-keysize', '2048', '-validity', '10000', '-dname', 'CN=Campus Companion Demo, O=Campus Companion, C=CN')
 } else { $env:CAMPUS_SIGN_PASSWORD = [IO.File]::ReadAllText($passwordFile) }
-$output = "$projectRoot\Releases\campus-companion-0.1.12.apk"
+$output = "$projectRoot\Releases\campus-companion-$version.apk"
 try {
     Run $java @('-jar', "$tools\lib\apksigner.jar", 'sign', '--ks', $key, '--ks-key-alias', 'campus-demo', '--ks-pass', 'env:CAMPUS_SIGN_PASSWORD', '--key-pass', 'env:CAMPUS_SIGN_PASSWORD', '--out', $output, "$build\aligned.apk")
     Run $java @('-jar', "$tools\lib\apksigner.jar", 'verify', '--verbose', $output)
 } finally { Remove-Item Env:CAMPUS_SIGN_PASSWORD -ErrorAction SilentlyContinue }
+Copy-Item -LiteralPath "$build/assets/web/build-info.json" -Destination "$output.build-info.json"
 Get-FileHash -Algorithm SHA256 $output | Format-List
 Write-Output "APK ready: $output"

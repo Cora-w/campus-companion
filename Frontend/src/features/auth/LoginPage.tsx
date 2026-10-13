@@ -6,6 +6,7 @@ import { roleNames } from '../../data/data'
 import { authService, isDemoMode } from '../../services/auth'
 import { Sheet } from '../../components/shared/Shared'
 import './LoginPage.css'
+import { buildInfo } from '../../config/buildInfo'
 
 // Public sample credentials only. Production authentication must be performed by the server.
 const rolesAvailable = ['student', 'teacher', 'admin']
@@ -85,7 +86,7 @@ export function LoginPage({ onLogin, onPrivacy }: { onLogin: (session: Session) 
       <Button className="account-submit" type="primary" htmlType="submit" loading={loading} block>登录</Button>
     </form>
     {isDemoMode && <div className="account-demo"><span>当前为前端演示，请勿输入真实密码</span><button onClick={() => setSamples(!samples)} aria-expanded={samples}>演示账号 {samples ? '收起' : '查看'}</button>{samples && <div className="account-sample">{rolesAvailable.includes(role) ? <><b>{roleNames[role]}演示账号</b><p>{demo.account}<br/>密码：{DEMO_PASSWORD}</p><button disabled={loading} onClick={() => { setAccount(demo.account); setPassword(DEMO_PASSWORD); setError('') }}>填入演示账号</button></> : <p>请选择登录身份查看演示账号。</p>}</div>}</div>}    <p className="account-signature">发现校园的每一种可能</p>
-    <Sheet title="登录帮助" open={help} onClose={() => setHelp(false)}><h3>账号与密码</h3><p>学生、心理教师和管理员可分别登录。教师账号及负责范围由管理员分配；选择身份不会授予权限。忘记密码或账号被停用时，请联系学校管理员。</p>{isDemoMode && <><p>当前为本地演示，可使用演示账号体验。</p><Button block onClick={() => { setHelp(false); setSamples(true) }}>查看演示账号</Button></>}</Sheet>
+    <Sheet title="登录帮助" open={help} onClose={() => setHelp(false)}><p className="subtle">版本 {buildInfo.version} · {buildInfo.revision.slice(0, 8)}{buildInfo.dirty ? ' · 含本地修改' : ''}</p><h3>账号与密码</h3><p>学生、心理教师和管理员可分别登录。教师账号及负责范围由管理员分配；选择身份不会授予权限。忘记密码或账号被停用时，请联系学校管理员。</p>{isDemoMode && <><p>当前为本地演示，可使用演示账号体验。</p><Button block onClick={() => { setHelp(false); setSamples(true) }}>查看演示账号</Button></>}</Sheet>
   </main>
 }
 

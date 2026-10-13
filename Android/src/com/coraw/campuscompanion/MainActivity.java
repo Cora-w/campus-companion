@@ -39,6 +39,10 @@ public final class MainActivity extends Activity {
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setGeolocationEnabled(false);
         settings.setTextZoom(100);
+        // Disable WebView page zoom; image previews still scale inside the page.
+        settings.setSupportZoom(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
         web.setWebViewClient(new WebViewClient() {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
@@ -56,6 +60,8 @@ public final class MainActivity extends Activity {
                     if (mime == null) mime = "application/octet-stream";
                     Map<String, String> headers = new HashMap<>();
                     headers.put("X-Content-Type-Options", "nosniff");
+                    // Always read bundled assets after an APK upgrade, including index.html.
+                    headers.put("Cache-Control", "no-store");
                     return new WebResourceResponse(mime, "UTF-8", 200, "OK", headers, content);
                 } catch (Exception ignored) { return missing(); }
             }

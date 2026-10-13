@@ -20,6 +20,7 @@ Android/build/
 Android/.signing/
 Releases/*.apk
 Releases/*.idsig
+Releases/*.build-info.json
 
 
 .site-publish/
