@@ -17,11 +17,11 @@ Android 目录只负责将 Frontend 的构建产物封装成安卓 WebView 应�
 
 项目根目录运行 `./Android/scripts/build.ps1`。默认查找本机 Android Studio 的 JDK 以及 LOCALAPPDATA 下的 Android SDK，也可通过 -Jdk 和 -Sdk 指定路径。脚本强制使用 mock 认证，包名为 com.coraw.campuscompanion，最低 Android 8.0，目标 API 35。
 
-运行 `node Android/scripts/serve-apk.mjs` 后，同一 Wi-Fi 下的手机访问电脑 IP 的 8181 端口下载。也可将 Releases/campus-companion-0.1.26.apk 直接传到手机安装。
+运行 `node Android/scripts/serve-apk.mjs` 后，同一 Wi-Fi 下的手机访问电脑 IP 的 8181 端口下载。也可将 Releases/campus-companion-0.1.27.apk 直接传到手机安装。
 
 此版本支持系统图片选择器，不申请全盘存储权限；不接入相机、录音或后台推送。校园地图直接加载用户提供的原始 HTML，支持 GPS 校准和手动标记。地图主动请求定位时，WebView 为内置 HTTPS 来源申请前台粗略/精确位置权限；用户拒绝时仍能使用原地图手动标记。不申请后台定位。手机需有较新的 Android System WebView。尚未完成真机或模拟器定位验证。
 
-最新包为 0.1.26（versionCode 27）。签名和包内资源路径已验证，原版地图文件与用户 ZIP 内容完全一致。可设置 CAMPUS_APK_PORT 环境变量更换下载服务端口。
+最新包为 0.1.27（versionCode 28）。签名和包内资源路径已验证，原版地图文件与用户 ZIP 内容完全一致。可设置 CAMPUS_APK_PORT 环境变量更换下载服务端口。
 
 签名使用本机生成的演示证书，不是应用商店发布证书。当前为前端演示，关闭或重建 Activity 后内存业务状态可能重置。
 
@@ -34,3 +34,5 @@ Android 目录只负责将 Frontend 的构建产物封装成安卓 WebView 应�
 0.1.25：优化教师今日安排的时间列和内容间距，统一关怀学生搜索框图标与输入文字的对齐。
 
 0.1.26：整合近期校园地图、移动端布局和三端功能改进；忘记密码改为独立的分步找回页面，预留短信验证与重置接口。本包仍为 mock 演示模式，尚未接入真实短信与密码重置后端。
+
+0.1.27：倾诉空间保留原三枚胶囊样式，重复聊天入口替换为心理测试与性格测试。新增 PHQ-9 / GAD-7 共 16 题自测、IPIP 大五人格 50 题探索，支持答题卡、漏题补全、返回修改与退出清空；不自动上传或向教师分享答案。

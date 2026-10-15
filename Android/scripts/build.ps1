@@ -54,7 +54,7 @@ if (!(Test-Path $key)) {
     [IO.File]::WriteAllText($passwordFile, $env:CAMPUS_SIGN_PASSWORD)
     Run "$Jdk\bin\keytool.exe" @('-genkeypair', '-keystore', $key, '-storepass:env', 'CAMPUS_SIGN_PASSWORD', '-keypass:env', 'CAMPUS_SIGN_PASSWORD', '-alias', 'campus-demo', '-keyalg', 'RSA', '-keysize', '2048', '-validity', '10000', '-dname', 'CN=Campus Companion Demo, O=Campus Companion, C=CN')
 } else { $env:CAMPUS_SIGN_PASSWORD = [IO.File]::ReadAllText($passwordFile) }
-$output = "$projectRoot\Releases\campus-companion-0.1.26.apk"
+$output = "$projectRoot\Releases\campus-companion-0.1.27.apk"
 try {
     Run $java @('-jar', "$tools\lib\apksigner.jar", 'sign', '--ks', $key, '--ks-key-alias', 'campus-demo', '--ks-pass', 'env:CAMPUS_SIGN_PASSWORD', '--key-pass', 'env:CAMPUS_SIGN_PASSWORD', '--out', $output, "$build\aligned.apk")
     Run $java @('-jar', "$tools\lib\apksigner.jar", 'verify', '--verbose', $output)
