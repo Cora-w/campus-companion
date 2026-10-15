@@ -1,7 +1,7 @@
 import type { Account } from '../types/domain.ts'
 import type { RegisterRequest } from '../api/contracts.ts'
 
-type Registration = { id: string; schoolId: string; account: string; nickname: string; salt: string; hash: string }
+type Registration = { id: string; schoolId: string; account: string; nickname: string; salt: string; hash: string; phone?: string }
 const key = 'campus-demo-registrations-v1'
 const hex = (bytes: Uint8Array) => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('')
 export function readRegistrations(storage?: Pick<Storage, 'getItem'>): Registration[] {
@@ -22,7 +22,7 @@ async function derive(password: string, salt: string) {
 export async function saveRegistration(input: RegisterRequest) {
   if (!globalThis.crypto?.subtle) throw new Error('请使用 HTTPS 或本机预览地址注册账号。')
   const salt = hex(crypto.getRandomValues(new Uint8Array(16)))
-  const row: Registration = { id: 'registered-' + crypto.randomUUID(), schoolId: input.schoolId, account: input.account.trim(), nickname: input.nickname.trim(), salt, hash: await derive(input.password, salt) }
+  const row: Registration = { id: 'registered-' + crypto.randomUUID(), schoolId: input.schoolId, account: input.account.trim(), nickname: input.nickname.trim(), phone: input.phone, salt, hash: await derive(input.password, salt) }
   const rows = readRegistrations()
   if (rows.some(value => value.schoolId === row.schoolId && value.account === row.account)) throw new Error('该学校下的账号已注册，请直接登录。')
   try { localStorage.setItem(key, JSON.stringify([...rows, row])) }

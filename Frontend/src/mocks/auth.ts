@@ -5,6 +5,7 @@ import type { Account } from '../types/domain.ts'
 import { readRegistrations, registeredAccounts, saveRegistration, verifyRegistration } from './registeredAccounts.ts'
 import { registrationError } from '../features/auth/registration.ts'
 import { demoSchools } from './schools.ts'
+import { createRegistrationCodes } from './registrationCodes.ts'
 const defaultSchool = 'sichuan-aerospace-polytechnic'
 // Login numbers are scoped by school; internal user ids are globally unique.
 export const demoCredentials = [
@@ -21,8 +22,13 @@ export const adminDemo = sample('A-DEMO-01')
 export const studentDemo = sample('S-DEMO-01')
 export const teacherDemo = sample('T-DEMO-01')
 export function createMockAuth(getAccounts: () => Account[]): AuthService {
+ const codes = createRegistrationCodes()
  const accounts = () => [...getAccounts(), ...registeredAccounts().filter(row => !getAccounts().some(account => account.id === row.id))]
  return {
+  async requestRegistrationCode(input) {
+   if (!demoSchools.some(school => school.id === input.schoolId)) throw new ApiError('请先选择学校。', 400, 'INVALID_SCHOOL')
+   return codes.request(input)
+  },
   async login(input) {
    // Legacy sample aliases remain demo-only; both paths must match the school.
    const credential = demoCredentials.find(item => item.schoolId === input.schoolId && (item.account === input.account || item.id === input.account))
@@ -43,8 +49,12 @@ export function createMockAuth(getAccounts: () => Account[]): AuthService {
    if (error) throw new ApiError(error, 400, 'INVALID_REGISTRATION')
    if (!demoSchools.some(school => school.id === input.schoolId)) throw new ApiError('学校不存在，请重新选择。', 400, 'INVALID_SCHOOL')
    if (demoCredentials.some(row => row.schoolId === input.schoolId && (row.account === input.account.trim() || row.id === input.account.trim())) || accounts().some(row => row.schoolId === input.schoolId && row.id === input.account.trim())) throw new ApiError('该学校下的账号已存在，请直接登录。', 409, 'ACCOUNT_EXISTS')
-   const row = await saveRegistration(input)
-   return { id: row.id, name: row.nickname, schoolId: row.schoolId, role: 'student', loginAccount: row.account }
+   const verification = codes.verify(input)
+   try {
+    const row = await saveRegistration(input)
+    verification.complete()
+    return { id: row.id, name: row.nickname, schoolId: row.schoolId, role: 'student', loginAccount: row.account }
+   } catch (error) { verification.release(); throw error }
   },
   async logout() { /* No server session in demo mode. */ },
  }

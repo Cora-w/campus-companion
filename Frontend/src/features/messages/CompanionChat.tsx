@@ -4,7 +4,17 @@ import { Alert, Button, Input } from 'antd'
 import { uid } from '../../data/data'
 import { recommendationFor } from '../discover/placeSearch'
 import type { PlaceResult } from '../discover/placeSearch'
+import { Icon } from '../../components/shared/Shared'
 import './CompanionChat.css'
+
+function CompanionMark() {
+  return <svg viewBox="0 0 80 80" aria-hidden="true"><rect x="1" y="1" width="78" height="78" rx="26" fill="currentColor"/><path d="M23 54V33c0-9 6-15 14-15h6v9h-6c-3 0-5 2-5 6v21ZM57 26v21c0 9-6 15-14 15h-6v-9h6c3 0 5-2 5-6V26Z" fill="#fff9ef"/><path d="m28 45 23-15v10L28 55Z" fill="#e8c5a9"/></svg>
+}
+const prompts = [
+  { label: '校园美食', icon: 'food', text: '新生有什么好吃的推荐？' },
+  { label: '周末去哪', icon: 'location', text: '周末学校附近有什么好玩的？' },
+  { label: '聊聊心情', icon: 'chat', text: '最近学习有点累，想聊聊' },
+]
 
 export type ChatMessage = { id: string; role: 'user' | 'assistant'; text: string; places?: PlaceResult[] }
 export type ChatResetHandle = { reset: () => void }
@@ -36,15 +46,14 @@ export function CompanionChat({ messages, setMessages, resetRef }: { messages: C
     }, 650)
   }
   return <section className="chat-card companion-chat">
-    <div className="chat-topline"><span className="online-dot"/><small>仅本人可见 · 演示会话</small><button onClick={() => setOffline(!offline)} className="quiet-button" aria-pressed={offline}>{offline ? '恢复连接演示' : '体验断连'}</button><button className="quiet-button" disabled={pending} onClick={() => { reset(); setMessages([]) }}>新对话</button></div>
+    <div className="chat-topline"><span className={'online-dot' + (offline ? ' is-offline' : '')}/><small>{offline ? '当前断连 · 演示' : '仅本人可见 · 本机会话'}</small><button className="quiet-button companion-new-chat" disabled={pending} onClick={() => { reset(); setMessages([]) }}><Icon name="edit"/>新对话</button></div>
     <div className="messages" ref={list} aria-live="polite">
-      {messages.length === 0 && <div className="chat-empty"><h2>校园的事，都可以聊聊</h2><p>找美食、问校园，或者说说今天的心事。</p><div className="chat-prompts">{['新生有什么好吃的推荐？','周末学校附近有什么好玩的？','最近学习有点累，想聊聊'].map(t => <button className="prompt-button" key={t} onClick={() => send(t)}>{t}</button>)}</div></div>}
-      {messages.map(m => <div id={'chat-'+m.id} tabIndex={-1} className={`message-row ${m.role}`} key={m.id}>{m.role === 'assistant' && <span className="message-avatar">AI</span>}<div className={`message ${m.role}`}>{m.text}{m.places && <div className="place-recommendations"><small>校园地点样例 · 非实时数据库结果</small>{m.places.map((p, i) => <article className="recommendation-card" key={p.id}><h3>{i + 1}. {p.name}</h3><b>{p.positiveReviews} 条好评（样例）</b><p>{p.area} · {p.price}</p><details><summary>查看地点详情</summary><p>{p.desc}</p><p>{p.location}</p><p>{p.hours}</p></details></article>)}</div>}</div></div>)}
-      {pending && <div className="typing" role="status">小心正在回应…</div>}
+      {messages.length === 0 && <div className="chat-empty"><div className="companion-intro"><span className="companion-welcome-mark"><CompanionMark/></span><span className="companion-greeting">小心 · 你的校园伙伴</span></div><h2>有话想说，<br/>小心在这里。</h2><p>从一件小事开始，聊聊你的今天。</p><span className="companion-prompt-label">不知道从哪开始？试试这些</span><div className="chat-prompts">{prompts.map(prompt => <button className="prompt-button" key={prompt.label} aria-label={prompt.text} disabled={pending} onClick={() => send(prompt.text)}><span className="companion-prompt-icon"><Icon name={prompt.icon}/></span><span className="companion-prompt-copy"><b>{prompt.label}</b><small>{prompt.text}</small></span></button>)}</div></div>}
+      {messages.map(m => <div id={'chat-'+m.id} tabIndex={-1} className={`message-row ${m.role}`} key={m.id}>{m.role === 'assistant' && <span className="message-avatar"><CompanionMark/></span>}<div className={`message ${m.role}`}>{m.text}{m.places && <div className="place-recommendations"><small>校园地点样例 · 非实时数据库结果</small>{m.places.map((p, i) => <article className="recommendation-card" key={p.id}><h3>{i + 1}. {p.name}</h3><b>{p.positiveReviews} 条好评（样例）</b><p>{p.area} · {p.price}</p><details><summary>查看地点详情</summary><p>{p.desc}</p><p>{p.location}</p><p>{p.hours}</p></details></article>)}</div>}</div></div>)}
+      {pending && <div className="typing" role="status"><span className="companion-typing-dots" aria-hidden="true"><i/><i/><i/></span>小心正在回应…</div>}
       {failed && <Alert type="warning" title="连接暂时中断（演示）" description="你的文字仍在当前会话中。恢复连接后可以重试。" action={<Button onClick={() => send(failed, true)}>重试</Button>}/>}
     </div>
-    <p className="chat-disclaimer">预设回复演示 · 对话不公开、不上传服务器</p>
-    <form className="chat-input" onSubmit={e => { e.preventDefault(); send(input) }}><Input.TextArea aria-label="向小心发送消息" placeholder="想说什么，都可以慢慢聊…" value={input} onChange={e => setInput(e.target.value)} autoSize={{ minRows: 1, maxRows: 4 }} maxLength={1000} enterKeyHint="send" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(input) } }}/><Button type="primary" htmlType="submit" loading={pending} disabled={!input.trim() || pending}>发送</Button></form>
+    <div className="companion-footer"><form className="chat-input" onSubmit={e => { e.preventDefault(); send(input) }}><Input.TextArea aria-label="向小心发送消息" placeholder="想说什么，都可以慢慢聊…" value={input} onChange={e => setInput(e.target.value)} autoSize={{ minRows: 1, maxRows: 4 }} maxLength={1000} enterKeyHint="send" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(input) } }}/><Button aria-label="发送消息" type="primary" htmlType="submit" loading={pending} disabled={!input.trim() || pending}>{!pending && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg>}</Button></form><div className="companion-footnote"><p className="chat-disclaimer">预设回复演示 · 不上传服务器</p><details className="companion-session-info"><summary>会话说明</summary><div><b>关于这段对话</b><p>当前使用本机预设回复，尚未连接真实 AI。对话不公开，刷新或退出账号后清空。</p><button onClick={() => setOffline(!offline)} aria-pressed={offline}>{offline ? '恢复连接演示' : '体验断连'}</button></div></details></div></div>
   </section>
 }
 

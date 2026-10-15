@@ -11,6 +11,8 @@ import './LoginPage.css'
 import { schoolService } from '../../services/schools'
 import type { School } from '../../types/school'
 import { PasswordRecovery } from './PasswordRecovery'
+import { RegistrationPhone } from './RegistrationPhone'
+import type { PhoneVerification } from './RegistrationPhone'
 
 // Public sample credentials only. Production authentication must be performed by the server.
 const demoAccounts = [{ role: 'student', ...studentDemo }, { role: 'teacher', ...teacherDemo }, { role: 'admin', ...adminDemo }] as const
@@ -31,6 +33,7 @@ export function LoginPage({ onLogin, onPrivacy }: { onLogin: (session: Session) 
   const [registering,setRegistering]=useState(false)
   const [nickname,setNickname]=useState('')
   const [confirmation,setConfirmation]=useState('')
+  const [verification,setVerification]=useState<PhoneVerification>({phone:'',verificationId:'',verificationCode:''})
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState('')
   const [help, setHelp] = useState(false)
@@ -38,20 +41,20 @@ export function LoginPage({ onLogin, onPrivacy }: { onLogin: (session: Session) 
   const [samples, setSamples] = useState(false)
   const [loading, setLoading] = useState(false)
   const submitting = useRef(false)
-  const switchMode=(next:boolean)=>{if(submitting.current)return;setRegistering(next);setPassword('');setConfirmation('');setError('');setSamples(false)}
+  const switchMode=(next:boolean)=>{if(submitting.current)return;setRegistering(next);setVerification({phone:'',verificationId:'',verificationCode:''});setPassword('');setConfirmation('');setError('');setSamples(false)}
   useBackNavigation(registering&&!loading,()=>switchMode(false),1000)
   const submit = async () => {
     if (submitting.current) return
     if (!school) { setError('请先选择学校。'); return }
     if (!account.trim()) { setError(registering?'请设置账号。':'请输入学校分配的学号或校园账号。'); return }
     if (!password) { setError('请输入密码。'); return }
-    if (registering) { const invalid=registrationError({schoolId:school.id,account,password,nickname});if(invalid){setError(invalid);return}if(password!==confirmation){setError('两次输入的密码不一致。');return} }
+    if (registering) { const invalid=registrationError({schoolId:school.id,account,password,nickname,...verification});if(invalid){setError(invalid);return}if(password!==confirmation){setError('两次输入的密码不一致。');return} }
     if (!consent) { setError('请先阅读并勾选隐私与身份说明。'); return }
     submitting.current = true
     setLoading(true)
     setError('')
     try {
-      const session = registering ? await authService.register({schoolId:school.id,account:account.trim(),password,nickname:nickname.trim()}) : await authService.login({ schoolId: school.id, account: account.trim(), password })
+      const session = registering ? await authService.register({schoolId:school.id,account:account.trim(),password,nickname:nickname.trim(),...verification}) : await authService.login({ schoolId: school.id, account: account.trim(), password })
       if (session.schoolId !== school.id) { await authService.logout(); setPassword(''); setError('登录学校与账号所属学校不一致，请重新选择。'); return }
       setPassword('')
       try { localStorage.setItem('campus-login-school-v2', school.id) } catch { /* Selection is already included in authenticated session. */ }
@@ -91,7 +94,7 @@ export function LoginPage({ onLogin, onPrivacy }: { onLogin: (session: Session) 
           <Input.Password id="login-password" disabled={loading || !school} autoComplete={registering?'new-password':'current-password'} placeholder={registering?'8–64 位，包含字母和数字':'请输入密码'} value={password} maxLength={registering?64:128} onChange={e => { setPassword(e.target.value); setError('') }}/>
         </div>
       </div>
-      {registering&&<div className="account-field account-confirm-password"><label htmlFor="register-confirm-password">确认密码</label><Input.Password id="register-confirm-password" disabled={loading} autoComplete="new-password" placeholder="再次输入密码" value={confirmation} maxLength={64} onChange={e=>{setConfirmation(e.target.value);setError('')}}/></div>}{!registering&&schoolSelector}
+      {registering&&<div className="account-field account-confirm-password"><label htmlFor="register-confirm-password">确认密码</label><Input.Password id="register-confirm-password" disabled={loading} autoComplete="new-password" placeholder="再次输入密码" value={confirmation} maxLength={64} onChange={e=>{setConfirmation(e.target.value);setError('')}}/></div>}{registering&&<div className="account-fields registration-verification-last"><RegistrationPhone key={schoolId} schoolId={schoolId} value={verification} onChange={value=>{setVerification(value);setError('')}} disabled={loading}/></div>}{!registering&&schoolSelector}
       {schoolsError && <p className="account-error account-school-error" role="alert">{schoolsError}<button type="button" onClick={() => { setSchoolsLoading(true); setSchoolsError(''); setSchoolAttempt(value => value + 1) }}>重新加载</button></p>}
       <div className="account-consent"><Checkbox checked={consent} onChange={e => { setConsent(e.target.checked); setError('') }} aria-label="我已阅读并了解隐私与身份说明"/><span>我已阅读并了解<button type="button" onClick={onPrivacy}>《隐私与身份说明》</button></span></div>
       {error && <p className="account-error" role="alert">{error}</p>}

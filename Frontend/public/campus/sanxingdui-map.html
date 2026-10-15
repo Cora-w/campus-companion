@@ -449,6 +449,9 @@ P.forEach(p=>{
   el("circle",{r:15},g);const t=el("text",{},g);t.textContent=p.icon;
   p.shape=g;p.pinG=g;
 });
+// Area name in the open space south of teacher apartment buildings 1–6.
+const teacherAreaLabel=el("text",{x:625,y:1570,class:"lbl major",id:"teacherApartmentsLabel"},lG);
+teacherAreaLabel.textContent="教师公寓";
 const route=el("path",{class:"route",style:"display:none"},routeG);
 const selRing=el("circle",{class:"selring",style:"display:none"},routeG);
 const acc=el("circle",{class:"acc",r:20},meG);
@@ -479,6 +482,7 @@ function lod(){
     p.lbl.classList.toggle("hide",!show);
   });
   $("#roadLbls").style.display=z>1.15?"":"none";
+  teacherAreaLabel.classList.toggle("hide",280*S<80);
   meDot.setAttribute("transform",`translate(${meXY?meXY[0]:0} ${meXY?meXY[1]:0}) scale(${fs})`);
   if(selId){const p=byId[selId];selRing.setAttribute("r",22*fs);}
   updateScale();
