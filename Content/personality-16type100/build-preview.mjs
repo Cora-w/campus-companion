@@ -1,0 +1,12 @@
+import { readFile, writeFile } from 'node:fs/promises'
+const base = new URL('./', import.meta.url)
+const bank = JSON.parse(await readFile(new URL('question-bank.json', base), 'utf8'))
+const profiles = JSON.parse(await readFile(new URL('type-profiles.json', base), 'utf8'))
+const template = await readFile(new URL('preview.template.html', base), 'utf8')
+const scoring = await readFile(new URL('scoring.mjs', base), 'utf8')
+const encode = value => JSON.stringify(value).replaceAll('<', String.fromCharCode(92) + 'u003c')
+const html = template.replace('/*__SCORING__*/', () => scoring.replaceAll('export function ', 'function '))
+  .replace('/*__BANK__*/', () => encode(bank))
+  .replace('/*__PROFILES__*/', () => encode(profiles))
+await writeFile(new URL('preview.html', base), html, 'utf8')
+console.log('Built standalone preview.html (no external assets or requests).')

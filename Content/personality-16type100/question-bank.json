@@ -1,0 +1,1037 @@
+{
+  "schema_version": "1.0.0",
+  "bank_id": "campus-personality-16type-original-100",
+  "version": "2026.10.15",
+  "title": "16型人格偏好自评（原创100题）",
+  "subtitle": "参考MBTI四字母类型形式的非官方问卷",
+  "language": "zh-CN",
+  "item_count": 100,
+  "validation_status": "original_unvalidated",
+  "instructions": "请按照通常的自己作答，而不是希望成为的样子。判断每条描述与你的符合程度；不同偏好没有优劣，也不代表能力高低。可以跳过或退出。",
+  "response_options": [
+    {
+      "value": 1,
+      "label": "非常不符合"
+    },
+    {
+      "value": 2,
+      "label": "比较不符合"
+    },
+    {
+      "value": 3,
+      "label": "中间程度"
+    },
+    {
+      "value": 4,
+      "label": "比较符合"
+    },
+    {
+      "value": 5,
+      "label": "非常符合"
+    }
+  ],
+  "skip_options": [
+    {
+      "code": "not_applicable",
+      "label": "不适用／不理解题意"
+    },
+    {
+      "code": "prefer_not_to_answer",
+      "label": "暂不回答"
+    }
+  ],
+  "axes": [
+    {
+      "id": "EI",
+      "title": "精力与互动偏好",
+      "left": "E",
+      "right": "I",
+      "left_label": "外向偏好",
+      "right_label": "内向偏好",
+      "question_ids": [
+        "TYPE100-001",
+        "TYPE100-002",
+        "TYPE100-003",
+        "TYPE100-004",
+        "TYPE100-005",
+        "TYPE100-006",
+        "TYPE100-007",
+        "TYPE100-008",
+        "TYPE100-009",
+        "TYPE100-010",
+        "TYPE100-011",
+        "TYPE100-012",
+        "TYPE100-013",
+        "TYPE100-014",
+        "TYPE100-015",
+        "TYPE100-016",
+        "TYPE100-017",
+        "TYPE100-018",
+        "TYPE100-019",
+        "TYPE100-020",
+        "TYPE100-021",
+        "TYPE100-022",
+        "TYPE100-023",
+        "TYPE100-024",
+        "TYPE100-025"
+      ],
+      "left_keyed_count": 13,
+      "right_keyed_count": 12
+    },
+    {
+      "id": "SN",
+      "title": "信息关注偏好",
+      "left": "S",
+      "right": "N",
+      "left_label": "实感偏好",
+      "right_label": "直觉偏好",
+      "question_ids": [
+        "TYPE100-026",
+        "TYPE100-027",
+        "TYPE100-028",
+        "TYPE100-029",
+        "TYPE100-030",
+        "TYPE100-031",
+        "TYPE100-032",
+        "TYPE100-033",
+        "TYPE100-034",
+        "TYPE100-035",
+        "TYPE100-036",
+        "TYPE100-037",
+        "TYPE100-038",
+        "TYPE100-039",
+        "TYPE100-040",
+        "TYPE100-041",
+        "TYPE100-042",
+        "TYPE100-043",
+        "TYPE100-044",
+        "TYPE100-045",
+        "TYPE100-046",
+        "TYPE100-047",
+        "TYPE100-048",
+        "TYPE100-049",
+        "TYPE100-050"
+      ],
+      "left_keyed_count": 13,
+      "right_keyed_count": 12
+    },
+    {
+      "id": "TF",
+      "title": "决策侧重偏好",
+      "left": "T",
+      "right": "F",
+      "left_label": "思考偏好",
+      "right_label": "情感偏好",
+      "question_ids": [
+        "TYPE100-051",
+        "TYPE100-052",
+        "TYPE100-053",
+        "TYPE100-054",
+        "TYPE100-055",
+        "TYPE100-056",
+        "TYPE100-057",
+        "TYPE100-058",
+        "TYPE100-059",
+        "TYPE100-060",
+        "TYPE100-061",
+        "TYPE100-062",
+        "TYPE100-063",
+        "TYPE100-064",
+        "TYPE100-065",
+        "TYPE100-066",
+        "TYPE100-067",
+        "TYPE100-068",
+        "TYPE100-069",
+        "TYPE100-070",
+        "TYPE100-071",
+        "TYPE100-072",
+        "TYPE100-073",
+        "TYPE100-074",
+        "TYPE100-075"
+      ],
+      "left_keyed_count": 13,
+      "right_keyed_count": 12
+    },
+    {
+      "id": "JP",
+      "title": "安排方式偏好",
+      "left": "J",
+      "right": "P",
+      "left_label": "判断偏好",
+      "right_label": "知觉偏好",
+      "question_ids": [
+        "TYPE100-076",
+        "TYPE100-077",
+        "TYPE100-078",
+        "TYPE100-079",
+        "TYPE100-080",
+        "TYPE100-081",
+        "TYPE100-082",
+        "TYPE100-083",
+        "TYPE100-084",
+        "TYPE100-085",
+        "TYPE100-086",
+        "TYPE100-087",
+        "TYPE100-088",
+        "TYPE100-089",
+        "TYPE100-090",
+        "TYPE100-091",
+        "TYPE100-092",
+        "TYPE100-093",
+        "TYPE100-094",
+        "TYPE100-095",
+        "TYPE100-096",
+        "TYPE100-097",
+        "TYPE100-098",
+        "TYPE100-099",
+        "TYPE100-100"
+      ],
+      "left_keyed_count": 13,
+      "right_keyed_count": 12
+    }
+  ],
+  "questions": [
+    {
+      "id": "TYPE100-001",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "在不熟悉的聚会里，我通常愿意主动找人聊一聊。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-002",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "忙碌一天后，我更愿意先独处一会儿恢复精力。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-003",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "思考一个新问题时，我喜欢通过与人讨论理清想法。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-004",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "开会发言前，我通常想先在心里整理好要说的话。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-005",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "有空闲时间时，我会自然地想到邀请别人一起活动。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-006",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "相比参加很多聚会，我更愿意把时间留给少数深入的交往。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-007",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "进入一个新集体时，我常愿意先作自我介绍。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-008",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "连续社交之后，我通常需要一段安静的时间。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-009",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "和几个人一起交流，常能让我变得更有精神。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-010",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "遇到值得高兴的事，我有时更愿意先独自体会。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-011",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "表达想法时，我往往边说边形成新的理解。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-012",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "我喜欢有足够时间、不必马上回应的交流方式。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-013",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "在小组活动中，我比较自然地承担带动交流的角色。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-014",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "认识新朋友时，我更喜欢慢慢熟悉，而不是很快热络。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-015",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "周末没有安排时，我常想去有人活动的地方看看。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-016",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "比起热闹的集体出游，我通常更喜欢安静的个人安排。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-017",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "我容易在日常接触中主动开启简短的谈话。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-018",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "处理复杂事情时，我更喜欢先自己想清楚再讨论。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-019",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "与不同的人交换近况，对我来说通常是有吸引力的事。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-020",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "我更愿意通过一对一交流认识一个人。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-021",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "学习新内容时，我常想找人一起讨论或练习。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-022",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "我很享受不需要与别人交谈也能自在度过的时间。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-023",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "有了新想法，我通常会较快地找人分享。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-024",
+      "axis_id": "EI",
+      "key": "I",
+      "text": "相比扩大认识的人数，我更在意给已有关系留出精力。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-025",
+      "axis_id": "EI",
+      "key": "E",
+      "text": "参加互动充分的活动后，我通常会觉得精神被带动起来。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-026",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "学习新方法时，我喜欢先看具体的操作示例。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-027",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "了解一件事时，我会自然地想到它可能意味着什么。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-028",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "介绍经历时，我倾向于先说实际发生了什么。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-029",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "我喜欢讨论目前还没有实现的可能性。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-030",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "做决定前，我通常先检查已经掌握的事实。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-031",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "阅读内容时，我容易注意到不同观点之间的关联。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-032",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "面对陌生任务，我更愿意从清楚可执行的步骤开始。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-033",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "相比照着现有方法做，我常想探索另一种做法。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-034",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "我喜欢说明具体、例子充分的学习材料。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-035",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "一个概念能引出哪些新想法，往往会吸引我的注意。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-036",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "回顾活动时，我容易记得地点、过程和具体细节。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-037",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "我常会从一个小现象联想到更大的发展趋势。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-038",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "评估一个方案时，我很看重它在现实中怎样实施。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-039",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "我愿意花时间讨论尚未有直接用途的想法。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-040",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "接触一项信息时，我会先问它有什么实际依据。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-041",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "理解复杂内容时，我喜欢先把握整体框架。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-042",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "我更喜欢用清晰的事实例子说明自己的观点。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-043",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "我容易对事物背后的模式和原理产生兴趣。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-044",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "选用工具时，经过实际检验的做法通常让我更安心。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-045",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "我常从想象不同的未来情境中得到灵感。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-046",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "开始讨论时，我倾向于先确认眼前具体要解决什么。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-047",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "我喜欢把来自不同领域的想法联系起来。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-048",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "观察新环境时，我通常先留意能直接看到的情况。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-049",
+      "axis_id": "SN",
+      "key": "N",
+      "text": "比起详细回顾已发生的事，我更爱谈接下来可能发生什么。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-050",
+      "axis_id": "SN",
+      "key": "S",
+      "text": "衡量一个想法时，我习惯先寻找可观察的实例。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-051",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "讨论分歧时，我通常先检查各方理由是否自洽。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-052",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "做影响他人的决定时，我会先考虑相关人的感受。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-053",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "比较方案时，我喜欢先列出统一的判断标准。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-054",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "面对两难选择，我很重视它是否符合自己认同的价值。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-055",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "评价一项建议时，我会尽量把对提出者的好恶放在一边。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-056",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "给别人反馈时，我自然会先想到怎样让对方更容易接受。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-057",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "遇到争议，我倾向于先问哪种结论更有依据。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-058",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "协调小组意见时，我会优先了解每个人在意的事情。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-059",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "我通常通过比较利弊来形成决定。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-060",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "一项方案对关系的影响，会在我的决定中占较大分量。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-061",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "提出批评时，我更想先把问题的关键说清楚。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-062",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "判断一件事时，我会特别考虑它对具体的人意味着什么。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-063",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "即使讨论气氛融洽，我也愿意指出论证中的漏洞。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-064",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "出现意见分歧时，我通常先寻找双方共同重视的东西。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-065",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "制定规则时，我更倾向于让相似情况采用一致标准。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-066",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "运用规则时，我会很在意个人处境中的特殊需要。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-067",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "帮助别人做选择时，我常先梳理问题的因果关系。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-068",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "帮助别人做选择时，我常先询问什么对对方最重要。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-069",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "选择合作方案时，明确的逻辑和可比较的依据很能说服我。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-070",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "选择合作方案时，参与者是否认同并愿意投入很能说服我。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-071",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "收到反对意见时，我首先想知道其推理是否成立。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-072",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "收到反对意见时，我首先想了解对方关注的需要和立场。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-073",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "一项结论只要理由充分，我愿意接受它带来的短暂不愉快。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-074",
+      "axis_id": "TF",
+      "key": "F",
+      "text": "一项决定即使效率很高，我也会认真考虑它是否违背重视的价值。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-075",
+      "axis_id": "TF",
+      "key": "T",
+      "text": "在复杂选择中，我通常先把各个判断条件整理成清楚的结构。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-076",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "开始一周之前，我喜欢先确定主要安排。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-077",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "只要不影响必要责任，我愿意给当天保留临时变化的空间。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-078",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "任务要求明确后，我通常希望尽早确定做法。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-079",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "面对选择时，我喜欢多看看不同可能再作决定。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-080",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "旅行之前，我喜欢提前安排主要行程。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-081",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "旅行时，我喜欢根据当时的兴趣调整游览顺序。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-082",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "我通常喜欢把待办事项逐项完成。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-083",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "安排空闲时间时，我更喜欢保留开放的选项。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-084",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "确定了一个计划后，我会倾向于按原来的节奏推进。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-085",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "出现有吸引力的新信息时，我很愿意重新考虑原计划。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-086",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "我喜欢提前知道一件事大致何时开始和结束。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-087",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "比起把所有细节提前定好，我更喜欢边做边探索。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-088",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "作出决定并结束反复权衡，通常让我感到轻松。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-089",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "在仍有时间时，我喜欢让决定保持可调整的状态。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-090",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "处理长期任务时，我倾向于提前设定阶段节点。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-091",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "处理长期任务时，我倾向于随进展调整下一阶段的路径。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-092",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "参加活动前，我通常希望先了解基本流程。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-093",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "面对没有详细流程的活动，我愿意到现场再决定怎样参与。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-094",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "我喜欢把已经确认的安排清楚记录下来。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-095",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "我会特意留一些没有预先安排用途的时间。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-096",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "几个任务同时出现时，我喜欢先排好处理顺序。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-097",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "几个任务同时出现时，我喜欢根据当下情况灵活切换。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-098",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "与人合作时，我更喜欢尽早明确分工和时间表。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-099",
+      "axis_id": "JP",
+      "key": "P",
+      "text": "与人合作时，我喜欢给后续调整方法和分工留出空间。",
+      "required": false
+    },
+    {
+      "id": "TYPE100-100",
+      "axis_id": "JP",
+      "key": "J",
+      "text": "结束一天时，我会因计划中的事项得到收尾而感到满足。",
+      "required": false
+    }
+  ],
+  "administration_order": [
+    "TYPE100-001",
+    "TYPE100-026",
+    "TYPE100-051",
+    "TYPE100-076",
+    "TYPE100-002",
+    "TYPE100-027",
+    "TYPE100-052",
+    "TYPE100-077",
+    "TYPE100-003",
+    "TYPE100-028",
+    "TYPE100-053",
+    "TYPE100-078",
+    "TYPE100-004",
+    "TYPE100-029",
+    "TYPE100-054",
+    "TYPE100-079",
+    "TYPE100-005",
+    "TYPE100-030",
+    "TYPE100-055",
+    "TYPE100-080",
+    "TYPE100-006",
+    "TYPE100-031",
+    "TYPE100-056",
+    "TYPE100-081",
+    "TYPE100-007",
+    "TYPE100-032",
+    "TYPE100-057",
+    "TYPE100-082",
+    "TYPE100-008",
+    "TYPE100-033",
+    "TYPE100-058",
+    "TYPE100-083",
+    "TYPE100-009",
+    "TYPE100-034",
+    "TYPE100-059",
+    "TYPE100-084",
+    "TYPE100-010",
+    "TYPE100-035",
+    "TYPE100-060",
+    "TYPE100-085",
+    "TYPE100-011",
+    "TYPE100-036",
+    "TYPE100-061",
+    "TYPE100-086",
+    "TYPE100-012",
+    "TYPE100-037",
+    "TYPE100-062",
+    "TYPE100-087",
+    "TYPE100-013",
+    "TYPE100-038",
+    "TYPE100-063",
+    "TYPE100-088",
+    "TYPE100-014",
+    "TYPE100-039",
+    "TYPE100-064",
+    "TYPE100-089",
+    "TYPE100-015",
+    "TYPE100-040",
+    "TYPE100-065",
+    "TYPE100-090",
+    "TYPE100-016",
+    "TYPE100-041",
+    "TYPE100-066",
+    "TYPE100-091",
+    "TYPE100-017",
+    "TYPE100-042",
+    "TYPE100-067",
+    "TYPE100-092",
+    "TYPE100-018",
+    "TYPE100-043",
+    "TYPE100-068",
+    "TYPE100-093",
+    "TYPE100-019",
+    "TYPE100-044",
+    "TYPE100-069",
+    "TYPE100-094",
+    "TYPE100-020",
+    "TYPE100-045",
+    "TYPE100-070",
+    "TYPE100-095",
+    "TYPE100-021",
+    "TYPE100-046",
+    "TYPE100-071",
+    "TYPE100-096",
+    "TYPE100-022",
+    "TYPE100-047",
+    "TYPE100-072",
+    "TYPE100-097",
+    "TYPE100-023",
+    "TYPE100-048",
+    "TYPE100-073",
+    "TYPE100-098",
+    "TYPE100-024",
+    "TYPE100-049",
+    "TYPE100-074",
+    "TYPE100-099",
+    "TYPE100-025",
+    "TYPE100-050",
+    "TYPE100-075",
+    "TYPE100-100"
+  ],
+  "scoring": {
+    "center": 3,
+    "formula": "signed_sum = sum((response - 3) * (key === left ? 1 : -1))",
+    "axis_range": [
+      -50,
+      50
+    ],
+    "complete_axis_required": true,
+    "missing_policy": "No imputation; incomplete axes have no score or letter.",
+    "tie_policy": "Exact zero has no winning letter; show X and possible reference types.",
+    "near_tie_note": "For nonzero absolute sums <= 5, show a small-margin note; this is an arbitrary UI heuristic, not a validated threshold.",
+    "type_when": "All four axes are complete and non-tied.",
+    "probability": false,
+    "norms": null,
+    "official_mbti_scoring": false
+  },
+  "provenance": {
+    "kind": "original_ai_assisted",
+    "description": "原创校园生活题目与原创16型描述；仅参考公开四组偏好概念，未复制官方MBTI题目、报告或计分。未经过心理测量学验证、专业逐题审核或常模研究。",
+    "sources": [
+      {
+        "title": "MBTI Preferences: How Do You Prefer to Be?",
+        "url": "https://www.myersbriggs.org/my-mbti-personality-type/the-mbti-preferences/",
+        "accessed_on": "2026-10-15",
+        "use": "核对E/I、S/N、T/F、J/P概念及16种组合，未采用官方题目。"
+      },
+      {
+        "title": "MBTI Facts",
+        "url": "https://www.themyersbriggs.com/en-US/Support/MBTI-Facts",
+        "accessed_on": "2026-10-15",
+        "use": "核对结果需结合个人理解及官方测评的区别。"
+      }
+    ]
+  },
+  "result_notice": "这是原创、非官方且未经验证的偏好自评。参考类型只概括本次回答，不是正式MBTI结果、诊断或固定身份。",
+  "privacy": {
+    "default": "独立试答页只在页面内存中处理答案，不联网、不保存、不发送。刷新会清空。",
+    "integration": "APP或后端若另行保存，需要明确同意、本人权限和删除规则；不得默认向教师、管理员、家长共享。",
+    "restricted_uses": "不得用于录取、招聘、处分、风险预警或能力排名。"
+  }
+}

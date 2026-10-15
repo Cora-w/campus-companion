@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>16型人格偏好自评 · 100题</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif;color:#183539;background:#f3f6f3;line-height:1.65;color-scheme:light}*{box-sizing:border-box}body{margin:0}main{max-width:900px;margin:auto;padding:32px 20px 60px}header{padding:24px 0}h1{font-size:clamp(26px,5vw,40px);line-height:1.25;margin:12px 0}h2{margin-top:0}.eyebrow{font-size:13px;letter-spacing:.12em;color:#416665}.muted{color:#526d70}.card{background:#fff;border:1px solid #dce6df;border-radius:20px;padding:24px;margin-bottom:18px}.notice{background:#e8f0eb;border-radius:12px;padding:16px}.small{font-size:14px}button{font:inherit;cursor:pointer;border:1px solid #9db6aa;border-radius:10px;padding:10px 18px;background:#fff;color:#183539;min-height:44px}button.primary{background:#22594b;color:white;border-color:#22594b}button:disabled{opacity:.45;cursor:default}button:focus-visible,input:focus-visible{outline:3px solid #ce870a;outline-offset:3px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}.progressbar{width:100%;height:10px;accent-color:#22594b}.progressline{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.question{border:0;border-bottom:1px solid #e4ebe5;margin:0;padding:22px 0}.question:last-child{border-bottom:0}legend{font-weight:600;font-size:17px;padding:0}.choices{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:14px}.choice{border:1px solid #d6e0da;border-radius:10px;display:flex;align-items:center;gap:8px;padding:12px 9px;cursor:pointer;min-height:48px}.choice:has(input:checked){background:#e7f1eb;border-color:#22594b}.skips{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;color:#526d70;font-size:14px}.skips label{padding:4px 0;cursor:pointer}input{accent-color:#22594b}.code{font-size:48px;letter-spacing:.15em;font-weight:750;margin:5px 0;color:#22594b}.axis{padding:14px 0;border-bottom:1px solid #e4ebe5}.axis:last-child{border:0}.axis p{margin:4px 0}.tag{display:inline-block;background:#e7f1eb;padding:2px 10px;border-radius:20px;margin-left:8px;font-size:13px}.feedback{min-height:24px}.hidden,[hidden]{display:none!important}footer{margin-top:28px;font-size:13px;color:#526d70}a{color:#22594b}@media(max-width:620px){main{padding:16px 12px 40px}.card{padding:18px}.choices{grid-template-columns:1fr}.choice{padding:10px 12px}h1{font-size:28px}.progressline{font-size:14px}}
+</style>
+</head>
+<body><main>
+<header><span class="eyebrow">校园 · 自我探索</span><h1>16型人格偏好自评</h1><p class="muted">100 道原创题，了解你在四组偏好上的本次回答。</p></header>
+<section id="intro" class="card"><h2>先认识这份问卷</h2><p>参考 MBTI 的四字母类型形式，围绕互动、信息、决策和安排方式展开。请按通常的自己回答，没有更好或更差的偏好。</p><p class="notice">这不是官方 MBTI 测验。题目、计分和类型解读均为原创，未经专业测量验证；结果是自我探索的参考，不是诊断或固定身份。</p><p>共 10 页，每页 10 题，可返回修改、跳过或随时退出。四组都完整且没有打平时，会显示 INFP 等参考类型；答案打平会如实显示偏好未明确。</p><p class="small muted">答案只在当前页面内存中处理，不联网、不保存、不发送给任何人。刷新或关闭页面会清空。</p><button id="start" class="primary" type="button">开始自我探索</button></section>
+<section id="quiz" hidden><div class="card"><div class="progressline"><strong id="page-label" tabindex="-1"></strong><span id="answered"></span></div><progress id="progress" class="progressbar" max="100" value="0" aria-label="题目处理进度"></progress><p class="small muted">五级选项表示符合程度；没有合适答案时可以跳过。</p><div id="questions"></div><div class="actions"><button id="previous" type="button">上一页</button><button id="next" type="button" class="primary">下一页</button><button id="results-now" type="button">查看当前结果</button><button id="exit" type="button">退出并清空</button></div></div></section>
+<section id="results" hidden class="card"><h2 id="result-heading" tabindex="-1">本次参考结果</h2><p id="result-status" class="notice" role="status"></p><p id="result-code" class="code"></p><h3 id="profile-title"></h3><p id="profile-summary"></p><ul id="profile-points"></ul><p id="profile-reflection"></p><div id="axis-results"></div><p id="candidates" class="small muted"></p><p class="notice small">类型只概括本次回答。不同处境、对题意的理解和回答变化都会影响结果。它不代表智商、能力、道德或心理健康程度，也不用于判断你适合哪种职业或关系。</p><div class="actions"><button id="resume" type="button" class="primary">返回检查答案</button><button id="restart" type="button">重新开始</button></div></section>
+<p id="feedback" class="feedback small" role="status" aria-live="polite"></p>
+<footer>原创问卷与解读 · 非官方类型偏好工具<br>参考：<a href="https://www.myersbriggs.org/my-mbti-personality-type/the-mbti-preferences/" target="_blank" rel="noopener noreferrer">四组偏好概念</a>。页面不会自动访问外部链接。</footer>
+</main>
+<script type="module">
+/*__SCORING__*/
+const bank = /*__BANK__*/;
+const profiles = /*__PROFILES__*/;
+validateBank(bank);
+const byId = new Map(bank.questions.map(q => [q.id,q]));
+const $ = id => document.getElementById(id);
+let answers = Object.create(null), page = 0;
+const pageSize = 10;
+function show(section){for(const id of ['intro','quiz','results'])$(id).hidden=id!==section;}
+function updateProgress(){
+  const values=Object.values(answers), answered=values.filter(Number.isInteger).length;
+  $('answered').textContent=`已作答 ${answered} / 100 · 已跳过 ${values.length-answered}`;
+  $('progress').value=values.length;
+}
+function choice(q,value,label,container){
+  const wrap=document.createElement('label');
+  wrap.className=Number.isInteger(value)?'choice':'';
+  const input=document.createElement('input');input.type='radio';input.name=q.id;input.value=String(value);input.checked=answers[q.id]===value;
+  input.addEventListener('change',()=>{answers[q.id]=value;updateProgress();});
+  const text=document.createElement('span');text.textContent=label;
+  wrap.append(input,text);container.append(wrap);
+}
+function renderPage(){
+  show('quiz');$('questions').replaceChildren();
+  $('page-label').textContent=`第 ${page+1} / 10 页`;
+  bank.administration_order.slice(page*pageSize,(page+1)*pageSize).forEach((id,index)=>{
+    const q=byId.get(id), field=document.createElement('fieldset');field.className='question';
+    const legend=document.createElement('legend');legend.textContent=`${page*pageSize+index+1}. ${q.text}`;
+    const options=document.createElement('div');options.className='choices';
+    bank.response_options.forEach(o=>choice(q,o.value,o.label,options));
+    const skips=document.createElement('div');skips.className='skips';
+    bank.skip_options.forEach(o=>choice(q,o.code,o.label,skips));
+    field.append(legend,options,skips);$('questions').append(field);
+  });
+  $('previous').disabled=page===0;$('next').textContent=page===9?'查看参考结果':'下一页';
+  updateProgress();$('page-label').focus();window.scrollTo(0,0);
+}
+function renderResults(){
+  const result=scoreTypes(bank,answers);show('results');
+  $('result-code').textContent=result.code_pattern;
+  $('result-status').textContent=result.status==='incomplete'?'还有未完成的偏好组：暂不生成完整参考类型。你可以返回补充，也可以保留这次探索。':result.status==='ambiguous'?'你已完成全部题目，但部分偏好组打平。X 表示该组暂不明确，不强行归为一种类型。':'这是你本次回答对应的参考类型，不是官方 MBTI 结果。';
+  const profile=result.type?profiles.profiles[result.type]:null;
+  $('profile-title').textContent=profile?.title??'';
+  $('profile-summary').textContent=profile?.summary??'';
+  $('profile-points').replaceChildren();
+  if(profile)for(const point of profile.possible_approaches){const li=document.createElement('li');li.textContent=point;$('profile-points').append(li);}
+  $('profile-reflection').textContent=profile?'可尝试：'+profile.reflection:'';
+  $('axis-results').replaceChildren();
+  for(const axis of result.axes){
+    const row=document.createElement('div');row.className='axis';
+    const title=document.createElement('strong');title.textContent=axis.axis_id+' · '+axis.title;
+    const detail=document.createElement('p');
+    detail.textContent=axis.status==='incomplete'?`有效回答 ${axis.answered} / 25，暂不判断。`:axis.status==='tied'?'两侧作答相抵，暂未显示偏向。':`本次偏向 ${axis.letter} · ${axis.letter===axis.left?axis.left_label:axis.right_label}`;
+    row.append(title,detail);
+    if(axis.small_margin){const note=document.createElement('p');note.className='small muted';note.textContent='两侧差距较小，少量回答改变就可能改变该字母；可结合自身经历再理解。';row.append(note);}
+    $('axis-results').append(row);
+  }
+  $('candidates').textContent=result.status==='ambiguous'?'在已显示偏好的约束下，可供对照的组合：'+result.candidate_types.join('、')+'。这不是各类型的概率。':'';
+  $('result-heading').focus();window.scrollTo(0,0);
+}
+function clear(){answers=Object.create(null);page=0;$('feedback').textContent='答案已清空。';}
+$('start').onclick=()=>{page=0;$('feedback').textContent='';renderPage();};
+$('previous').onclick=()=>{if(page>0){page--;renderPage();}};
+$('next').onclick=()=>{if(page<9){page++;renderPage();}else renderResults();};
+$('results-now').onclick=renderResults;
+$('resume').onclick=()=>{const index=bank.administration_order.findIndex(id=>!Number.isInteger(answers[id]));page=index<0?0:Math.floor(index/pageSize);renderPage();};
+$('restart').onclick=()=>{if(confirm('清空本次答案并重新开始？')){clear();renderPage();}};
+$('exit').onclick=()=>{if(confirm('退出并清空本次答案？')){clear();show('intro');$('start').focus();}};
+</script></body></html>
