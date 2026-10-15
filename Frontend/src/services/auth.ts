@@ -12,6 +12,10 @@ export function clearSavedLogin() {
   httpClient.setToken(null)
 }
 export const authService = {
+  async register(input: Parameters<typeof provider.register>[0]) {
+    clearSavedLogin()
+    return provider.register(input)
+  },
   async login(input:Parameters<typeof provider.login>[0]) {
     clearSavedLogin()
     return provider.login(input)

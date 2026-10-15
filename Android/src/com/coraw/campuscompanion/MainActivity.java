@@ -1,6 +1,8 @@
 package com.coraw.campuscompanion;
 
 import android.app.Activity;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -18,6 +20,8 @@ public final class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private WebView web;
     private ValueCallback<Uri[]> fileCallback;
+    private GeolocationPermissions.Callback locationCallback;
+    private String locationOrigin;
     private boolean backPending;
     private AlertDialog exitDialog;
 
@@ -37,8 +41,11 @@ public final class MainActivity extends Activity {
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(true);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        settings.setGeolocationEnabled(false);
+        settings.setGeolocationEnabled(true);
         settings.setTextZoom(100);
+        settings.setSupportZoom(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, false);
         web.setWebViewClient(new WebViewClient() {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
@@ -62,6 +69,12 @@ public final class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
                 if (HOST.equals(uri.getHost()) && "https".equals(uri.getScheme())) return false;
+                if (request.isForMainFrame() && "tel".equals(uri.getScheme())
+                    && ("12356".equals(uri.getSchemeSpecificPart()) || "110".equals(uri.getSchemeSpecificPart()) || "120".equals(uri.getSchemeSpecificPart()))) {
+                    try { startActivity(new Intent(Intent.ACTION_DIAL, uri)); }
+                    catch (Exception ignored) { Toast.makeText(MainActivity.this, "无法打开拨号界面，请手动拨打号码", Toast.LENGTH_SHORT).show(); }
+                    return true;
+                }
                 if (request.isForMainFrame() && ("https".equals(uri.getScheme()) || "http".equals(uri.getScheme()))) {
                     try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); }
                     catch (Exception ignored) { Toast.makeText(MainActivity.this, "无法打开链接", Toast.LENGTH_SHORT).show(); }
@@ -70,6 +83,19 @@ public final class MainActivity extends Activity {
             }
         });
         web.setWebChromeClient(new WebChromeClient() {
+            @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                Uri uri = Uri.parse(origin);
+                if (!HOST.equals(uri.getHost()) || !"https".equals(uri.getScheme())) {
+                    callback.invoke(origin, false, false);
+                    return;
+                }
+                finishLocationRequest(false);
+                locationCallback = callback;
+                locationOrigin = origin;
+                if (hasLocationPermission()) finishLocationRequest(true);
+                else requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+            }
+            @Override public void onGeolocationPermissionsHidePrompt() { finishLocationRequest(false); }
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (fileCallback != null) fileCallback.onReceiveValue(null);
                 fileCallback = callback;
@@ -88,6 +114,24 @@ public final class MainActivity extends Activity {
 
     private WebResourceResponse missing() {
         return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found", new HashMap<>(), new ByteArrayInputStream(new byte[0]));
+    }
+
+    private boolean hasLocationPermission() {
+        return checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void finishLocationRequest(boolean allowed) {
+        GeolocationPermissions.Callback callback = locationCallback;
+        String origin = locationOrigin;
+        locationCallback = null;
+        locationOrigin = null;
+        if (callback != null) callback.invoke(origin, allowed, false);
+    }
+
+    @Override public void onRequestPermissionsResult(int request, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(request, permissions, results);
+        if (request == 101) finishLocationRequest(hasLocationPermission());
     }
 
     @Override protected void onActivityResult(int request, int result, Intent data) {
@@ -121,6 +165,7 @@ public final class MainActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
+        finishLocationRequest(false);
         if (fileCallback != null) { fileCallback.onReceiveValue(null); fileCallback = null; }
         if (web != null) web.destroy();
         super.onDestroy();

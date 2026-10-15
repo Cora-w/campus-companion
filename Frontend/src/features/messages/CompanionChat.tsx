@@ -4,6 +4,7 @@ import { Alert, Button, Input } from 'antd'
 import { uid } from '../../data/data'
 import { recommendationFor } from '../discover/placeSearch'
 import type { PlaceResult } from '../discover/placeSearch'
+import './CompanionChat.css'
 
 export type ChatMessage = { id: string; role: 'user' | 'assistant'; text: string; places?: PlaceResult[] }
 export type ChatResetHandle = { reset: () => void }
@@ -34,7 +35,7 @@ export function CompanionChat({ messages, setMessages, resetRef }: { messages: C
       setMessages(prev => [...prev, { id: uid(), role: 'assistant', places, text: places ? (places.length ? '按好评数从高到低，找到这些地点：' : '暂时没有符合条件的地点，可以换个范围试试。') : /新生|快递|图书馆|指南/.test(value) ? '可以在「发现 → 指南」查看校园指引，也可以在校园墙向同学提问。这是预设演示回复。' : '我在。你希望先说说今天发生的事，还是一起想想办法？（预设演示回复）' }])
     }, 650)
   }
-  return <section className="chat-card">
+  return <section className="chat-card companion-chat">
     <div className="chat-topline"><span className="online-dot"/><small>仅本人可见 · 演示会话</small><button onClick={() => setOffline(!offline)} className="quiet-button" aria-pressed={offline}>{offline ? '恢复连接演示' : '体验断连'}</button><button className="quiet-button" disabled={pending} onClick={() => { reset(); setMessages([]) }}>新对话</button></div>
     <div className="messages" ref={list} aria-live="polite">
       {messages.length === 0 && <div className="chat-empty"><h2>校园的事，都可以聊聊</h2><p>找美食、问校园，或者说说今天的心事。</p><div className="chat-prompts">{['新生有什么好吃的推荐？','周末学校附近有什么好玩的？','最近学习有点累，想聊聊'].map(t => <button className="prompt-button" key={t} onClick={() => send(t)}>{t}</button>)}</div></div>}
@@ -43,7 +44,7 @@ export function CompanionChat({ messages, setMessages, resetRef }: { messages: C
       {failed && <Alert type="warning" title="连接暂时中断（演示）" description="你的文字仍在当前会话中。恢复连接后可以重试。" action={<Button onClick={() => send(failed, true)}>重试</Button>}/>}
     </div>
     <p className="chat-disclaimer">预设回复演示 · 对话不公开、不上传服务器</p>
-    <form className="chat-input" onSubmit={e => { e.preventDefault(); send(input) }}><Input aria-label="向小心发送消息" placeholder="此刻，你想说些什么？" value={input} onChange={e => setInput(e.target.value)} maxLength={1000} enterKeyHint="send"/><Button type="primary" htmlType="submit" loading={pending} disabled={!input.trim()}>发送</Button></form>
+    <form className="chat-input" onSubmit={e => { e.preventDefault(); send(input) }}><Input.TextArea aria-label="向小心发送消息" placeholder="想说什么，都可以慢慢聊…" value={input} onChange={e => setInput(e.target.value)} autoSize={{ minRows: 1, maxRows: 4 }} maxLength={1000} enterKeyHint="send" onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(input) } }}/><Button type="primary" htmlType="submit" loading={pending} disabled={!input.trim() || pending}>发送</Button></form>
   </section>
 }
 

@@ -1,0 +1,26 @@
+.messenger-chat:has(.companion-chat) .ant-drawer-header { padding:12px 16px; border-bottom:0; }
+.messenger-chat:has(.companion-chat) .ant-drawer-title { color:var(--text-primary); font-size:16px; font-weight:600; }
+.companion-chat { background:#f6f7f8; }
+.companion-chat .chat-topline { min-height:44px; padding:0 16px; gap:7px; border-bottom:1px solid #e9ecee; background:#fff; }
+.companion-chat .chat-topline small { font-size:10px; color:var(--text-secondary); }
+.companion-chat .online-dot { width:6px; height:6px; background:#62a88b; flex-shrink:0; }
+.companion-chat .quiet-button { font-size:11px; padding:4px; white-space:nowrap; }
+.companion-chat .messages { padding:20px 16px; gap:18px; }
+.companion-chat .message-row { gap:8px; }
+.companion-chat .message-avatar { width:28px; height:28px; margin-top:2px; border-radius:10px; background:var(--accent-soft); color:var(--accent); font-size:10px; font-weight:600; }
+.companion-chat .message { max-width:calc(100% - 36px); padding:12px 15px; border:0; border-radius:5px 18px 18px 18px; background:#fff; color:var(--text-primary); font-size:14px; line-height:1.75; box-shadow:0 2px 8px #202c3505; }
+.companion-chat .message.user { max-width:82%; border-radius:18px 5px 18px 18px; background:var(--accent-soft); color:var(--text-primary); box-shadow:none; }
+.companion-chat .typing { padding-left:36px; font-size:12px; color:var(--text-secondary); }
+.companion-chat .chat-disclaimer { padding:8px 16px 10px; font-size:10px; line-height:1.5; color:#8b9298; }
+.messenger-chat .companion-chat .chat-input { align-items:flex-end; gap:10px; padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px)); border-top:1px solid #e9ecee; }
+.messenger-chat .companion-chat .chat-input .ant-input { padding:11px 14px; min-height:44px; border:1px solid transparent; border-radius:16px; background:#f2f4f5; font-size:16px; line-height:22px; resize:none; box-shadow:none; }
+.messenger-chat .companion-chat .chat-input .ant-input:focus { border-color:var(--theme-tint); background:#f7f8f9; }
+.messenger-chat .companion-chat .chat-input .ant-btn { height:44px; min-width:62px; padding-inline:14px; border-radius:14px; font-size:13px; }
+.messenger-chat .companion-chat .chat-input .ant-btn-primary:not(:disabled) { background:var(--accent); color:#fff; }
+.messenger-chat .companion-chat .chat-input .ant-btn:disabled { border:0; background:#f0f2f3; color:#a0a5a9; }
+@media(max-width:360px) {
+  .companion-chat .chat-topline { padding-inline:12px; gap:5px; }
+  .companion-chat .chat-topline small { font-size:9px; }
+  .companion-chat .messages { padding-inline:12px; }
+  .messenger-chat .companion-chat .chat-input { padding-inline:12px; gap:8px; }
+}

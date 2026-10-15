@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "心伙伴认证接口协作草案",
-    "version": "0.1.0",
-    "description": "前端适配器已实现；待后端确认并实现。仅学生端开放，其他业务仍为本地演示。"
+    "version": "0.2.0",
+    "description": "学校与学号联合登录；公开昵称头像与教师受限身份资料分离。业务接口为待后端实现的契约。"
   },
   "servers": [
     {
@@ -14,7 +14,7 @@
     "/auth/login": {
       "post": {
         "operationId": "login",
-        "summary": "账号密码登录，身份由服务端决定",
+        "summary": "以学校和学号/校园账号登录，身份与学校由服务端确认",
         "requestBody": {
           "required": true,
           "content": {
@@ -129,11 +129,7 @@
       "get": {
         "operationId": "listSchools",
         "summary": "查询当前开放绑定的学校",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
+        "security": [],
         "responses": {
           "200": {
             "description": "学校列表，目前只开放四川航天职业技术学院",
@@ -151,7 +147,8 @@
           "401": {
             "description": "登录已过期"
           }
-        }
+        },
+        "description": "未登录时可查询开放学校，供登录前搜索选择。"
       }
     },
     "/users/me/school": {
@@ -196,11 +193,104 @@
           "401": {
             "description": "登录已过期"
           }
+        },
+        "description": "读取认证会话的学校；学校在登录前选择并由认证确认，不在登录后绑定或自行更换。"
+      }
+    },
+    "/users/{id}/profile": {
+      "get": {
+        "summary": "公开资料只返回昵称和头像",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "同校公开资料；不得含真实姓名、学号、手机号、学院或班级",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProfile"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "无权访问或不同学校"
+          }
+        }
+      }
+    },
+    "/teacher/students/{id}/identity": {
+      "get": {
+        "summary": "仅同校负责该学生的有效教师可读取真实身份",
+        "description": "服务器从令牌确定教师身份并校验学校、负责关系及学生状态；管理员、学生及未授权教师均拒绝。留痕只含对象ID和动作，不记录姓名或学号。",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "授权学生身份",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentIdentity"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "不属于有效的同校负责教师"
+          }
+        }
+      }
+    },
+    "/users/me/profile": {
+      "get": {
+        "summary": "仅读取当前用户本人的公开和私密资料",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "本人资料，不能缓存为他人的公开资料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OwnProfile"
+                }
+              }
+            }
+          }
         }
       },
-      "put": {
-        "operationId": "bindMySchool",
-        "summary": "首次绑定学校，同校重复请求幂等，跨校修改返回 409",
+      "patch": {
+        "summary": "本人修改昵称头像和填写资料，不改变学号、学校、角色或用户ID",
         "security": [
           {
             "bearerAuth": []
@@ -212,13 +302,31 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "schoolId"
-                ],
+                "additionalProperties": false,
                 "properties": {
-                  "schoolId": {
+                  "nickname": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 16
+                  },
+                  "avatar": {
+                    "type": "string"
+                  },
+                  "realName": {
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "college": {
+                    "type": "string"
+                  },
+                  "major": {
+                    "type": "string"
+                  },
+                  "grade": {
+                    "type": "string"
+                  },
+                  "className": {
+                    "type": "string"
                   }
                 }
               }
@@ -227,23 +335,88 @@
         },
         "responses": {
           "200": {
-            "description": "持久化成功后的学校",
+            "description": "已保存本人资料"
+          },
+          "403": {
+            "description": "禁止修改学号、学校或角色"
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "register",
+        "summary": "注册学生账号，服务端校验学校政策与账号唯一性；不允许指定身份",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "学生注册成功并登录",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/School"
+                  "$ref": "#/components/schemas/RegisterResponse"
                 }
               }
             }
           },
-          "401": {
-            "description": "登录已过期"
+          "400": {
+            "description": "请求失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiFailure"
+                }
+              }
+            }
           },
           "403": {
-            "description": "当前学校不可访问或未绑定学校"
+            "description": "请求失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiFailure"
+                }
+              }
+            }
           },
           "409": {
-            "description": "已绑定其他学校，不允许自行更改"
+            "description": "该学校下的账号已存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiFailure"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "请求失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiFailure"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "请求失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiFailure"
+                }
+              }
+            }
           }
         }
       }
@@ -260,6 +433,7 @@
       "LoginRequest": {
         "type": "object",
         "required": [
+          "schoolId",
           "account",
           "password"
         ],
@@ -267,39 +441,56 @@
           "account": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 64
+            "maxLength": 64,
+            "description": "学校内唯一的学号/校园账号，不是全局用户ID"
           },
           "password": {
             "type": "string",
             "format": "password",
             "minLength": 1,
             "maxLength": 128
+          },
+          "schoolId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "先从公开学校列表选择；凭据必须匹配此学校"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "Session": {
         "type": "object",
         "required": [
           "id",
-          "name",
-          "role"
+          "nickname",
+          "role",
+          "schoolId"
         ],
+        "additionalProperties": false,
         "properties": {
           "id": {
+            "type": "string",
+            "description": "全局唯一的不透明用户ID，与学号不同"
+          },
+          "nickname": {
+            "type": "string",
+            "minLength": 1,
+            "description": "公开昵称，不能以真实姓名作为回退值"
+          },
+          "avatar": {
             "type": "string"
           },
-          "name": {
-            "type": "string"
+          "schoolId": {
+            "type": "string",
+            "minLength": 1
           },
           "role": {
             "type": "string",
             "enum": [
               "student",
               "teacher",
-              "merchant",
               "admin"
-            ],
-            "description": "当前发布仅允许 student"
+            ]
           }
         }
       },
@@ -357,6 +548,144 @@
             "type": "string"
           }
         }
+      },
+      "PublicProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "nickname",
+          "avatar"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "不透明用户ID"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          }
+        }
+      },
+      "StudentIdentity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "studentId",
+          "realName",
+          "studentNumber"
+        ],
+        "properties": {
+          "studentId": {
+            "type": "string",
+            "description": "不透明用户ID"
+          },
+          "realName": {
+            "type": "string"
+          },
+          "studentNumber": {
+            "type": "string",
+            "description": "认证学号，不可由修改公开资料覆盖"
+          }
+        }
+      },
+      "OwnProfile": {
+        "type": "object",
+        "required": [
+          "nickname",
+          "avatar",
+          "realName",
+          "studentNumber"
+        ],
+        "properties": {
+          "nickname": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "realName": {
+            "type": "string"
+          },
+          "studentNumber": {
+            "type": "string",
+            "readOnly": true,
+            "description": "与认证登录学号一致，不允许客户端更改"
+          },
+          "college": {
+            "type": "string"
+          },
+          "major": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "className": {
+            "type": "string"
+          }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schoolId",
+          "account",
+          "nickname",
+          "password"
+        ],
+        "properties": {
+          "schoolId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "account": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 32,
+            "pattern": "^[A-Za-z0-9_\\-.]{4,32}$"
+          },
+          "nickname": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true,
+            "minLength": 8,
+            "maxLength": 64,
+            "description": "包含字母与数字；服务端执行独立验证。"
+          }
+        }
+      },
+      "RegisterResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/LoginResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "student"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   }

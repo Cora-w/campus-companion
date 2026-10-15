@@ -2,7 +2,7 @@ import type { PostVisibility } from '../features/student/postVisibility'
 export type CampusPost = {
   visibility?: PostVisibility; ownerId?: string;
   id: string; author: string; category: string; title: string; text: string;
-  location: string; time: string; likes: number; comments: { id: string; author: string; text: string }[];
+  location: string; time: string; likes: number; comments: { id: string; author: string; authorId?: string; text: string }[];
   images: string[]; placeId?: string; owned?: boolean; anonymous?: boolean; cover?: 'food' | 'campus' | 'guide';
 }
 export const categories = ['全部', '校园日常', '美食发现', '新生指南', '活动搭子', '闲置互助', '匿名树洞']

@@ -1,14 +1,17 @@
 import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Account, Session } from '../../types/domain'
+import { isCampusRole } from '../../types/access'
 import { nowLabel, uid } from '../../data/data'
 import { Context, schoolFor } from './CampusOperationsContext'
 import type { State, Operations, CampusNotice, StudentFeedback } from './CampusOperationsContext'
+import { apiConfig } from '../../config/env'
+import { feedbackExamples } from './feedbackExamples'
 export function CampusOperationsProvider({ session, accounts, log, children }: { session: Session | null; accounts: Account[]; log: (action: string) => void; children: ReactNode }) {
-  const [state, setState] = useState<State>({ notices: [], feedback: [] })
+  const [state, setState] = useState<State>(()=>({ notices: [], feedback: feedbackExamples(accounts, apiConfig.mode === 'mock') }))
   const latest = useRef(state)
   const commit = (next: State) => { latest.current = next; setState(next) }
-  const admin = () => !!session && session.role === 'admin' && accounts.some(a => a.id === session.id && a.enabled && a.role === 'admin')
+  const admin = () => !!session && session.role === 'admin' && accounts.some(a => a.id === session.id && a.enabled && a.role === 'admin' && a.schoolId === session.schoolId)
   const saveNotice: Operations['saveNotice'] = draft => {
     const schoolId = schoolFor(session)
     if (!admin() || !schoolId) return '请使用已绑定学校的管理员账号。'
@@ -23,9 +26,9 @@ export function CampusOperationsProvider({ session, accounts, log, children }: {
   }
   const submitFeedback: Operations['submitFeedback'] = record => {
     const schoolId = schoolFor(session)
-    if (!session || session.role !== 'student' || !schoolId || !accounts.some(a => a.id === session.id && a.enabled && a.role === 'student')) return '请使用已绑定学校的学生账号。'
+    if (!session || !isCampusRole(session.role) || !schoolId || !accounts.some(a => a.id === session.id && a.enabled && a.role === session.role && a.schoolId === session.schoolId)) return '请使用已绑定学校的校园账号。'
     if ((record.text.trim().length < 5 && !record.images.length) || record.text.length > 500 || record.images.length > 3) return '请填写至少 5 个字，或附上问题截图。'
-    const next: StudentFeedback = { ...record, text: record.text.trim(), images: [...record.images], id: uid(), schoolId, studentId: session.id, studentName: session.name, time: nowLabel(), status: '待处理', reply: '' }
+    const next: StudentFeedback = { ...record, text: record.text.trim(), images: [...record.images], id: uid(), schoolId, studentId: session.id, studentName: accounts.find(a => a.id === session.id)?.name || session.name, time: nowLabel(), status: '待处理', reply: '' }
     commit({ ...latest.current, feedback: [next, ...latest.current.feedback] })
     return ''
   }
@@ -40,5 +43,13 @@ export function CampusOperationsProvider({ session, accounts, log, children }: {
     log(`${status === '已回复' ? '回复学生反馈' : '开始处理反馈'} ${id}`)
     return ''
   }
-  return <Context.Provider value={{ ...state, session, saveNotice, submitFeedback, replyFeedback }}>{children}</Context.Provider>
+  const completeFeedback: Operations['completeFeedback'] = id => {
+    if (!admin()) return '无权处理反馈。'
+    const item = latest.current.feedback.find(f => f.id === id && f.schoolId === schoolFor(session))
+    if (!item) return '反馈不存在或不属于本校。'
+    commit({ ...latest.current, feedback: latest.current.feedback.filter(f => f.id !== id || f.schoolId !== item.schoolId) })
+    log(`反馈已处理并删除 ${id}`)
+    return ''
+  }
+  return <Context.Provider value={{ ...state, session, saveNotice, submitFeedback, replyFeedback, completeFeedback }}>{children}</Context.Provider>
 }

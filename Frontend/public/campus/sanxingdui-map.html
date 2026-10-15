@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>三星堆校区地图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eee6db;--ground:#f5f0e8;--campus:#fffaf3;--grid:rgba(110,81,58,.055);
+  --ink:#44372d;--ink2:#887561;--road:#fffdf9;--roadEdge:#dfd0be;--water:#a9c8c2;--green:#d8dfc5;--plaza:#ede3d5;
+  --panel:rgba(255,252,247,.96);--line:rgba(110,81,58,.13);--me:var(--app-accent,#b84020);--shadow:0 8px 24px rgba(85,60,40,.10);
+  --c-teach:var(--app-accent,#b84020);--c-dorm:#71886a;--c-food:#b98338;--c-office:#a17b84;--c-sport:#bd7070;--c-life:#978573;
+  --ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+  --display:"ZCOOL QingKe HuangYou","PingFang SC","Microsoft YaHei",sans-serif;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#211c18;--ground:#2b241e;--campus:#352c24;--grid:rgba(221,191,154,.07);
+  --ink:#f5eade;--ink2:#c0a991;--road:#493c30;--roadEdge:#65513e;--water:#496b65;--green:#455440;--plaza:#40342a;
+  --panel:rgba(48,39,32,.96);--line:rgba(221,191,154,.16);--me:#e79b73;--shadow:0 10px 30px rgba(0,0,0,.30);
+  --c-teach:#e79b73;--c-dorm:#a9bd91;--c-food:#dfb267;--c-office:#c59daa;--c-sport:#df9999;--c-life:#c3ad95;}}
+:root[data-theme="dark"]{
+  --bg:#211c18;--ground:#2b241e;--campus:#352c24;--grid:rgba(221,191,154,.07);
+  --ink:#f5eade;--ink2:#c0a991;--road:#493c30;--roadEdge:#65513e;--water:#496b65;--green:#455440;--plaza:#40342a;
+  --panel:rgba(48,39,32,.96);--line:rgba(221,191,154,.16);--me:#e79b73;--shadow:0 10px 30px rgba(0,0,0,.30);
+  --c-teach:#e79b73;--c-dorm:#a9bd91;--c-food:#dfb267;--c-office:#c59daa;--c-sport:#df9999;--c-life:#c3ad95;}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button{font:inherit;color:inherit}
+#app{position:relative;height:100%;overflow:hidden}
+#map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:grab;user-select:none;-webkit-user-select:none}
+#map.dragging{cursor:grabbing}
+
+/* map paint */
+.ground{fill:var(--ground)}
+.gridfill{fill:url(#grid)}
+.campus{fill:var(--campus);stroke:var(--roadEdge);stroke-width:1.2;vector-effect:non-scaling-stroke}
+.phase2{fill:url(#hatch);stroke:var(--ink2);stroke-dasharray:6 5;stroke-width:1.2;vector-effect:non-scaling-stroke;opacity:.7}
+.green{fill:var(--green)}
+.plaza{fill:var(--plaza);stroke:var(--roadEdge);stroke-width:1;vector-effect:non-scaling-stroke}
+.water{fill:none;stroke:var(--water);stroke-linecap:round;stroke-linejoin:round}
+.waterfill{fill:var(--water)}
+.roadE{fill:none;stroke:var(--roadEdge);stroke-linecap:round;stroke-linejoin:round}
+.road{fill:none;stroke:var(--road);stroke-linecap:round;stroke-linejoin:round}
+.rlbl{fill:var(--ink2);font-weight:600;font-size:calc(var(--fs) * 10.5px);letter-spacing:.05em;paint-order:stroke;stroke:var(--road);stroke-width:calc(var(--fs) * 3px);stroke-linejoin:round}
+.big .rlbl{font-size:calc(var(--fs) * 12px)}
+.b{fill:color-mix(in srgb,var(--k) 18%,var(--campus));stroke:var(--k);stroke-width:1.4;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .2s}
+.b.plain{--k:var(--ink2);fill:color-mix(in srgb,var(--ink2) 10%,var(--campus));cursor:default}
+.b.sel{fill:color-mix(in srgb,var(--k) 55%,var(--campus));stroke-width:2.6}
+.b.plaza{fill:var(--plaza);stroke:var(--roadEdge)}
+.b.plaza.sel{fill:color-mix(in srgb,var(--k) 30%,var(--plaza));stroke:var(--k)}
+.b.track{fill:color-mix(in srgb,var(--c-sport) 70%,var(--campus))}
+.b.dim,.pin.dim{opacity:.22}
+.lbl.dim{opacity:.25}
+.track{fill:var(--c-sport);opacity:.75}
+.field{fill:var(--green);stroke:#fff;stroke-width:1;vector-effect:non-scaling-stroke}
+.lbl{fill:var(--ink);font-size:calc(var(--fs) * 12px);font-weight:600;text-anchor:middle;dominant-baseline:central;pointer-events:none;paint-order:stroke;stroke:var(--campus);stroke-width:calc(var(--fs) * 3.2px);stroke-linejoin:round}
+.lbl.major{font-size:calc(var(--fs) * 14px);font-weight:800}
+.lbl.zone{font-family:var(--display);font-size:calc(var(--fs) * 26px);fill:var(--ink2);font-weight:400;opacity:.55;stroke:none}
+.lbl.hide{display:none}
+.pin{cursor:pointer}
+.pin circle{fill:var(--panel);stroke:var(--k);stroke-width:2}
+.pin text{font-size:13px;text-anchor:middle;dominant-baseline:central}
+.route{fill:none;stroke:var(--me);stroke-width:3;stroke-dasharray:8 7;vector-effect:non-scaling-stroke;animation:dash 1s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-15}}
+.acc{fill:var(--me);fill-opacity:.12;stroke:var(--me);stroke-opacity:.5;stroke-width:1;vector-effect:non-scaling-stroke}
+.medot{fill:var(--me);stroke:#fff;stroke-width:3}
+.mehalo{fill:var(--me);opacity:.35;transform-origin:0 0;animation:halo 2s ease-out infinite}
+.manual .medot{fill:var(--ink2)}
+.manual .mehalo{fill:var(--ink2)}
+@keyframes halo{0%{transform:scale(.6);opacity:.5}100%{transform:scale(2.6);opacity:0}}
+.selring{fill:none;stroke:var(--k);stroke-width:2;vector-effect:non-scaling-stroke;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{stroke-opacity:.2}}
+
+/* chrome */
+.top{position:absolute;left:12px;right:12px;top:12px;display:flex;flex-direction:column;gap:8px;pointer-events:none;z-index:5;max-width:560px}
+.bar{pointer-events:auto;display:flex;align-items:center;gap:10px;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;padding:8px 8px 8px 14px;box-shadow:var(--shadow)}
+.brand{font-family:var(--display);font-size:22px;line-height:1;white-space:nowrap;color:var(--ink);letter-spacing:.02em}
+.brand small{display:block;font-family:var(--ui);font-size:10.5px;color:var(--ink2);margin-top:3px;letter-spacing:0}
+.search{flex:1;min-width:0;position:relative}
+.search input{width:100%;border:0;background:color-mix(in srgb,var(--ink) 6%,transparent);border-radius:12px;padding:10px 12px 10px 34px;font:inherit;font-size:15px;color:var(--ink);outline:none}
+.search input:focus{box-shadow:0 0 0 2px var(--c-teach)}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.55}
+.results{pointer-events:auto;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;display:none;max-height:52vh;overflow-y:auto}
+.results.on{display:block}
+.res{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:11px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.res:last-child{border-bottom:0}
+.res:hover,.res:focus-visible{background:color-mix(in srgb,var(--ink) 6%,transparent);outline:none}
+.res i{width:10px;height:10px;border-radius:3px;background:var(--k);flex:none}
+.res b{font-weight:700}
+.res span{display:block;font-size:12.5px;color:var(--ink2);margin-top:2px}
+.category-strip{position:relative;pointer-events:auto;min-width:0}
+.chips{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overflow-y:hidden;padding:2px 36px 2px 2px;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain;user-select:none;cursor:grab;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chips.dragging{cursor:grabbing;scroll-behavior:auto}
+.chips-next{position:absolute;right:0;top:2px;width:30px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:var(--campus);color:var(--ink2);box-shadow:-5px 0 12px var(--campus);cursor:pointer}
+.chips-next[hidden]{display:none}
+.chips-next svg{width:15px;height:15px}
+.chip{flex:none;display:flex;align-items:center;gap:5px;min-height:34px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:999px;padding:6px 7px;font-size:12px;white-space:nowrap;user-select:none;touch-action:manipulation;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--k)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--campus);border-color:var(--ink)}
+.chip[aria-pressed="true"] i{box-shadow:0 0 0 2px var(--campus)}
+
+.ctrls{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:4}
+.cbtn{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer}
+.cbtn:focus-visible,.chip:focus-visible,.btn:focus-visible{outline:2px solid var(--c-teach);outline-offset:2px}
+.cbtn.loc{width:52px;height:52px;border-radius:50%;background:var(--me);color:#fff;border-color:transparent}
+.cbtn.loc.live svg{animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.group{display:flex;flex-direction:column;border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.group .cbtn{border-radius:0;box-shadow:none}
+.group .cbtn+.cbtn{border-top:0}
+@media(max-height:560px){
+  .ctrls{top:auto;bottom:28px;transform:none;display:grid;grid-template-columns:repeat(3,44px);gap:6px}
+  .ctrls .group{display:contents}
+  .ctrls .cbtn.loc{width:44px;height:44px;border-radius:14px}
+  .ctrls .group .cbtn{border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+}
+
+.scale{position:absolute;left:14px;bottom:16px;z-index:3;font-size:11px;color:var(--ink2);pointer-events:none}
+.scale div{height:6px;border:2px solid var(--ink2);border-top:0;margin-top:3px}
+.status{position:absolute;left:50%;transform:translateX(-50%);bottom:16px;z-index:3;font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 12px;color:var(--ink2);box-shadow:var(--shadow);white-space:nowrap;display:none;cursor:pointer}
+.status.on{display:block}
+
+/* panel */
+.panel{position:absolute;z-index:6;background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .2s;overflow-y:auto}
+@media (max-width:719px){
+  .panel{left:0;right:0;bottom:0;border-radius:22px 22px 0 0;max-height:58%;transform:translateY(105%);padding:8px 18px calc(18px + env(safe-area-inset-bottom,0px))}
+  .panel.on{transform:none}
+  .panel::before{content:"";display:block;width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+}
+@media (min-width:720px){
+  .panel{left:12px;top:132px;width:360px;max-height:calc(100% - 150px);border-radius:20px;padding:18px;transform:translateX(-110%);opacity:0}
+  .panel.on{transform:none;opacity:1}
+  .top{right:auto;width:560px}
+}
+.p-head{display:flex;align-items:flex-start;gap:12px}
+.p-head h2{margin:0;font-family:var(--display);font-weight:400;font-size:30px;line-height:1.05;letter-spacing:.01em}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--k);background:color-mix(in srgb,var(--k) 14%,transparent);border-radius:999px;padding:3px 10px;margin-bottom:8px}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--k)}
+.x{margin-left:auto;flex:none;width:34px;height:34px;border-radius:50%;border:0;background:color-mix(in srgb,var(--ink) 8%,transparent);cursor:pointer;display:grid;place-items:center}
+.p-sub{color:var(--ink2);margin:8px 0 0;font-size:14px;line-height:1.6}
+.p-desc{margin:12px 0 0;font-size:14.5px;line-height:1.75}
+.units{margin:14px 0 0;padding:0;list-style:none;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.units li{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;font-size:14px}
+.units li+li{border-top:1px solid var(--line)}
+.units em{font-style:normal;color:var(--ink2);font-variant-numeric:tabular-nums;text-align:right}
+.dist{display:flex;gap:14px;margin-top:14px;padding:12px;border-radius:14px;background:color-mix(in srgb,var(--me) 12%,transparent)}
+.dist b{font-size:20px;font-variant-numeric:tabular-nums}
+.dist span{display:block;font-size:12px;color:var(--ink2)}
+.acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{flex:1;min-width:130px;border:1px solid var(--line);background:color-mix(in srgb,var(--ink) 5%,transparent);border-radius:12px;padding:11px 12px;font-size:14px;font-weight:600;cursor:pointer}
+.map-navigation-hint{margin:8px 4px 0;font-size:11px;line-height:1.5;color:var(--ink2);pointer-events:none}.walking-navigation{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}.walking-navigation label{font-size:13px;font-weight:600}.walking-go{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;background:var(--app-accent,var(--me))!important;color:#fff!important;border-color:transparent!important}.walking-go:disabled{opacity:.6;cursor:wait}.navigation-error{font-size:12px;line-height:1.7;color:#b84020}.btn.pri{background:var(--ink);color:var(--campus);border-color:var(--ink)}
+.note{font-size:12px;color:var(--ink2);margin-top:12px;line-height:1.6}
+
+/* modal */
+.modal{position:absolute;inset:0;z-index:9;background:rgba(5,12,30,.45);display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.sheet{background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);width:100%;max-width:480px;border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));max-height:88%;overflow-y:auto;border:1px solid var(--line)}
+@media (min-width:720px){.modal{align-items:center}.sheet{border-radius:22px}}
+.sheet h3{margin:0 0 4px;font-family:var(--display);font-weight:400;font-size:28px}
+.sheet p{font-size:14px;line-height:1.7;color:var(--ink2);margin:8px 0}
+.steps{margin:12px 0;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:10px;font-size:14px;line-height:1.6;margin:8px 0}
+.steps li::before{content:counter(s);flex:none;width:22px;height:22px;border-radius:50%;background:var(--me);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;margin-top:1px}
+select{width:100%;font:inherit;font-size:15px;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--campus);color:var(--ink);margin:6px 0 10px}
+.map-select-native{display:none}
+.map-select-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:46px;margin:8px 0 12px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--campus);text-align:left;font-size:14px;cursor:pointer}
+.map-select-trigger span{min-width:0;line-height:1.5;overflow-wrap:anywhere}
+.map-select-trigger svg{width:16px;height:16px;flex-shrink:0;color:var(--ink2)}
+.place-picker{position:absolute;inset:0;z-index:16;display:flex;align-items:flex-end;justify-content:center;padding:12px;background:rgba(55,39,27,.32)}
+.place-picker[hidden]{display:none}
+.place-picker-sheet{display:flex;flex-direction:column;width:100%;max-width:440px;max-height:calc(100% - 24px);padding:18px 16px 12px;border:1px solid var(--line);border-radius:20px;background:var(--campus);box-shadow:var(--shadow);overflow:hidden}
+.place-picker-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-shrink:0}
+.place-picker-heading h3{font-size:17px;margin:0;font-weight:650}
+.place-picker-search{width:100%;min-height:44px;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:var(--campus);color:var(--ink);font:inherit;font-size:16px;outline:none;flex-shrink:0}
+.place-picker-search:focus{border-color:var(--me);box-shadow:0 0 0 2px color-mix(in srgb,var(--me) 12%,transparent)}
+.place-picker-count{margin:12px 2px 7px;font-size:11px;color:var(--ink2);flex-shrink:0}
+.place-picker-list{min-height:0;overflow-y:auto;overscroll-behavior:contain;max-height: min(52vh,420px);scrollbar-width:thin;scrollbar-color:var(--roadEdge) transparent;touch-action:pan-y}
+.place-picker-option{display:flex;align-items:center;gap:10px;width:100%;min-height:46px;margin:3px 0;padding:11px 12px;border:0;border-radius:10px;background:transparent;text-align:left;font-size:14px;line-height:1.5;cursor:pointer}
+.place-picker-option>span{flex:1;min-width:0;overflow-wrap:anywhere}
+.place-picker-option>svg{width:17px;height:17px;color:var(--ink2);flex-shrink:0}
+.place-picker-option[aria-selected="true"]{background:color-mix(in srgb,var(--me) 10%,var(--campus));color:var(--me);font-weight:600}
+.place-picker-option[aria-selected="true"]>svg{color:var(--me)}
+.place-picker-option:focus-visible{outline:2px solid var(--me);outline-offset:-2px}
+.place-picker-empty{padding:28px 12px;text-align:center;font-size:13px;line-height:1.7;color:var(--ink2)}
+.calstat{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--ink) 6%,transparent);margin:10px 0}
+.toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 130px);transform:translate(-50%,-10px);background:var(--ink);color:var(--campus);padding:10px 16px;border-radius:12px;font-size:14px;z-index:20;opacity:0;pointer-events:none;transition:.25s;max-width:min(88vw,420px);text-align:center;line-height:1.5}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <svg id="map" aria-label="三星堆校区交互地图">
+    <defs>
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="var(--grid)" stroke-width="1.2"/></pattern>
+      <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="14" height="14" fill="var(--ground)"/><line x1="0" y1="0" x2="0" y2="14" stroke="var(--grid)" stroke-width="5"/></pattern>
+    </defs>
+    <g id="world"></g>
+  </svg>
+
+  <div class="top">
+    <div class="bar">
+      <div class="brand">三星堆校区<small>校园导览地图</small></div>
+      <div class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="搜楼栋、学院、办事处…" autocomplete="off" aria-label="搜索地点">
+      </div>
+    </div>
+    <div class="results" id="results" role="listbox"></div>
+    <div class="category-strip"><div class="chips" id="chips"></div><button type="button" class="chips-next" id="chipsNext" aria-label="向右查看更多分类"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div>
+    <p class="map-navigation-hint">点地图上的楼栋，或搜索地点 → 去这里</p>
+  </div>
+
+  <div class="ctrls">
+    <button class="cbtn loc" id="locBtn" aria-label="定位我的位置" title="定位我的位置">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+    </button>
+    <div class="group">
+      <button class="cbtn" id="zin" aria-label="放大"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="cbtn" id="zout" aria-label="缩小"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/></svg></button>
+    </div>
+    <button class="cbtn" id="fit" aria-label="看全图" title="看全图"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    <button class="cbtn" id="calBtn" aria-label="校准定位" title="校准定位"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg></button>
+    <button class="cbtn" id="theme" aria-label="切换深浅色" title="切换深浅色"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg></button>
+  </div>
+
+  <div class="scale" id="scale"><span id="scaleTxt">100 米</span><div id="scaleBar" style="width:60px"></div></div>
+  <div class="status" id="status"></div>
+
+  <aside class="panel" id="panel" aria-live="polite"></aside>
+
+  <div class="modal" id="modal">
+    <div class="sheet" role="dialog" aria-labelledby="calTitle">
+      <div style="display:flex;align-items:center"><h3 id="calTitle">校准定位</h3><button class="x" id="calClose" aria-label="关闭"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+      <p>这张地图是根据校园平面图绘制的，手机 GPS 需要知道它和真实坐标怎么对应。在两个相距较远的地标旁各记录一次，之后就能实时显示你的位置。</p>
+      <ol class="steps">
+        <li>走到一个地标门口，比如校门。</li>
+        <li>在下面选中它，点「我就在这里」。</li>
+        <li>再去另一个地标（比如知行楼或体育馆），重复一次。</li>
+      </ol>
+      <div class="calstat"><span id="calCount">已记录 0 个点</span><span id="gpsAcc">GPS 未开启</span></div>
+      <select id="calSel" aria-label="选择你所在的地标"></select>
+      <div class="acts" style="margin-top:0">
+        <button class="btn pri" id="calRec">我就在这里</button>
+        <button class="btn" id="calClear">清空校准</button>
+      </div>
+      <p style="margin-top:16px">没有 GPS 或定位被拦截？可以直接在地图上点出你的位置。</p>
+      <div class="acts" style="margin-top:4px">
+        <button class="btn" id="manualBtn">在地图上手动标出我</button>
+      </div>
+      <p class="note">校准数据只保存在这台设备的浏览器里。GPS 精度通常在 5 到 20 米，室内会更差。</p>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const NS="http://www.w3.org/2000/svg";
+
+/* ---------- categories ---------- */
+const CATS={
+  teach:{n:"教学科研",v:"var(--c-teach)"},
+  office:{n:"办事服务",v:"var(--c-office)"},
+  dorm:{n:"住宿",v:"var(--c-dorm)"},
+  food:{n:"餐饮",v:"var(--c-food)"},
+  sport:{n:"运动",v:"var(--c-sport)"},
+  life:{n:"生活出行",v:"var(--c-life)"}
+};
+const R=(x,y,w,h)=>[[x,y],[x+w,y],[x+w,y+h],[x,y+h]];
+const DORM_NOTE="宿舍报修、调换寝室等事项可到后勤保障楼 206 公寓管理中心办理。";
+
+/* ---------- places (coordinates follow the campus plan) ---------- */
+const P=[];
+const add=o=>{P.push(o);return o};
+
+add({id:"zxl",name:"知行楼",cat:"teach",major:1,poly:[[976,600],[1048,612],[1040,676],[990,676],[962,694],[1030,716],[1022,770],[968,744]],lp:[1000,704],
+  sub:"由 A 至 F 六个区组成的主教学楼群",desc:"校园北部的核心教学楼，各区之间有连廊相通。东北侧是东风广场，南面是问天广场。",
+  units:[["飞行器制造学院","A 区"],["智能工程学院","B 区"],["计算机学院","C 区"],["管理工程学院","D 区"],["教务处","E220"]]});
+add({id:"zA",name:"知行楼 A区",short:"A区",cat:"teach",poly:[[865,425],[902,415],[1012,578],[976,598]],sub:"飞行器制造学院",desc:"知行楼北翼，沿东风大道方向延伸，紧邻东风广场。",units:[["飞行器制造学院","A 区"]]});
+add({id:"zB",name:"知行楼 B区",short:"B区",cat:"teach",poly:[[1048,612],[1306,646],[1306,688],[1040,658]],sub:"智能工程学院",desc:"知行楼东翼，是楼群中最长的一段，东端靠近驿都北路。",units:[["智能工程学院","B 区"]]});
+add({id:"zC",name:"知行楼 C区",short:"C区",cat:"teach",poly:[[800,718],[962,694],[968,744],[806,766]],sub:"计算机学院",desc:"知行楼西南翼，西侧挨着雒城北路，南面就是问天广场。",units:[["计算机学院","C 区"]]});
+add({id:"zD",name:"知行楼 D区",short:"D区",cat:"teach",poly:[[1030,716],[1162,740],[1150,792],[1022,770]],sub:"管理工程学院",desc:"知行楼东南段，面向问天广场东侧。",units:[["管理工程学院","D 区"]]});
+add({id:"zE",name:"知行楼 E区",short:"E区",cat:"office",poly:[[915,622],[978,608],[990,676],[928,690]],sub:"教务处 E220",desc:"知行楼西侧连接段。选课、成绩、考试安排、学籍等事务到教务处办理。",units:[["教务处","E220"]]});
+add({id:"zF",name:"知行楼 F区",short:"F区",cat:"teach",poly:[[1040,676],[1112,686],[1106,716],[1034,708]],sub:"连接 B 区与 D 区",desc:"知行楼中部连接段，从这里可以穿行到 B 区和 D 区。"});
+
+add({id:"wtgc",name:"问天广场",cat:"life",major:1,plaza:1,poly:[[790,790],[1140,782],[1200,832],[1214,882],[790,882]],sub:"知行楼南侧大广场",desc:"知行楼与晋阳路之间的开阔广场，往返教学区和宿舍区的必经之地。"});
+add({id:"dfgc",name:"东风广场",cat:"life",plaza:1,poly:[[1012,520],[1150,525],[1300,600],[1306,646],[1048,612],[1012,578]],sub:"知行楼东北侧",desc:"位于 A 区与 B 区之间、东风大道一侧的绿化广场。"});
+add({id:"ftgc",name:"飞天广场",cat:"life",major:1,plaza:1,path:"M870 1452 H1085 V1520 Q1085 1630 977 1640 Q870 1630 870 1520 Z",lp:[977,1520],sub:"明志楼南侧，正对校门",desc:"从航天大道进校后看到的第一个广场，北面就是明志楼。"});
+
+add({id:"sx1",name:"实训车间（西）",short:"实训车间",cat:"teach",poly:R(650,910,130,50),sub:"实践教学用房",desc:"晋阳路南侧的实训车间之一，用于专业实操和实训课程。"});
+add({id:"sx2",name:"实训车间（东）",short:"实训车间",cat:"teach",poly:R(805,910,125,50),sub:"实践教学用房",desc:"晋阳路南侧的实训车间之一，紧挨雒城南路。"});
+add({id:"wh",name:"文汇楼",cat:"teach",major:1,poly:[[488,1050],[588,1050],[588,1190],[500,1190],[500,1172],[488,1172]],sub:"人文社科学院、马克思主义学院",desc:"西区的教学楼，东邻图书馆，南面是川北路。从川北路一直往西可以走到后街。",units:[["人文社科学院",""],["马克思主义学院",""]]});
+add({id:"tsg",name:"图书馆",cat:"teach",major:1,poly:R(672,1070,78,115),sub:"借阅、自习",desc:"文汇楼东侧，雒城南路西侧。周边环境安静，适合自习。"});
+add({id:"zy",name:"致远楼",cat:"office",major:1,poly:[[825,1148],[945,1148],[945,1205],[858,1205],[842,1215],[825,1205]],sub:"财务处 201",desc:"位于雒城南路与前进中路之间，北面有水系和小湖。缴费、报销等财务事项到 201 财务处。",units:[["财务处","201"]]});
+add({id:"qx",name:"劝学楼",cat:"office",major:1,poly:R(1000,1165,190,62),sub:"学生事务最集中的一栋楼",desc:"位于神舟宿舍群正南、川北路北侧，学工、资助、就业、继续教育和保卫等部门都在这里，是办事的首选。",
+  units:[["一站式服务社区","北 1 层"],["学工部 & 团委","北 202"],["学生资助中心","北 205"],["继续教育部","南 108–111"],["就业处","南 201"],["保卫处（警务服务站）","劝学楼"]]});
+add({id:"mz",name:"明志楼",cat:"teach",major:1,poly:[[890,1405],[1065,1405],[1065,1445],[1040,1445],[1040,1435],[915,1435],[915,1445],[890,1445]],sub:"车辆工程学院、数码艺术学院",desc:"正对校门的主楼，前面是飞天广场。",units:[["车辆工程学院",""],["数码艺术学院",""]]});
+add({id:"xy",name:"西园综合楼",cat:"life",poly:R(472,1255,138,82),sub:"西区综合用房",desc:"川北路南侧、校园最西边的综合楼。往西出去就是去后街的方向。"});
+add({id:"bd",name:"北斗公寓",cat:"dorm",poly:R(638,1287,130,32),sub:"公寓楼",desc:"西园综合楼东侧，北面是川北路，南面是教师公寓区。"+DORM_NOTE});
+
+const sz=[["8","7",910],["6","5",985],["4","3",1055],["2","1",1118]];
+sz.forEach(([l,r,y])=>{
+  add({id:"sz"+l,name:"神舟"+l+"号",short:"神舟"+l,cat:"dorm",poly:R(1000,y,93,38),sub:"学生公寓",desc:"神舟宿舍群位于晋阳路以南、劝学楼以北，夹在前进中路与驿都南路之间。"+DORM_NOTE});
+  add({id:"sz"+r,name:"神舟"+r+"号",short:"神舟"+r,cat:"dorm",poly:R(1097,y,93,38),sub:"学生公寓",desc:"神舟宿舍群位于晋阳路以南、劝学楼以北，夹在前进中路与驿都南路之间。"+DORM_NOTE});
+});
+add({id:"sz9",name:"神舟9号",short:"神舟9",cat:"dorm",poly:R(1345,1195,95,35),sub:"学生公寓",desc:"天舟食堂东侧，川北路北边，离体育馆很近。"+DORM_NOTE});
+[["3",912],["2",982],["1",1052]].forEach(([n,y])=>add({id:"ce"+n,name:"嫦娥"+n+"号",short:"嫦娥"+n,cat:"dorm",poly:R(1240,y,90,38),sub:"学生公寓",desc:"驿都南路东侧，与神舟宿舍群隔路相望。"+DORM_NOTE}));
+add({id:"ce4",name:"嫦娥4号",short:"嫦娥4",cat:"dorm",poly:[[1428,903],[1540,948],[1522,992],[1410,947]],sub:"学生公寓",desc:"东北生活区，位于天和食堂东南，后勤保障楼北侧。"+DORM_NOTE});
+add({id:"fy1",name:"风云1号",short:"风云1",cat:"dorm",poly:[[1595,915],[1730,975],[1685,1075],[1550,1015]],sub:"学生公寓",desc:"校园东北角的宿舍楼，东侧是球场和绿地。"+DORM_NOTE});
+add({id:"th",name:"天和食堂",cat:"food",major:1,poly:[[1305,770],[1425,815],[1395,905],[1278,860]],sub:"东北生活区食堂",desc:"驿都北路东侧，离知行楼、嫦娥宿舍和风云1号都很近，下课吃饭顺路。"});
+add({id:"tz",name:"天舟食堂",cat:"food",major:1,poly:R(1250,1120,70,100),sub:"南部生活区食堂",desc:"驿都南路东侧、嫦娥1号南面，服务神舟、嫦娥宿舍区。旁边就是菜鸟驿站。"});
+add({id:"hq",name:"后勤保障楼",short:"后勤楼",cat:"office",poly:[[1368,945],[1482,990],[1470,1024],[1356,979]],sub:"后勤处 · 公寓管理中心 206",desc:"嫦娥4号南侧。宿舍报修、调宿、水电等后勤问题到这里处理。",units:[["后勤处（公寓管理中心）","206"]]});
+add({id:"tyg",name:"体育馆",cat:"sport",major:1,poly:[[1355,1290],[1385,1270],[1437,1270],[1437,1370],[1355,1370]],sub:"室内运动场馆",desc:"川北路以南、运动场正北，室内体育课和各类比赛多在这里。"});
+add({id:"ydc",name:"运动场",cat:"sport",major:1,track:1,poly:R(1295,1395,140,250),lp:[1365,1520],sub:"400 米标准跑道 + 足球场",desc:"校园东南角的田径运动场，西侧有看台。地图的比例尺就是按这条 400 米跑道估算的。"});
+add({id:"kt",name:"看台及附属",short:"看台",cat:"sport",poly:R(1192,1420,56,190),sub:"运动场看台",desc:"运动场西侧看台，附带部分体育用房。"});
+add({id:"lqc",name:"篮球场",cat:"sport",poly:R(1122,1335,186,66),sub:"室外篮球场",desc:"前进东路东侧，体育馆西南，课余打球的好去处。"});
+add({id:"p1",name:"停车场（体育馆西）",short:"P",cat:"life",poly:R(1122,1262,186,62),sub:"停车场",desc:"劝学楼南、篮球场北的停车场。"});
+add({id:"p2",name:"停车场（校门东）",short:"P",cat:"life",poly:R(1120,1555,62,72),sub:"停车场",desc:"靠近校门和运动场的停车场。"});
+add({id:"p3",name:"停车场（西区）",short:"P",cat:"life",poly:R(482,1368,110,46),sub:"停车场",desc:"西园综合楼南侧，教师公寓区北边。"});
+
+// 教师公寓 1–16，编号按图三
+const T=[[1,478,1492],[2,527,1492],[3,573,1492],[4,640,1492],[5,687,1492],[6,733,1492],
+         [7,478,1450],[8,527,1450],[9,573,1450],[10,640,1450],[11,687,1450],[12,733,1450]];
+T.forEach(([n,x,y])=>add({id:"js"+n,name:"教师公寓 "+n+" 栋",short:String(n),cat:"dorm",teacher:1,poly:R(x,y,38,24),sub:"教师公寓区",desc:"校园西南角的教师住宅区，北邻北斗公寓。"}));
+add({id:"js13",name:"教师公寓 13 栋",short:"13",cat:"dorm",teacher:1,poly:R(640,1396,32,22),sub:"教师公寓区",desc:"校园西南角的教师住宅区，北邻北斗公寓。"});
+add({id:"js14",name:"教师公寓 14 栋",short:"14",cat:"dorm",teacher:1,poly:R(684,1396,82,22),sub:"教师公寓区",desc:"校园西南角的教师住宅区，北邻北斗公寓。"});
+add({id:"js15",name:"教师公寓 15 栋",short:"15",cat:"dorm",teacher:1,poly:R(638,1352,56,22),sub:"教师公寓区",desc:"紧挨北斗公寓南侧。"});
+add({id:"js16",name:"教师公寓 16 栋",short:"16",cat:"dorm",teacher:1,poly:R(708,1352,58,22),sub:"教师公寓区",desc:"紧挨北斗公寓南侧。"});
+
+// 点位
+add({id:"gate",name:"校门",cat:"life",pin:[977,1652],icon:"🏫",sub:"航天大道主入口",desc:"学校正门，面向航天大道。进门直行经过飞天广场就是明志楼。"});
+add({id:"cn",name:"菜鸟驿站",cat:"life",pin:[1360,1145],icon:"📦",sub:"取快递",desc:"在天舟食堂东侧、后勤保障楼南面一带，去食堂吃饭时可以顺路取件。"});
+add({id:"syq",name:"思源桥",cat:"life",pin:[812,1388],icon:"🌉",sub:"跨水系小桥",desc:"前进西路西侧水系上的小桥，连接西区与明志楼一带。"});
+add({id:"hj",name:"去后街",cat:"life",pin:[478,1240],icon:"🍜",sub:"沿川北路一直向西",desc:"从劝学楼、致远楼一带沿川北路往西走，经过图书馆和文汇楼，出西侧就是后街，吃饭逛街都在那边。"});
+
+// 未标注建筑
+const PLAIN=[[[1458,840],[1568,884],[1552,922],[1442,878]],R(1360,1100,88,34),R(1122,1322,0,0)];
+
+/* ---------- geometry helpers ---------- */
+function centroid(pts){let x=0,y=0;pts.forEach(p=>{x+=p[0];y+=p[1]});return[x/pts.length,y/pts.length]}
+function bbox(pts){const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);return{w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}}
+P.forEach(p=>{
+  p.k=CATS[p.cat].v;
+  if(p.pin){p.c=p.pin;p.bw=0}
+  else{p.c=p.lp||centroid(p.poly||[[p.lp[0],p.lp[1]]]);p.bw=p.poly?bbox(p.poly).w:200}
+  p.label=p.short||p.name;
+});
+const byId=Object.fromEntries(P.map(p=>[p.id,p]));
+
+/* ---------- build SVG ---------- */
+const world=$("#world");
+const el=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||world).appendChild(e);return e};
+const ptsStr=pts=>pts.map(p=>p.join(",")).join(" ");
+
+el("rect",{x:-400,y:-400,width:3000,height:2600,class:"ground"});
+el("rect",{x:-400,y:-400,width:3000,height:2600,class:"gridfill"});
+el("polygon",{class:"phase2",points:"90,400 880,330 860,400 772,690 772,898 462,898 462,1600 400,1600"});
+const zl=el("text",{x:540,y:620,class:"lbl zone",id:"phaseLbl"});zl.textContent="二期扩建区";
+el("polygon",{class:"campus",points:"462,898 772,898 772,690 860,402 1330,600 1340,700 1800,890 1950,1150 1462,1100 1462,1692 462,1692"});
+
+// greens
+[[R(475,1010,300,30)],[R(830,1020,140,110)],[R(1500,1040,300,40)],[R(1250,1290,0,0)]].forEach(([pts])=>el("polygon",{class:"green",points:ptsStr(pts)}));
+el("ellipse",{class:"green",cx:880,cy:600,rx:80,ry:120});
+el("rect",{class:"green",x:1760,y:980,width:110,height:120,rx:6});
+
+// water
+el("path",{class:"water","stroke-width":9,d:"M462 1000 C 600 996 700 1004 800 1000 S 940 1004 962 1012"});
+el("path",{class:"waterfill",d:"M840 990 q30 -20 70 -6 q30 12 18 34 q-14 22 -50 20 q-44 -2 -38 -48z"});
+el("path",{class:"water","stroke-width":8,d:"M800 1004 V1236 C 802 1260 822 1270 822 1300 V1440 C 822 1470 808 1478 806 1490"});
+el("path",{class:"water","stroke-width":7,d:"M1462 1052 C 1560 1060 1640 1084 1720 1090 S 1880 1100 1960 1116"});
+
+// roads [d, width, name, labelPos, vertical?]
+const ROADS=[
+  ["M380 1680 H2020",34,"航天大道",[1500,1680],0,1],
+  ["M800 362 L2020 783",40,"东风大道",[1420,577],0,1,19],
+  ["M1340 720 L1800 892",14,"永川路",[1590,812],0,0,20.5],
+  ["M1215 892 L1302 690",14,"驿都北路",[1268,780],1],
+  ["M640 892 H1380",16,"晋阳路",[910,892]],
+  ["M775 700 V892",14,"雒城北路",[775,772],1],
+  ["M790 892 V1240",14,"雒城南路",[790,1080],1],
+  ["M975 892 V1240",14,"前进中路",[975,1100],1],
+  ["M1220 892 V1240",14,"驿都南路",[1220,1100],1],
+  ["M462 1240 H1462",16,"川北路",[900,1240]],
+  ["M850 1240 V1500 Q852 1650 977 1666",14,"前进西路",[850,1330],1],
+  ["M1105 1240 V1500 Q1102 1650 977 1666",14,"前进东路",[1105,1330],1],
+  ["M466 898 V1692",12],["M630 1035 V1240",9],["M466 1035 H780",9],["M1462 1100 V1692",12],
+  ["M1342 1060 V1240",10],["M1380 915 L1462 1100",10],["M1240 1240 V1640",8],["M622 1240 V1600",9],["M480 1430 H770",8],["M480 1474 H770",8],
+  ["M1440 990 L1600 1060",8]
+];
+const roadE=el("g",{}),roadG=el("g",{}),roadL=el("g",{id:"roadLbls"});
+ROADS.forEach(r=>{
+  el("path",{class:"roadE",d:r[0],"stroke-width":r[1]+3},roadE);
+  el("path",{class:"road",d:r[0],"stroke-width":r[1]},roadG);
+});
+el("circle",{cx:1380,cy:915,r:24,fill:"var(--road)",stroke:"var(--roadEdge)","stroke-width":2});
+el("circle",{cx:1380,cy:915,r:10,class:"green"});
+
+ROADS.forEach(r=>{
+  if(!r[2])return;
+  const g=el("g",{class:r[5]?"big":""},roadL);
+  const [x,y]=r[3];
+  const t=el("text",{class:"rlbl","text-anchor":"middle"},g);
+  if(r[4]){
+    const chars=[...r[2]];
+    chars.forEach((ch,i)=>{const s=el("tspan",{x:x,dy:i?"1.12em":(-(chars.length-1)*0.56+0.35)+"em"},t);s.textContent=ch});
+    t.setAttribute("y",y);
+  }else{
+    t.setAttribute("x",x);t.setAttribute("y",y);t.setAttribute("dy",".35em");
+    if(r[6])t.setAttribute("transform",`rotate(${r[6]} ${x} ${y})`);
+    t.textContent=r[2];
+  }
+});
+
+// plazas + buildings
+const bG=el("g",{}),lG=el("g",{id:"labels"}),pinG=el("g",{}),routeG=el("g",{}),meG=el("g",{id:"me",style:"display:none"});
+PLAIN.forEach(pts=>{if(bbox(pts).w)el("polygon",{class:"b plain",points:ptsStr(pts)},bG)});
+[...P.filter(p=>p.plaza),...P.filter(p=>!p.plaza)].forEach(p=>{
+  if(p.pin)return;
+  let shape;
+  if(p.path)shape=el("path",{d:p.path},bG);
+  else if(p.track){
+    const [[x,y]]=p.poly;
+    shape=el("rect",{x,y,width:140,height:250,rx:70,class:"track"},bG);
+    el("rect",{x:x+18,y:y+30,width:104,height:190,rx:52,class:"field","pointer-events":"none"},bG);
+  }
+  else shape=el("polygon",{points:ptsStr(p.poly)},bG);
+  if(!p.track)shape.setAttribute("class",p.plaza?"b plaza":"b");
+  else shape.classList.add("b");
+  if(p.plaza)shape.style.cursor="pointer";
+  shape.style.setProperty("--k",p.k);
+  shape.dataset.id=p.id;
+  p.shape=shape;
+  const t=el("text",{x:p.c[0],y:p.c[1],class:"lbl"+(p.major?" major":"")},lG);
+  t.textContent=p.label;p.lbl=t;
+});
+P.forEach(p=>{
+  if(!p.pin)return;
+  const g=el("g",{class:"pin"},pinG);g.dataset.id=p.id;g.style.setProperty("--k",p.k);
+  el("circle",{r:15},g);const t=el("text",{},g);t.textContent=p.icon;
+  p.shape=g;p.pinG=g;
+});
+const route=el("path",{class:"route",style:"display:none"},routeG);
+const selRing=el("circle",{class:"selring",style:"display:none"},routeG);
+const acc=el("circle",{class:"acc",r:20},meG);
+const meDot=el("g",{},meG);
+el("circle",{class:"mehalo",r:10},meDot);el("circle",{class:"medot",r:8},meDot);
+
+/* ---------- view transform ---------- */
+const svg=$("#map");
+const BOX={x:380,y:300,w:1620,h:1400};
+let S=1,TX=0,TY=0,fitS=1,raf=0;
+function vw(){return svg.clientWidth} function vh(){return svg.clientHeight}
+function clampS(s){return Math.max(fitS*0.55,Math.min(fitS*14,s))}
+function apply(){
+  world.setAttribute("transform",`translate(${TX} ${TY}) scale(${S})`);
+  if(!raf)raf=requestAnimationFrame(()=>{raf=0;lod()});
+}
+function lod(){
+  const fs=1/S;
+  world.style.setProperty("--fs",fs);
+  const z=S/fitS;
+  P.forEach(p=>{
+    if(p.pinG){p.pinG.setAttribute("transform",`translate(${p.c[0]} ${p.c[1]}) scale(${fs})`);return}
+    if(!p.lbl)return;
+    const need=[...p.label].length*(p.major?14:12)+6;
+    let show=p.major?z>0.75:(p.bw*S>=need);
+    if(p.plaza&&!p.major)show=z>1.6;
+    if(p.id===selId)show=true;
+    p.lbl.classList.toggle("hide",!show);
+  });
+  $("#roadLbls").style.display=z>1.15?"":"none";
+  meDot.setAttribute("transform",`translate(${meXY?meXY[0]:0} ${meXY?meXY[1]:0}) scale(${fs})`);
+  if(selId){const p=byId[selId];selRing.setAttribute("r",22*fs);}
+  updateScale();
+}
+function fitAll(anim){
+  const w=vw(),h=vh();
+  fitS=Math.min(w/BOX.w,(h-80)/BOX.h);
+  const s=fitS, cx=BOX.x+BOX.w/2, cy=BOX.y+BOX.h/2+20;
+  go(cx,cy,s,anim);
+}
+function go(wx,wy,s,anim,offY,offX){
+  s=clampS(s);
+  const w=vw(),h=vh();
+  const sy=h/2+(offY||0),sx=w/2+(offX||0);
+  const nTX=sx-wx*s,nTY=sy-wy*s;
+  if(!anim||matchMedia("(prefers-reduced-motion:reduce)").matches){S=s;TX=nTX;TY=nTY;apply();return}
+  const s0=S,x0=TX,y0=TY,t0=performance.now(),D=480;
+  // interpolate around the world point for a smooth fly
+  const c0x=(sx-x0)/s0,c0y=(sy-y0)/s0;
+  (function step(t){
+    let k=Math.min(1,(t-t0)/D);k=1-Math.pow(1-k,3);
+    const ss=s0*Math.pow(s/s0,k),cx=c0x+(wx-c0x)*k,cy=c0y+(wy-c0y)*k;
+    S=ss;TX=sx-cx*ss;TY=sy-cy*ss;apply();
+    if(k<1)requestAnimationFrame(step);
+  })(t0);
+}
+function zoomAt(f,px,py,anim){
+  const ns=clampS(S*f);
+  const wx=(px-TX)/S,wy=(py-TY)/S;
+  if(!anim){S=ns;TX=px-wx*S;TY=py-wy*S;apply();return}
+  const w=vw(),h=vh();
+  // keep (px,py) fixed: compute target center
+  const nTX=px-wx*ns,nTY=py-wy*ns;
+  go((w/2-nTX)/ns,(h/2-nTY)/ns,ns,true);
+}
+function initialView(){
+  const w=vw(),h=vh();
+  fitS=Math.min(w/BOX.w,(h-80)/BOX.h);
+  if(w<720) go(1050,1110,fitS*1.9,false); else fitAll(false);
+}
+
+/* ---------- gestures ---------- */
+const ptrs=new Map();let base=null,tap=null,lastTap=null,moved=false;
+function rel(e){const r=svg.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function rebase(){
+  const a=[...ptrs.values()];
+  if(a.length===1)base={mode:1,x:a[0].x,y:a[0].y,TX,TY};
+  else if(a.length>=2){
+    const [p,q]=a;base={mode:2,d:Math.hypot(p.x-q.x,p.y-q.y)||1,mx:(p.x+q.x)/2,my:(p.y+q.y)/2,S,TX,TY};
+  }else base=null;
+}
+svg.addEventListener("pointerdown",e=>{
+  svg.setPointerCapture(e.pointerId);
+  const p=rel(e);ptrs.set(e.pointerId,p);
+  if(ptrs.size===1){tap={x:p.x,y:p.y,t:Date.now(),target:e.target};moved=false}
+  else tap=null;
+  rebase();svg.classList.add("dragging");
+});
+svg.addEventListener("pointermove",e=>{
+  if(!ptrs.has(e.pointerId))return;
+  const p=rel(e);ptrs.set(e.pointerId,p);
+  if(!base)return;
+  if(base.mode===1){
+    const dx=p.x-base.x,dy=p.y-base.y;
+    if(Math.hypot(dx,dy)>7)moved=true;
+    if(moved){TX=base.TX+dx;TY=base.TY+dy;apply()}
+  }else{
+    moved=true;
+    const [a,b]=[...ptrs.values()];
+    const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    const ns=clampS(base.S*d/base.d);
+    const wx=(base.mx-base.TX)/base.S,wy=(base.my-base.TY)/base.S;
+    S=ns;TX=mx-wx*ns;TY=my-wy*ns;apply();
+  }
+});
+function endPtr(e){
+  if(!ptrs.has(e.pointerId))return;
+  ptrs.delete(e.pointerId);
+  if(ptrs.size===0){
+    svg.classList.remove("dragging");
+    if(tap&&!moved&&Date.now()-tap.t<450){
+      const now=Date.now();
+      if(lastTap&&now-lastTap.t<300&&Math.hypot(lastTap.x-tap.x,lastTap.y-tap.y)<30){zoomAt(2,tap.x,tap.y,true);lastTap=null}
+      else{lastTap={...tap,t:now};handleTap(tap)}
+    }
+    tap=null;
+  }
+  rebase();
+}
+svg.addEventListener("pointerup",endPtr);svg.addEventListener("pointercancel",endPtr);
+svg.addEventListener("wheel",e=>{e.preventDefault();const p=rel(e);zoomAt(Math.exp(-e.deltaY*0.0018),p.x,p.y,false)},{passive:false});
+document.addEventListener("gesturestart",e=>e.preventDefault());
+
+function handleTap(t){
+  if(manualMode){
+    const wx=(t.x-TX)/S,wy=(t.y-TY)/S;
+    manualMode=false;manual=[wx,wy];save("sxd-manual",manual);
+    setMe(wx,wy,0,true);toast("已把你标在这里。点地点即可查看距离。");
+    return;
+  }
+  const hit=t.target.closest&&t.target.closest("[data-id]");
+  if(hit)select(hit.dataset.id,true);else closePanel();
+}
+
+/* ---------- selection + panel ---------- */
+let navigationStart="current-location",navigationPending=false,navigationVersion=0,navigationError="";
+let selId=null;
+const panel=$("#panel");
+function select(id,fly){
+  const p=byId[id];if(!p)return;
+  if(selId&&byId[selId].shape)byId[selId].shape.classList.remove("sel");
+  if(selId!==id){navigationVersion++;navigationPending=false;navigationError=""}
+  selId=id;
+  if(p.shape)p.shape.classList.add("sel");
+  selRing.style.display="";selRing.style.setProperty("--k",p.k);
+  selRing.setAttribute("cx",p.c[0]);selRing.setAttribute("cy",p.c[1]);
+  renderPanel(p);
+  panel.classList.add("on");
+  if(fly){
+    const mobile=vw()<720;
+    const s=Math.max(S,fitS*(p.teacher?5:2.6));
+    go(p.c[0],p.c[1],s,true,mobile?-vh()*0.2:0,mobile?0:190);
+  }
+  drawRoute();lod();
+}
+function closePanel(){
+  navigationVersion++;navigationPending=false;navigationError="";
+  panel.classList.remove("on");
+  if(selId&&byId[selId].shape)byId[selId].shape.classList.remove("sel");
+  selId=null;selRing.style.display="none";route.style.display="none";lod();
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+let placePicker=null,placePickerOwner=null;
+function enhanceMapSelect(select,title){
+  if(!select)return;
+  select.classList.add("map-select-native");select.setAttribute("aria-hidden","true");select.tabIndex=-1;
+  const trigger=document.createElement("button");trigger.type="button";trigger.className="map-select-trigger";trigger.dataset.for=select.id;
+  trigger.setAttribute("aria-haspopup","dialog");trigger.setAttribute("aria-expanded","false");trigger.setAttribute("aria-label",select.getAttribute("aria-label")||title);
+  trigger.innerHTML=`<span>${esc(select.selectedOptions[0]?.textContent||"选择地点")}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
+  trigger.onclick=()=>openPlacePicker(select,title);select.after(trigger);
+}
+function closePlacePicker(){
+  if(!placePicker)return;
+  placePicker.hidden=true;
+  const trigger=document.querySelector(`.map-select-trigger[data-for="${placePickerOwner?.id}"]`);
+  trigger?.setAttribute("aria-expanded","false");trigger?.focus({preventScroll:true});placePickerOwner=null;
+}
+function openPlacePicker(select,title){
+  if(!placePicker){placePicker=document.createElement("div");placePicker.className="place-picker";placePicker.hidden=true;document.querySelector("#app").append(placePicker)}
+  placePickerOwner=select;placePicker.hidden=false;
+  document.querySelector(`.map-select-trigger[data-for="${select.id}"]`)?.setAttribute("aria-expanded","true");
+  placePicker.innerHTML=`<section class="place-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="place-picker-title"><div class="place-picker-heading"><h3 id="place-picker-title">${esc(title)}</h3><button class="x" type="button" aria-label="关闭地点选择">×</button></div><input class="place-picker-search" aria-label="搜索校园地点" placeholder="搜索楼栋或地点" autocomplete="off"><p class="place-picker-count" role="status"></p><div class="place-picker-list" role="listbox" aria-label="校园地点"></div></section>`;
+  const search=placePicker.querySelector("input"),list=placePicker.querySelector(".place-picker-list");
+  const draw=()=>{
+    const query=search.value.trim().toLowerCase();const options=[...select.options].filter(option=>!option.disabled&&option.textContent.toLowerCase().includes(query));
+    placePicker.querySelector(".place-picker-count").textContent=query?`找到 ${options.length} 个地点`:`${options.length} 个可选地点`;
+    list.innerHTML=options.length?options.map(option=>`<button type="button" class="place-picker-option" role="option" aria-selected="${option.value===select.value}" data-value="${esc(option.value)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></svg><span>${esc(option.textContent)}</span>${option.value===select.value?'<b aria-hidden="true">✓</b>':''}</button>`).join(""):'<div class="place-picker-empty">没有找到匹配地点<br>换个楼名或关键词试试</div>';
+    list.scrollTop=0;
+    list.querySelectorAll("button").forEach(button=>button.onclick=()=>{
+      select.value=button.dataset.value;select.dispatchEvent(new Event("change",{bubbles:true}));
+      const trigger=document.querySelector(`.map-select-trigger[data-for="${select.id}"]`);if(trigger)trigger.querySelector("span").textContent=select.selectedOptions[0]?.textContent||"选择地点";
+      closePlacePicker();
+    });
+  };
+  search.oninput=draw;placePicker.querySelector(".x").onclick=closePlacePicker;
+  placePicker.onclick=event=>{if(event.target===placePicker)closePlacePicker()};
+  placePicker.onkeydown=event=>{
+    if(event.key==="Escape"){event.preventDefault();closePlacePicker()}
+    if(event.key==="ArrowDown"&&event.target===search){event.preventDefault();list.querySelector("button")?.focus()}
+    if((event.key==="ArrowDown"||event.key==="ArrowUp")&&event.target.matches(".place-picker-option")){event.preventDefault();const options=[...list.querySelectorAll("button")];const index=options.indexOf(event.target);options[(index+(event.key==="ArrowDown"?1:-1)+options.length)%options.length]?.focus()}
+    if(event.key==="Enter"&&event.target===search){event.preventDefault();list.querySelector("button")?.click()}
+    if(event.key==="Tab"){const controls=[...placePicker.querySelectorAll("button,input")];const first=controls[0],last=controls.at(-1);if(event.shiftKey&&event.target===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&event.target===last){event.preventDefault();first.focus()}}
+  };
+  draw();placePicker.querySelector(".x").focus({preventScroll:true});
+}
+function renderPanel(p){
+  const c=CATS[p.cat];
+  let h=`<div class="p-head"><div><div class="tag" style="--k:${p.k}"><i></i>${c.n}</div><h2>${esc(p.name)}</h2></div>
+  <button class="x" id="pClose" aria-label="关闭"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+  if(p.sub)h+=`<p class="p-sub">${esc(p.sub)}</p>`;
+  if(p.desc)h+=`<p class="p-desc">${esc(p.desc)}</p>`;
+  if(p.units&&p.units.length)h+=`<ul class="units">${p.units.map(u=>`<li><span>${esc(u[0])}</span><em>${esc(u[1])}</em></li>`).join("")}</ul>`;
+  if(meXY){
+    const d=distM(meXY,p.c),min=Math.max(1,Math.round(d/75));
+    h+=`<div class="dist"><div><b>${fmtM(d)}</b><span>直线距离${cal?"":"（估算）"}</span></div><div><b>约 ${min} 分钟</b><span>直线估算，仅供参考</span></div></div>`;
+  }
+  if(p.id==="zxl")h+=`<div class="acts">${["zA","zB","zC","zD","zE","zF"].map(z=>`<button class="btn" data-go="${z}">${byId[z].short}</button>`).join("")}</div>`;
+  h+=`<div class="walking-navigation"><label for="pStart">从哪里出发</label><select id="pStart" aria-label="步行导航起点"><option value="current-location" ${navigationStart==="current-location"?"selected":""}>我的当前位置（GPS）</option>${P.filter(start=>start.id!==p.id).map(start=>`<option value="${esc(start.id)}" ${navigationStart===start.id?"selected":""}>${esc(start.name)}</option>`).join("")}</select><button class="btn pri walking-go" id="pNavigate" ${navigationPending?"disabled":""}>${navigationPending?"正在获取位置…":"去这里 · 步行导航 ↗"}</button><p class="note">打开百度地图查看步行路线，无需校准校园示意图。当前位置仅用于本次路线查询。请确认地图中的目的地，校内小路以现场标识为准。</p>${navigationError?`<p class="navigation-error" role="alert">${esc(navigationError)}</p>`:""}</div>`;
+  h+=`<div class="acts"><button class="btn" id="pHere">我就在这里 · 校准</button>${meXY?`<button class="btn" id="pRoute">显示方向连线</button>`:""}</div>`;
+  h+=`<p class="note">「我就在这里」会用当前 GPS 记录一个校准点，记两个不同地点后即可实时定位。</p>`;
+  panel.innerHTML=h;
+  $("#pClose").onclick=closePanel;
+  $("#pHere").onclick=()=>recordAt(p);
+  $("#pStart").onchange=e=>{navigationStart=e.target.value;navigationVersion++;navigationPending=false;navigationError="";renderPanel(p)};
+  enhanceMapSelect($("#pStart"),"选择出发地点");
+  $("#pNavigate").onclick=()=>openWalkingNavigation(p);
+  const pr=$("#pRoute");if(pr)pr.onclick=()=>{showRoute=!showRoute;drawRoute()};
+  panel.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>select(b.dataset.go,true));
+}
+function walkingRouteUrl(p,origin){
+  const campus="四川航天职业技术学院三星堆校区";
+  const from=typeof origin==="string"?campus+" "+origin:"latlng:"+origin.lat+","+origin.lng+"|name:我的位置";
+  return "https://api.map.baidu.com/direction?"+new URLSearchParams({origin:from,destination:campus+" "+p.name,mode:"walking",region:"广汉市",output:"html",coord_type:"wgs84",src:"webapp.campus_companion.navigation"});
+}
+async function openWalkingNavigation(p){
+  if(navigationPending||selId!==p.id)return;
+  const attempt=++navigationVersion,start=navigationStart;
+  navigationError="";
+  if(start!=="current-location"){
+    const from=byId[start];
+    if(!from||from.id===p.id){navigationError="请选择不同于目的地的起点。";renderPanel(p);return}
+    window.top.location.assign(walkingRouteUrl(p,from.name));return;
+  }
+  navigationPending=true;renderPanel(p);
+  try{
+    const fix=await getFix();
+    if(attempt!==navigationVersion||selId!==p.id)return;
+    if(!Number.isFinite(fix.lat)||!Number.isFinite(fix.lng)||Math.abs(fix.lat)>90||Math.abs(fix.lng)>180)throw Error("invalid location");
+    window.top.location.assign(walkingRouteUrl(p,fix));
+  }catch(e){
+    if(attempt===navigationVersion&&selId===p.id){navigationError="暂时无法取得当前位置。请允许定位后重试，或在上方选择校门、图书馆等出发地点。"}
+  }finally{
+    if(attempt===navigationVersion&&selId===p.id){navigationPending=false;renderPanel(p)}
+  }
+}
+let showRoute=true;
+function drawRoute(){
+  if(!selId||!meXY||!showRoute){route.style.display="none";return}
+  const p=byId[selId];
+  route.setAttribute("d",`M${meXY[0]} ${meXY[1]} L${p.c[0]} ${p.c[1]}`);route.style.display="";
+}
+
+/* ---------- search ---------- */
+const q=$("#q"),results=$("#results");
+const INDEX=P.map(p=>({p,text:[p.name,p.short||"",p.sub||"",(p.units||[]).map(u=>u.join(" ")).join(" "),CATS[p.cat].n].join(" ").toLowerCase()}));
+function doSearch(){
+  const v=q.value.trim().toLowerCase();
+  if(!v){results.classList.remove("on");results.innerHTML="";return}
+  const hits=INDEX.filter(i=>i.text.includes(v)).sort((a,b)=>(b.p.name.toLowerCase().includes(v))-(a.p.name.toLowerCase().includes(v))).slice(0,9);
+  results.innerHTML=hits.length?hits.map(i=>{
+    const u=(i.p.units||[]).find(u=>u.join(" ").toLowerCase().includes(v));
+    const line=u?`${u[0]} ${u[1]}`:(i.p.sub||CATS[i.p.cat].n);
+    return `<button class="res" data-id="${i.p.id}" style="--k:${i.p.k}"><i></i><div><b>${esc(i.p.name)}</b><span>${esc(line)}</span></div></button>`;
+  }).join(""):`<div class="res" style="cursor:default"><div><b>没有找到「${esc(q.value.trim())}」</b><span>试试楼名、学院或部门，比如「财务」「就业」「食堂」</span></div></div>`;
+  results.classList.add("on");
+  results.querySelectorAll("button.res").forEach(b=>b.onclick=()=>{select(b.dataset.id,true);results.classList.remove("on");q.blur()});
+}
+q.addEventListener("input",doSearch);
+q.addEventListener("focus",doSearch);
+q.addEventListener("keydown",e=>{if(e.key==="Enter"){const b=results.querySelector("button.res");if(b)b.click()}if(e.key==="Escape"){q.value="";doSearch();q.blur()}});
+svg.addEventListener("pointerdown",()=>{results.classList.remove("on");q.blur()});
+
+/* ---------- category chips ---------- */
+const chips=$("#chips");let filter=null;
+chips.innerHTML=`<button class="chip" data-c="" aria-pressed="true">全部</button>`+Object.entries(CATS).map(([k,c])=>`<button class="chip" data-c="${k}" aria-pressed="false" style="--k:${c.v}"><i></i>${c.n}</button>`).join("");
+const chipsNext=$("#chipsNext");let chipDrag=null,chipDragged=false;
+function updateChipScroll(){chipsNext.hidden=chips.scrollWidth-chips.clientWidth-chips.scrollLeft<=1}
+chips.addEventListener("scroll",updateChipScroll,{passive:true});new ResizeObserver(updateChipScroll).observe(chips);
+chipsNext.onclick=()=>chips.scrollBy({left:Math.max(120,chips.clientWidth*.7),behavior:"smooth"});
+chips.addEventListener("pointerdown",event=>{chipDragged=false;if(event.pointerType!=="mouse"||event.button!==0)return;chipDrag={id:event.pointerId,x:event.clientX,left:chips.scrollLeft}});
+chips.addEventListener("pointermove",event=>{if(!chipDrag||event.pointerId!==chipDrag.id)return;const delta=event.clientX-chipDrag.x;if(!chipDragged&&Math.abs(delta)<5)return;chipDragged=true;chips.classList.add("dragging");if(!chips.hasPointerCapture(event.pointerId))chips.setPointerCapture(event.pointerId);chips.scrollLeft=chipDrag.left-delta;event.preventDefault()});
+const finishChipDrag=()=>{chipDrag=null;chips.classList.remove("dragging")};
+chips.addEventListener("pointerup",finishChipDrag);chips.addEventListener("pointercancel",finishChipDrag);chips.addEventListener("lostpointercapture",finishChipDrag);
+chips.addEventListener("click",event=>{if(chipDragged&&event.detail!==0){event.preventDefault();event.stopImmediatePropagation();chipDragged=false}},true);
+chips.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{
+  filter=b.dataset.c||null;
+  chips.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+  P.forEach(p=>{const dim=!!filter&&p.cat!==filter;if(p.shape)p.shape.classList.toggle("dim",dim);if(p.lbl)p.lbl.classList.toggle("dim",dim)});
+  const left=b.offsetLeft,right=left+b.offsetWidth;
+  if(left<chips.scrollLeft)chips.scrollTo({left:Math.max(0,left-4),behavior:"smooth"});
+  else if(right>chips.scrollLeft+chips.clientWidth-36)chips.scrollTo({left:right-chips.clientWidth+36,behavior:"smooth"});
+});
+
+/* ---------- storage ---------- */
+function load(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}}
+function save(k,v){try{v==null?localStorage.removeItem(k):localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+/* ---------- location ---------- */
+const DEFAULT_M_PER_UNIT=0.7; // 由 400 米跑道尺寸估算
+let calPts=load("sxd-cal")||[],cal=solve(calPts),manual=load("sxd-manual"),manualMode=false;
+let watchId=null,lastFix=null,meXY=null,following=false;
+function solve(pts){
+  if(!pts||pts.length<2)return null;
+  const lat0=pts[0].lat,lng0=pts[0].lng,k=Math.cos(lat0*Math.PI/180);
+  const src=pts.map(p=>[(p.lng-lng0)*111320*k,-(p.lat-lat0)*110574]),dst=pts.map(p=>[p.x,p.y]);
+  const n=pts.length,mean=a=>[a.reduce((s,p)=>s+p[0],0)/n,a.reduce((s,p)=>s+p[1],0)/n];
+  const ps=mean(src),qs=mean(dst);
+  let re=0,im=0,den=0;
+  for(let i=0;i<n;i++){
+    const px=src[i][0]-ps[0],py=src[i][1]-ps[1],qx=dst[i][0]-qs[0],qy=dst[i][1]-qs[1];
+    re+=qx*px+qy*py;im+=qy*px-qx*py;den+=px*px+py*py;
+  }
+  if(den/n<15*15)return null; // 点太近
+  const ar=re/den,ai=im/den;
+  return{lat0,lng0,k,ar,ai,bx:qs[0]-(ar*ps[0]-ai*ps[1]),by:qs[1]-(ai*ps[0]+ar*ps[1]),upm:Math.hypot(ar,ai)};
+}
+function geo2xy(lat,lng){
+  const px=(lng-cal.lng0)*111320*cal.k,py=-(lat-cal.lat0)*110574;
+  return[cal.ar*px-cal.ai*py+cal.bx,cal.ai*px+cal.ar*py+cal.by];
+}
+function mPerUnit(){return cal?1/cal.upm:DEFAULT_M_PER_UNIT}
+function distM(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1])*mPerUnit()}
+function fmtM(m){return m>=1000?(m/1000).toFixed(2)+" 公里":Math.round(m)+" 米"}
+
+function setMe(x,y,accM,isManual){
+  meXY=[x,y];meG.style.display="";
+  meG.classList.toggle("manual",!!isManual);
+  acc.style.display=accM?"":"none";
+  if(accM)acc.setAttribute("r",accM/mPerUnit());
+  acc.setAttribute("cx",x);acc.setAttribute("cy",y);
+  lod();drawRoute();
+  if(selId)renderPanel(byId[selId]);
+}
+function startGPS(){
+  if(!("geolocation" in navigator)){toast("这个浏览器不支持定位，可以用「手动标出我」。");return false}
+  if(watchId!=null)return true;
+  setStatus("正在获取 GPS…");
+  watchId=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:3000,timeout:20000});
+  $("#locBtn").classList.add("live");
+  return true;
+}
+function onFix(pos){
+  lastFix={lat:pos.coords.latitude,lng:pos.coords.longitude,acc:pos.coords.accuracy,t:Date.now()};
+  $("#gpsAcc").textContent=`GPS 精度约 ${Math.round(lastFix.acc)} 米`;
+  if(cal){
+    const [x,y]=geo2xy(lastFix.lat,lastFix.lng);
+    setMe(x,y,lastFix.acc,false);
+    const inside=x>BOX.x-300&&x<BOX.x+BOX.w+300&&y>BOX.y-300&&y<BOX.y+BOX.h+300;
+    setStatus(inside?`实时定位中，精度约 ${Math.round(lastFix.acc)} 米`:"你目前不在校园范围内");
+    if(following){following=false;go(x,y,Math.max(S,fitS*2.6),true)}
+  }else{
+    setStatus(`已获取 GPS（±${Math.round(lastFix.acc)} 米），还差校准，点这里`);
+  }
+}
+function onErr(err){
+  $("#locBtn").classList.remove("live");
+  navigator.geolocation.clearWatch(watchId);watchId=null;
+  const m={1:"定位权限被拒绝。请在浏览器或系统设置里允许此页面使用位置；如果页面嵌在其他应用里被拦截，可以用「手动标出我」。",2:"暂时拿不到位置信号，到室外空旷处再试。",3:"获取位置超时，请稍后再试。"};
+  toast(m[err.code]||"定位失败。");setStatus("");
+}
+function getFix(){
+  return new Promise((res,rej)=>{
+    if(lastFix&&Date.now()-lastFix.t<8000)return res(lastFix);
+    if(!("geolocation" in navigator))return rej({code:0});
+    navigator.geolocation.getCurrentPosition(pos=>{onFix(pos);res(lastFix)},e=>{onErr(e);rej(e)},{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  });
+}
+async function recordAt(p){
+  startGPS();
+  toast("正在读取你的 GPS 位置…");
+  try{
+    const f=await getFix();
+    calPts=calPts.filter(c=>c.id!==p.id);
+    calPts.push({id:p.id,x:p.c[0],y:p.c[1],lat:f.lat,lng:f.lng});
+    save("sxd-cal",calPts);
+    cal=solve(calPts);
+    updCal();
+    if(cal){
+      const ok=cal.upm>0.4&&cal.upm<5;
+      toast(ok?`校准完成，已用 ${calPts.length} 个点。现在会实时显示你的位置。`:"校准结果和地图比例相差很大，可能某个点记错了，建议清空后重新校准。");
+      manual=null;save("sxd-manual",null);onFix({coords:{latitude:f.lat,longitude:f.lng,accuracy:f.acc}});
+    }else if(calPts.length>=2){
+      toast("两个校准点离得太近了，请换一个更远的地标再记一次。");
+    }else{
+      toast(`已记下「${p.name}」（GPS ±${Math.round(f.acc)} 米）。再去另一个地标记一次就完成了。`);
+    }
+  }catch(e){}
+}
+function updCal(){
+  $("#calCount").textContent=cal?`已校准（${calPts.length} 个点）`:`已记录 ${calPts.length} 个点，还需 ${Math.max(0,2-calPts.length)||1} 个`;
+  updateScale();
+}
+
+/* ---------- status / toast / scale ---------- */
+const statusEl=$("#status");
+function setStatus(t){statusEl.textContent=t;statusEl.classList.toggle("on",!!t)}
+statusEl.onclick=()=>{if(!cal)openCal();else if(meXY)go(meXY[0],meXY[1],Math.max(S,fitS*2.6),true)};
+let tt=0;function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("on"),3600)}
+function updateScale(){
+  const upx=1/S, mpp=upx*mPerUnit(); // 米/像素
+  const target=mpp*90,nice=[5,10,20,25,50,100,200,250,500,1000,2000];
+  const m=nice.find(n=>n>=target)||2000;
+  $("#scaleBar").style.width=(m/mpp)+"px";$("#scaleTxt").textContent=(m>=1000?m/1000+" 公里":m+" 米")+(cal?"":" ≈");
+}
+
+/* ---------- calibration modal ---------- */
+const modal=$("#modal"),calSel=$("#calSel");
+calSel.innerHTML=["gate","mz","tsg","wh","zxl","qx","tyg","th","tz","zy","fy1","hq","xy"].map(id=>`<option value="${id}">${byId[id].name}</option>`).join("");
+enhanceMapSelect(calSel,"选择校准地标");
+function openCal(){modal.classList.add("on");updCal();startGPS()}
+$("#calBtn").onclick=openCal;
+$("#calClose").onclick=()=>modal.classList.remove("on");
+modal.addEventListener("click",e=>{if(e.target===modal)modal.classList.remove("on")});
+$("#calRec").onclick=()=>recordAt(byId[calSel.value]);
+$("#calClear").onclick=()=>{calPts=[];cal=null;save("sxd-cal",null);updCal();meXY=null;meG.style.display="none";route.style.display="none";setStatus("");toast("已清空校准点。")};
+$("#manualBtn").onclick=()=>{modal.classList.remove("on");manualMode=true;toast("在地图上点一下你所在的位置。")};
+
+/* ---------- controls ---------- */
+$("#locBtn").onclick=()=>{
+  if(cal){following=true;startGPS();if(meXY&&lastFix)go(meXY[0],meXY[1],Math.max(S,fitS*2.6),true);return}
+  if(manual&&meXY){go(meXY[0],meXY[1],Math.max(S,fitS*2.6),true);return}
+  openCal();
+};
+$("#zin").onclick=()=>zoomAt(1.6,vw()/2,vh()/2,true);
+$("#zout").onclick=()=>zoomAt(1/1.6,vw()/2,vh()/2,true);
+$("#fit").onclick=()=>fitAll(true);
+$("#theme").onclick=()=>{
+  const r=document.documentElement,cur=r.dataset.theme||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");
+  r.dataset.theme=cur==="dark"?"light":"dark";save("sxd-theme",r.dataset.theme);
+};
+document.addEventListener("keydown",e=>{
+  if(document.activeElement===q)return;
+  if(e.key==="+"||e.key==="=")zoomAt(1.4,vw()/2,vh()/2,true);
+  if(e.key==="-")zoomAt(1/1.4,vw()/2,vh()/2,true);
+  if(e.key==="Escape"){closePanel();modal.classList.remove("on")}
+});
+let rz=0;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{const z=S/fitS,cx=(vw()/2-TX)/S,cy=(vh()/2-TY)/S;fitS=Math.min(vw()/BOX.w,(vh()-80)/BOX.h);go(cx,cy,fitS*z,false)},120)});
+
+/* ---------- boot ---------- */
+const th=load("sxd-theme");if(th)document.documentElement.dataset.theme=th;
+initialView();
+updCal();
+if(manual)setMe(manual[0],manual[1],0,true);
+if(cal){startGPS()}
+})();
+</script>
+</body>
+</html>

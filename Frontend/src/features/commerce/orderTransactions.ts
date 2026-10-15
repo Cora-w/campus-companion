@@ -1,3 +1,4 @@
+import { isCampusRole } from '../../types/access.ts'
 import type { ShopOrder } from './commerce'
 import type { SnackShop } from '../../data/snackData'
 
@@ -6,7 +7,7 @@ type Actor = { role:string; id:string; shopId?:string; canManageShop?:boolean } 
 const fail = (state:CommerceState, error:string) => ({ state, error })
 
 export function placeOrderTransaction(state:CommerceState, order:ShopOrder, actor:Actor) {
-  if (actor?.role !== 'student' || actor.id !== order.studentId) return fail(state,'请先以学生身份登录。')
+  if (!actor || !isCampusRole(actor.role) || actor.id !== order.studentId) return fail(state,'请先使用校园账号登录。')
   if (state.orders.some(o => o.id === order.id)) return fail(state,'订单已提交，请勿重复提交。')
   const shop = state.shops.find(s => s.id === order.shopId)
   if (shop?.isOpen === false || shop?.adminSuspended) return fail(state,'店铺已暂停营业，请选择其他店铺。')
@@ -31,7 +32,7 @@ export function placeOrderTransaction(state:CommerceState, order:ShopOrder, acto
 export function changeOrderTransaction(state:CommerceState, id:string, status:ShopOrder['status'], actor:Actor) {
   const order = state.orders.find(o => o.id === id)
   if (!order) return fail(state,'订单不存在。')
-  const student = actor?.role === 'student' && actor.id === order.studentId
+  const student = !!actor && isCampusRole(actor.role) && actor.id === order.studentId
   const merchant = actor?.shopId === order.shopId && (actor.role === 'merchant' || (actor.role === 'student' && actor.canManageShop === true && state.shops.some(s => s.id === order.shopId && s.ownerId === actor.id)))
   if (!merchant && !(student && status === '已取消')) return fail(state,'无权操作这笔订单。')
   const next = order.status === '待接单' ? ['备货中','已取消'] : order.status === '备货中' ? [order.mode === '送货上门' ? '配送中' : '待自提'] : ['配送中','待自提'].includes(order.status) ? ['已完成'] : []

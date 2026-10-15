@@ -3,10 +3,10 @@ export type { Role, Session, Risk, CaseStatus, CareRecord, CareCase, Account, Au
 export const roleNames: Record<Role, string> = { student: '学生', teacher: '心理教师', admin: '管理员', merchant: '商家' }
 export const riskColors: Record<Risk, string> = { 高: 'volcano', 中: 'gold', 低: 'green' }
 export const roleSessions: Record<Role, Session> = {
-  merchant: { role: 'merchant', name: '下课零食社店长', id: 'M-DEMO-01' },
-  student: { role: 'student', name: '小禾同学', id: 'S-DEMO-01' },
-  teacher: { role: 'teacher', name: '陈老师', id: 'T-DEMO-01' },
-  admin: { role: 'admin', name: '平台管理员', id: 'A-DEMO-01' },
+  merchant: { schoolId: 'sichuan-aerospace-polytechnic', role: 'merchant', name: '下课零食社店长', id: 'M-DEMO-01' },
+  student: { schoolId: 'sichuan-aerospace-polytechnic', role: 'student', name: '小禾同学', id: 'S-DEMO-01' },
+  teacher: { schoolId: 'sichuan-aerospace-polytechnic', role: 'teacher', name: '陈老师', id: 'T-DEMO-01' },
+  admin: { schoolId: 'sichuan-aerospace-polytechnic', role: 'admin', name: '平台管理员', id: 'A-DEMO-01' },
 }
 export const initialCases: CareCase[] = [
   { id: 'CASE-001', student: '同学 A', studentId: 'S***021', group: '计算机专业 · 一年级', risk: '高', topic: '近期状态变化需专业复核', time: '09-29 09:20', status: '待处理', records: [] },
@@ -14,10 +14,11 @@ export const initialCases: CareCase[] = [
   { id: 'CASE-003', student: '同学 C', studentId: 'S***052', group: '电子信息专业 · 一年级', risk: '低', topic: '日常状态观察', time: '09-27 14:00', status: '跟进中', records: [] },
 ]
 export const initialAccounts: Account[] = [
-  { id: 'A-DEMO-01', name: '平台管理员', role: 'admin', enabled: true },
-  { id: 'T-DEMO-01', name: '陈老师', role: 'teacher', enabled: true },
-  { id: 'T-DEMO-02', name: '李老师', role: 'teacher', enabled: false },
-  { id: 'S-DEMO-01', name: '小禾同学', role: 'student', enabled: true },
+  { schoolId: 'sichuan-aerospace-polytechnic', id: 'A-DEMO-01', name: '平台管理员', role: 'admin', enabled: true },
+  { schoolId: 'sichuan-aerospace-polytechnic', id: 'T-DEMO-01', name: '陈老师', role: 'teacher', enabled: true },
+  { schoolId: 'sichuan-aerospace-polytechnic', id: 'T-DEMO-02', name: '李老师', role: 'teacher', enabled: false },
+  { schoolId: 'sichuan-aerospace-polytechnic', id: 'S-DEMO-01', name: '小禾同学', role: 'student', enabled: true },
+  { schoolId: 'qinghe-demo-university', id: 'S-OTHER-01', name: '青禾小雨', role: 'student', enabled: true },
 ]
 export const initialMoods: MoodEntry[] = [
   { id: 'M1', day: '09-23', mood: 3, stress: 3, note: '' },

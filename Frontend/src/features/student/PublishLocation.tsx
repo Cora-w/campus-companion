@@ -43,7 +43,7 @@ export function PublishLocation({ value, save }: { value: string; save: (value: 
   const fullLocation = [selected.trim(), detail.trim()].filter(Boolean).join(' · ')
   return <div className="publish-location-picker">
     <div className="publish-location-search"><Input aria-label="搜索地点" placeholder="搜索学校、楼栋或附近店铺" value={query} maxLength={60} allowClear onChange={e => { cancelPending(); setQuery(e.target.value); setResults([]); setSearched(false); setError('') }} onPressEnter={() => { if (query.trim()) void lookup(false) }} prefix={<Icon name="search"/>}/><Button disabled={!query.trim() || loading} onClick={() => void lookup(false)}>搜索</Button></div>
-    <button type="button" className="publish-locate" aria-label={position ? '重新定位，查看附近地点' : '定位并查找附近地点'} disabled={loading} onClick={() => void lookup(true)}><Icon name="location"/><span><b>{loading ? '正在获取位置与地点…' : position ? '重新定位，查看附近地点' : '定位并查找附近地点'}</b><small>{position ? `定位精度约 ${Math.round(position.accuracy)} 米，位置不准可搜索修改` : '允许定位后，选择实际所在的地点'}</small></span><Icon name="next"/></button>
+    <button type="button" className="publish-locate" aria-label={position ? '重新定位，查看附近地点' : '定位并查找附近地点'} disabled={loading} onClick={() => void lookup(true)}><Icon name="location"/><span><b>{loading ? '正在获取位置与地点…' : position ? '重新定位，查看附近地点' : '定位并查找附近地点'}</b><small>{position ? `定位精度约 ${Math.round(position.accuracy)} 米，位置不准可搜索修改` : '允许定位后，选择实际所在的地点'}</small></span></button>
     <p className="location-data-note">定位会将坐标发送至 Photon 地点服务；发布只显示你确认的地点名称。</p>
     {error && <p role="alert" className="error-text">{error}</p>}
     {loading && <p role="status" className="subtle">正在查找，可直接在下方手动填写。</p>}

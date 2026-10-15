@@ -120,6 +120,8 @@
 .outing-badge { position:absolute; left:8px; bottom:8px; padding:4px 7px; border-radius:5px; background:color-mix(in srgb, var(--canvas) 92.9%, transparent); color:var(--text-secondary); font-size:10px; font-weight:600; pointer-events:none; }
 .outing-save { position:absolute; right:7px; top:7px; width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:#fffef8ee; color:var(--text-secondary); box-shadow:0 1px 6px #0001; }
 .outing-save svg { width:17px; height:17px; }
+.outing-like { right:48px; }
+.outing-like[aria-pressed=true] { color:var(--accent); background:var(--accent-soft); }
 .outing-save[aria-pressed=true] svg { fill:var(--theme-tint); }
 .outing-content { display:block; text-align:left; width:100%; padding:13px 0 0; }
 .outing-content h3 { margin:0 0 6px; font-size:16px; font-weight:700; line-height:1.45; }

@@ -1,3 +1,4 @@
+import { isCampusRole } from '../../types/access.ts'
 import type { CampusPost } from '../../data/campusData'
 export const priorityReportCount = 3
 export const reportReasons = ['不友善或冒犯内容', '泄露个人信息', '广告或虚假信息', '其他']
@@ -5,9 +6,13 @@ export type PostReport = { id: string; postId: string; schoolId: string; reporte
 export type PostDecision = { id: string; postId: string; schoolId: string; action: '删除' | '保留'; reason: string; time: string; actorId: string }
 export type ModerationState = { posts: { schoolId: string; post: CampusPost }[]; reports: PostReport[]; decisions: PostDecision[] }
 export type Moderator = { id: string; role: string; schoolId: string; enabled: boolean }
+export function visiblePostsFor(state: ModerationState, actor: Moderator, deleted = false): CampusPost[] {
+  if (!actor.enabled || !isCampusRole(actor.role) || !actor.schoolId || (deleted && actor.role !== 'admin')) return []
+  return state.posts.filter(p => p.schoolId === actor.schoolId && (!p.post.visibility || p.post.visibility === 'campus' || p.post.ownerId === actor.id) && state.decisions.some(d => d.postId === p.post.id && d.schoolId === actor.schoolId && d.action === '删除') === deleted).map(({ post }) => ({ ...post, owned: post.ownerId === actor.id }))
+}
 export function submitPostReport(state: ModerationState, actor: Moderator, report: PostReport): { state: ModerationState; error: string } {
   const post = state.posts.find(p => p.post.id === report.postId && p.schoolId === actor.schoolId)?.post
-  if (!actor.enabled || actor.role !== 'student' || !actor.schoolId || report.schoolId !== actor.schoolId || report.reporterId !== actor.id) return { state, error: '请使用已绑定学校的学生账号。' }
+  if (!actor.enabled || !isCampusRole(actor.role) || !actor.schoolId || report.schoolId !== actor.schoolId || report.reporterId !== actor.id) return { state, error: '请使用已绑定学校的校园账号。' }
   if (!post || (post.visibility && post.visibility !== 'campus') || state.decisions.some(d => d.postId === post.id && d.schoolId === actor.schoolId && d.action === '删除')) return { state, error: '帖子不存在或已被删除。' }
   if (post.ownerId === actor.id) return { state, error: '不能举报自己的帖子。' }
   if (!reportReasons.includes(report.reason)) return { state, error: '请选择有效的举报原因。' }

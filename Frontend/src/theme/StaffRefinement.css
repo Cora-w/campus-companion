@@ -5,10 +5,10 @@
 .staff-help-button { width:44px; height:44px; display:grid; place-items:center; padding:10px; color:var(--staff-muted); border-radius:8px; }
 .staff-help-button svg { width:21px; height:21px; }
 .admin-page-back { display:grid; place-items:center; width:40px; min-height:44px; color:var(--brand-primary); padding:9px; flex-shrink:0; }
-.staff-help-overlay { --brand-canvas:#f6f5f3; --brand-soft:#f2f0ed; --brand-border:#e2dfda; }
+
 .staff-help-overlay .ant-drawer-content-wrapper,.staff-account-overlay .ant-drawer-content-wrapper { right:max(0px,calc((100vw - 480px)/2))!important; width:min(480px,100vw)!important; box-shadow:none; }
 .staff-help-drawer .ant-drawer-header { padding:12px 16px; border-color:var(--staff-line); }
-.staff-help-drawer .ant-drawer-body { background:#f6f5f3; padding:20px; }
+.staff-help-drawer .ant-drawer-body { background:var(--brand-canvas); padding:20px; }
 .staff-help-topic { background:#fff; border:1px solid var(--staff-line); padding:16px; border-radius:10px; margin-bottom:14px; }
 .staff-help-topic h2 { font-size:15px; font-weight:600; margin:0 0 8px; }
 .staff-help-topic p { font-size:13px; line-height:1.8; color:#706c66; margin:0; }
@@ -23,15 +23,19 @@
 .tw-shell.tw-native.tw-refresh .tw-today-panel .tw-panel-title { margin-bottom:14px; }
 .tw-shell.tw-native.tw-refresh .tw-today-panel .staff-agenda-add { display:flex; align-items:center; gap:6px; min-height:44px; height:44px; padding:0 12px; border-radius:8px; background:#fff; color:var(--brand-primary); font-size:13px; }
 .staff-agenda-add svg { width:16px; height:16px; }
-.tw-shell.tw-native.tw-refresh .staff-agenda-row { display:grid; grid-template-columns:56px minmax(0,1fr) 16px; align-items:start; gap:14px; padding:16px; margin:0 0 14px; border:1px solid var(--staff-line); border-radius:8px; background:#faf9f7; text-align:left; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row { display:grid; grid-template-columns:64px minmax(0,1fr); align-items:start; gap:16px; padding:16px; margin:0 0 14px; border:1px solid var(--staff-line); border-radius:8px; background:#faf9f7; text-align:left; }
 .tw-shell.tw-native.tw-refresh .staff-agenda-row > span { margin:0; min-width:0; line-height:1.6; }
-.tw-shell.tw-native.tw-refresh .staff-agenda-time { padding-right:10px; border-right:1px solid var(--staff-line); }
-.tw-shell.tw-native.tw-refresh .staff-agenda-time b { font-family:Arial,sans-serif; font-size:15px; font-weight:600; color:var(--brand-text); line-height:1.6; }
-.tw-shell.tw-native.tw-refresh .staff-agenda-time small { color:var(--staff-muted); font-size:12px; margin:5px 0 0; font-weight:400; }
-.tw-shell.tw-native.tw-refresh .staff-agenda-body b { color:var(--brand-text); font-size:14px; line-height:1.7; font-weight:600; overflow-wrap:anywhere; }
-.tw-shell.tw-native.tw-refresh .staff-agenda-body small { color:var(--staff-muted); font-size:12px; line-height:1.75; font-weight:400; margin:6px 0 0; overflow-wrap:anywhere; }
-.tw-shell.tw-native.tw-refresh .staff-agenda-body .ant-tag { margin:10px 0 0; color:#5e665e; background:#eef1ed; border:0; font-size:11px; line-height:20px; }
-.tw-shell.tw-native.tw-refresh .staff-agenda-row > svg { width:15px; height:15px; color:var(--staff-muted); align-self:center; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row .staff-agenda-time { display:grid; gap:8px; padding-right:14px; border-right:1px solid var(--staff-line); font-family:Arial,sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row .staff-agenda-time b { margin:0; font-size:15px; font-weight:600; color:var(--brand-text); line-height:22px; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row .staff-agenda-time small { color:var(--staff-muted); font-size:12px; line-height:20px; margin:0; font-weight:400; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row .staff-agenda-body { display:grid; justify-items:start; gap:8px; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row .staff-agenda-body b { color:var(--brand-text); font-size:14px; line-height:22px; font-weight:600; overflow-wrap:anywhere; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row .staff-agenda-body small { color:var(--staff-muted); font-size:12px; line-height:20px; font-weight:400; margin:0; overflow-wrap:anywhere; }
+.tw-shell.tw-native.tw-refresh .staff-agenda-row .staff-agenda-body .ant-tag { margin:0; color:#5e665e; background:#eef1ed; border:0; font-size:11px; line-height:20px; }
+.tw-shell.tw-native.tw-refresh .tw-roster-toolbar .staff-student-search { min-height:44px; padding:10px 14px; border-radius:10px; background:#fff; }
+.tw-shell.tw-native.tw-refresh .staff-student-search .ant-input-prefix { margin-inline-end:10px; color:var(--staff-muted); }
+.tw-shell.tw-native.tw-refresh .staff-student-search .ant-input-prefix svg { display:block; width:18px; height:18px; }
+.tw-shell.tw-native.tw-refresh .staff-student-search .ant-input { min-width:0; padding:0; font-size:14px; line-height:22px; background:transparent; }
 .admin-shell-host .campus-service-item[role='button'],.admin-shell-host .admin-shop-students article[role='button'] { cursor:pointer; }
 .admin-shell-host .campus-service-item[role='button'] .staff-row-link { display:block; text-align:right; margin-top:12px; }
 .tw-refresh .tw-mobile-workbench > .staff-content-actions { order:0; margin-bottom:0; }

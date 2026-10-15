@@ -20,7 +20,11 @@
   --warning: #996000;
   --bottom-height: calc(68px + env(safe-area-inset-bottom, 0px));
 }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* Every scroll container, including portal dialogs, must disallow native pinch. */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: pan-x pan-y; }
+html { touch-action: pan-x pan-y; }
+/* Image previews implement their own pinch/drag transforms, never page zoom. */
+.ant-image-preview-img, .ant-image-preview-body { touch-action: none; }
 body { margin: 0; }
 button, input, textarea { font: inherit; }
 button { cursor: pointer; color: inherit; border: 0; background: none; touch-action: manipulation; }

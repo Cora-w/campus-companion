@@ -1,7 +1,9 @@
 // Keep the page on the layout viewport; only overlays follow the keyboard.
 import { createOverlayViewportTracking, keepEditorVisible } from './overlayViewport.ts'
+import { installPageGestureGuard } from './pageGestures'
 
 export function installViewportTracking() {
+  const disposePageGestures = installPageGestureGuard()
   const root = document.documentElement
   const viewport = window.visualViewport
   let frame = 0
@@ -60,6 +62,7 @@ export function installViewportTracking() {
   viewport?.addEventListener('resize', scheduleEditor)
   viewport?.addEventListener('scroll', scheduleEditor)
   return () => {
+    disposePageGestures()
     cancelAnimationFrame(frame)
     observer?.disconnect()
     overlays.dispose()

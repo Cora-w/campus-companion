@@ -1,0 +1,6 @@
+OCR assets bundled for local timetable image recognition.
+Engine: Tesseract.js 6.0.1 and tesseract.js-core 6.1.2 (LSTM SIMD/non-SIMD).
+Simplified Chinese: https://github.com/tesseract-ocr/tessdata_best/blob/main/chi_sim.traineddata
+English: https://github.com/tesseract-ocr/tessdata_fast/blob/main/eng.traineddata
+All distributed under Apache-2.0; licenses are included alongside the assets.
+The original user image is neither sent to a remote OCR service nor persisted in timetable storage.

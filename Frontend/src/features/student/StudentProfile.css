@@ -13,3 +13,7 @@
 
 .profile-invitation-entry button > small { display: inline-flex; align-items: center; gap: 7px; }
 .profile-invitation-dot { display: inline-block; width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #e5484d; }
+
+.personal-name-line{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-bottom:7px;min-width:0}.personal-name-line h1{margin:0;max-width:100%}.personal-identity .profile-admin-badge{display:inline-flex;align-items:center;gap:4px;flex-shrink:0;white-space:nowrap;padding:3px 8px;border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);border-radius:999px;background:color-mix(in srgb,var(--surface) 68%,var(--accent-soft));color:var(--accent);font-size:10px;font-weight:600;line-height:1.6;letter-spacing:.02em}.profile-admin-badge svg{width:12px;height:12px;flex-shrink:0}.personal-edit{flex-shrink:0}
+
+.personal-identity:has(.profile-admin-badge){gap:10px}.personal-identity:has(.profile-admin-badge)>.personal-avatar{width:52px;height:52px}.personal-identity:has(.profile-admin-badge)>.personal-edit{font-size:10px;padding-inline:8px}.personal-identity .profile-admin-badge{padding-inline:6px;gap:3px;font-size:9.5px}.profile-admin-badge svg{width:11px;height:11px}

@@ -56,6 +56,8 @@
 .place-community-bar { display:flex; gap:12px; align-items:center; }
 .place-community-bar>button:first-child { display:flex; align-items:center; gap:6px; font-size:12px; padding:8px; }
 .place-community-bar svg { width:19px; height:19px; }
+.place-community-bar > button:not(.ant-btn) { display:flex; align-items:center; gap:5px; padding:8px 2px; font-size:12px; white-space:nowrap; }
+.place-community-bar > button[aria-pressed=true] { color:var(--accent); }
 .place-community-bar .ant-btn { flex:1; height:42px; border-radius:22px; }
 .place-community-empty { padding:22px; background:white; }.place-community-empty p { font-size:12px; }.place-community-empty button { display:flex; align-items:center; gap:10px; color:var(--accent); }
 .place-link-field { padding:15px 0; border-bottom:1px solid var(--border); }

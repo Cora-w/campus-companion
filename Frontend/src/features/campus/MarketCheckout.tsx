@@ -59,7 +59,7 @@ export function MarketCheckout({item,ordersOpen,close,available,updateItem,conta
    <div className="checkout-cost"><span>商品金额</span><b>¥{item.price.toFixed(2)}</b><span>配送费（样例）</span><b>¥{fee.toFixed(2)}</b></div>
    {error&&<p role="alert" className="error-text">{error}</p>}
    <div className="checkout-footer"><span>合计 <strong>¥{(item.price+fee).toFixed(2)}</strong></span><Button type="primary" onClick={submit}>提交订单</Button></div>
-  </>:<>{!orders.length&&<p className="empty-copy">还没有购买订单，去挑一件喜欢的闲置吧。</p>}{orders.map(o=><button className="checkout-order" key={o.id} onClick={()=>setCurrent(o.id)}><span>{o.status}</span><h3>{o.item.title}</h3><p>¥{o.total.toFixed(2)} · {o.delivery}</p><small>查看订单 →</small></button>)}</>}
+  </>:<>{!orders.length&&<p className="empty-copy">还没有购买订单，去挑一件喜欢的闲置吧。</p>}{orders.map(o=><button className="checkout-order" key={o.id} onClick={()=>setCurrent(o.id)}><span>{o.status}</span><h3>{o.item.title}</h3><p>¥{o.total.toFixed(2)} · {o.delivery}</p><small>查看订单</small></button>)}</>}
  </Drawer>
 }
 

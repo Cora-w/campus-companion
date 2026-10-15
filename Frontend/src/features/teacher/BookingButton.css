@@ -1,0 +1,3 @@
+.teacher-booking-control { display: inline-flex; flex-shrink: 0; vertical-align: middle; }
+.tw-shell.tw-native.tw-refresh .teacher-booking-control .teacher-booking-button.ant-btn, .tw-drawer .teacher-booking-control .teacher-booking-button.ant-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 8px; }
+.teacher-booking-button.ant-btn svg { width: 22px; height: 22px; }

@@ -1,24 +1,17 @@
 import { UserAvatar } from '../../components/shared/UserAvatar'
 import { placePhotos } from './placePhotos'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { Dispatch, SetStateAction } from 'react'
+import type { DiscoverFeedback } from './useDiscoverFeedback'
 import { Button, Image, Input, Rate, Select } from 'antd'
 import { useBackNavigation } from '../../navigation/useBackNavigation'
 import { campusPlaces } from '../../data/campusData'
 import type { CampusPlace, CampusPost } from '../../data/campusData'
 import { placeSlides } from './communityModel'
 import { discoverReviews, discoverShops } from '../../data/discoverData'
-import type { DiscoverReview } from '../../data/discoverData'
 import { Icon, Sheet } from '../../components/shared/Shared'
 import './Discover.css'
 
-type Feedback = { liked: string[]; reviews: DiscoverReview[] }
-function readFeedback(key: string): Feedback {
-  try {
-    const data = JSON.parse(localStorage.getItem(key) || 'null')
-    if (data && Array.isArray(data.liked) && data.liked.every((id: unknown) => typeof id === 'string') && Array.isArray(data.reviews) && data.reviews.every((r: DiscoverReview) => r && typeof r.id === 'string' && typeof r.target === 'string' && typeof r.author === 'string' && typeof r.text === 'string' && typeof r.rating === 'number' && typeof r.likes === 'number' && typeof r.time === 'string')) return data
-  } catch { /* A fresh local session still works without storage. */ }
-  return { liked: [], reviews: [] }
-}
 type PreviewPhoto = { src: string; name: string }
 function Photo({ src, name, onPreview }: { src: string; name: string; onPreview: () => void }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
@@ -28,25 +21,22 @@ function Photo({ src, name, onPreview }: { src: string; name: string; onPreview:
     {failed ? <span>{name} · 图片暂时无法加载</span> : <>{image}<span className="discover-photo-hint"><Icon name="search"/>点击放大</span></>}
   </button>
 }
-export function Discover({ active, selectedId, select, account, name, saved, toggleSave, openPlace, placesData = campusPlaces, sharedPosts = [], likedPosts = [], createPlace }: { active: boolean; selectedId: string | null; select: (id: string | null) => void; account: string; name: string; saved: string[]; toggleSave: (id: string) => void; openPlace: (place: CampusPlace) => void; placesData?: CampusPlace[]; sharedPosts?: CampusPost[]; likedPosts?: string[]; createPlace?: () => void }) {
-  const storageKey = 'campus-discover-feedback-v1:' + account
-  const [feedback, updateFeedback] = useState(() => readFeedback(storageKey))
-  const [storageError, setStorageError] = useState(false)
-  const setFeedback = (update: (previous: Feedback) => Feedback) => {
-    const next = update(feedback)
-    updateFeedback(next)
-    try { localStorage.setItem(storageKey, JSON.stringify(next)); setStorageError(false) } catch { setStorageError(true) }
-  }
+export function Discover({ active, selectedId, select, name, saved, toggleSave, openPlace, feedback, onFeedbackChange, storageError, productId, selectProduct, onVisit, reviewFocus, detailFromLibrary, likedPlaces, togglePlaceLike, kind, setKind, placesData = campusPlaces, sharedPosts = [], likedPosts = [], createPlace }: { active: boolean; selectedId: string | null; select: (id: string | null) => void; account: string; name: string; feedback: DiscoverFeedback; onFeedbackChange: Dispatch<SetStateAction<DiscoverFeedback>>; storageError: boolean; productId: string | null; selectProduct: (id: string | null) => void; onVisit: (id: string) => void; reviewFocus: string | null; detailFromLibrary: boolean; likedPlaces: string[]; togglePlaceLike: (id: string) => void; kind: '好吃' | '好玩'; setKind: (kind: '好吃' | '好玩') => void; saved: string[]; toggleSave: (id: string) => void; openPlace: (place: CampusPlace) => void; placesData?: CampusPlace[]; sharedPosts?: CampusPost[]; likedPosts?: string[]; createPlace?: () => void }) {
+  const setFeedback = onFeedbackChange
+  const setProductId = (id: string | null) => { selectProduct(id); if (id) onVisit(id) }
+  useEffect(() => {
+    if (!reviewFocus) return
+    const frame = requestAnimationFrame(() => document.getElementById('discover-review-' + reviewFocus)?.scrollIntoView({ block: 'center' }))
+    return () => cancelAnimationFrame(frame)
+  }, [reviewFocus, selectedId, productId])
   const [photoPreview, setPhotoPreview] = useState<{ photos: PreviewPhoto[]; current: number } | null>(null)
   useBackNavigation(!!photoPreview, () => setPhotoPreview(null), 4000)
   const previewPhoto = (photos: PreviewPhoto[], current = 0) => setPhotoPreview({ photos, current })
-  const [kind, setKind] = useState('好吃')
   const [area, setArea] = useState('全部')
   const [category, setCategory] = useState('全部品类')
   const [outingCategory, setOutingCategory] = useState('全部去处')
   const [sort, setSort] = useState('人气优先')
   const [query, setQuery] = useState('')
-  const [productId, setProductId] = useState<string | null>(null)
   const [reviewTab, setReviewTab] = useState('店铺评价')
   const [draft, setDraft] = useState('')
   const [rating, setRating] = useState(0)
@@ -64,8 +54,8 @@ export function Discover({ active, selectedId, select, account, name, saved, tog
   const count = (id: string, base: number) => base + Number(liked(id))
   const toggleLike = (id: string) => setFeedback(prev => ({ ...prev, liked: prev.liked.includes(id) ? prev.liked.filter(x => x !== id) : [...prev.liked, id] }))
   const resetDraft = () => { setDraft(''); setRating(0); setSent(false) }
-  const openShop = (id: string) => { setProductId(null); setReviewTab('店铺评价'); resetDraft(); select(id) }
-  const close = () => { if (product) { setProductId(null); resetDraft() } else { select(null); resetDraft() } }
+  const openShop = (id: string) => { setProductId(null); setReviewTab('店铺评价'); resetDraft(); onVisit(id); select(id) }
+  const close = () => { if (product && !detailFromLibrary) { setProductId(null); resetDraft() } else { select(null); resetDraft() } }
   const shops = discoverShops.filter(s => (area === '全部' || s.area === area) && (category === '全部品类' || s.category === category) && (s.name + s.address + s.products.map(p => p.name).join('')).includes(query.trim())).sort((a,b) => sort === '人均最低' ? a.price-b.price : count(b.id,b.likes)-count(a.id,a.likes))
   const places = placesData.filter(p => p.kind === '好玩' && (area === '全部' || p.area === area) && (outingCategory === '全部去处' || p.category === outingCategory) && (p.name + p.location).includes(query.trim()))
   const targetReviews = allReviews.filter(r => r.target === target || (!product && reviewTab === '商品评价' && shop?.products.some(p => p.id === r.target))).filter(r => product || reviewTab !== '商品评价' || r.target !== shop?.id).sort((a,b) => reviewSort === '最有帮助' ? count(b.id,b.likes)-count(a.id,a.likes) : 0)
@@ -74,17 +64,17 @@ export function Discover({ active, selectedId, select, account, name, saved, tog
   return <>
     <section className={`discover-page ${kind === '好玩' ? 'discover-play' : 'discover-food'}`} hidden={!active}>
       <div className="discover-heading"><div><h1>下课后的好时光</h1><p>{kind === '好吃' ? '吃一顿喜欢的，给今天加点滋味。' : '看一场展，散一会儿步，让日子慢下来。'}</p></div><span className="discover-campus"><Icon name="location"/>校园周边</span></div>
-      <div className="discover-tabs">{['好吃','好玩'].map(k => <button key={k} aria-label={k} aria-pressed={kind === k} className={kind === k ? 'active' : ''} onClick={() => { setKind(k); setQuery(''); setCategory('全部品类'); setOutingCategory('全部去处') }}><Icon name={k === '好吃' ? 'food' : 'location'}/>{k}<small>{k === '好吃' ? '发现好店' : '探索去处'}</small></button>)}</div>
+      <div className="discover-tabs">{(['好吃','好玩'] as const).map(k => <button key={k} aria-label={k} aria-pressed={kind === k} className={kind === k ? 'active' : ''} onClick={() => { setKind(k); setQuery(''); setCategory('全部品类'); setOutingCategory('全部去处') }}><Icon name={k === '好吃' ? 'food' : 'location'}/>{k}<small>{k === '好吃' ? '发现好店' : '探索去处'}</small></button>)}</div>
       <Input className="discover-search" prefix={<Icon name="search"/>} aria-label="搜索发现" placeholder={kind === '好吃' ? '搜店铺、想吃的菜、地址' : '搜地点、地址'} value={query} onChange={e => setQuery(e.target.value)} allowClear/>
       <div className="discover-filters"><div>{['全部','校内','周边'].map(a => <button key={a} aria-pressed={area === a} onClick={() => setArea(a)}>{a}</button>)}</div>{kind === '好吃' ? <Select className="quiet-filter-select" aria-label="店铺排序" value={sort} onChange={setSort} options={['人气优先','人均最低'].map(value => ({ value, label:value }))}/> : <Select className="quiet-filter-select" aria-label="去处类型" value={outingCategory} onChange={setOutingCategory} options={['全部去处',...new Set(placesData.filter(p => p.kind === '好玩').map(p => p.category))].map(value => ({ value, label:value }))}/>}</div>
       {kind === '好吃' && <><div className="discover-categories">{['全部品类',...new Set(discoverShops.map(s => s.category))].map(c => <button key={c} aria-pressed={category === c} onClick={() => setCategory(c)}>{c}</button>)}</div><div className="discover-list-title"><h2>{sort === '人气优先' ? '同学爱去的店' : '实惠好店'}</h2><span>{shops.length} 家店 · 按{sort === '人气优先' ? '点赞数' : '人均价格'}排序</span></div><p className="discover-disclaimer">样例店铺与口碑 · 配图为 Unsplash 示意图</p>
-      <div className="discover-shop-list">{shops.map((s,i) => <article className="discover-shop-card" key={s.id}><div className="discover-shop-main"><div className="discover-cover"><Photo src={s.image} name={s.name} onPreview={() => previewPhoto([{ src:s.image, name:s.name }, ...s.products.map(p => ({ src:p.image, name:p.name }))])}/>{sort === '人气优先' && <span className="discover-rank">人气 NO.{i+1}</span>}</div><button className="discover-shop-info" onClick={() => openShop(s.id)} aria-label={`查看${s.name}`}><h3>{s.name}</h3><div className="discover-metrics"><b>{count(s.id,s.likes)} 人推荐</b><span>¥{s.price}/人</span></div><p>{s.area} · {s.category}</p><div className="discover-tags">{s.tags.map(t => <span key={t}>{t}</span>)}</div><div className="discover-address"><Icon name="location"/><span>{s.address}</span></div></button></div><div className="discover-recommend"><span>招牌必点</span>{[...s.products].sort((a,b) => count(b.id,b.likes)-count(a.id,a.likes)).slice(0,2).map(p => <button key={p.id} onClick={() => { openShop(s.id); setProductId(p.id) }}>{p.name}<small> {count(p.id,p.likes)} 赞</small></button>)}</div><div className="discover-card-actions"><button aria-pressed={liked(s.id)} onClick={() => toggleLike(s.id)}><Icon name="like"/>{liked(s.id) ? '已推荐' : '推荐这家'}</button><button aria-pressed={saved.includes(s.id)} onClick={() => toggleSave(s.id)}><Icon name="bookmark"/>{saved.includes(s.id) ? '已收藏' : '收藏'}</button><button onClick={() => openShop(s.id)}>进店看看<Icon name="next"/></button></div></article>)}</div></>}
+      <div className="discover-shop-list">{shops.map((s,i) => <article className="discover-shop-card" key={s.id}><div className="discover-shop-main"><div className="discover-cover"><Photo src={s.image} name={s.name} onPreview={() => previewPhoto([{ src:s.image, name:s.name }, ...s.products.map(p => ({ src:p.image, name:p.name }))])}/>{sort === '人气优先' && <span className="discover-rank">人气 NO.{i+1}</span>}</div><button className="discover-shop-info" onClick={() => openShop(s.id)} aria-label={`查看${s.name}`}><h3>{s.name}</h3><div className="discover-metrics"><b>{count(s.id,s.likes)} 人推荐</b><span>¥{s.price}/人</span></div><p>{s.area} · {s.category}</p><div className="discover-tags">{s.tags.map(t => <span key={t}>{t}</span>)}</div><div className="discover-address"><Icon name="location"/><span>{s.address}</span></div></button></div><div className="discover-recommend"><span>招牌必点</span>{[...s.products].sort((a,b) => count(b.id,b.likes)-count(a.id,a.likes)).slice(0,2).map(p => <button key={p.id} onClick={() => { openShop(s.id); setProductId(p.id) }}>{p.name}<small> {count(p.id,p.likes)} 赞</small></button>)}</div><div className="discover-card-actions"><button aria-pressed={liked(s.id)} onClick={() => toggleLike(s.id)}><Icon name="like"/>{liked(s.id) ? '已推荐' : '推荐这家'}</button><button aria-pressed={saved.includes(s.id)} onClick={() => toggleSave(s.id)}><Icon name="bookmark"/>{saved.includes(s.id) ? '已收藏' : '收藏'}</button><button onClick={() => openShop(s.id)}>进店看看</button></div></article>)}</div></>}
       {kind === '好玩' && <>
         {createPlace && <button className="discover-new-place" onClick={createPlace}><span><b>发现新地方？你也可以发布</b><small>创建地点，邀请同学一起分享</small></span><Icon name="plus"/></button>}
         <div className="outing-section-heading"><h2>给周末，换个风景</h2><small>{places.length} 个好去处</small></div>
         <div className="discover-outings">{places.map(p => <article className="outing-card" key={p.id}>
-          <div className="outing-cover"><div className="outing-image-link">{(placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts)[0]?.src || placePhotos[p.id]?.[0]?.src) ? <Photo src={placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts)[0]?.src || placePhotos[p.id][0].src} name={p.name} onPreview={() => previewPhoto(placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts).length ? placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts).map(photo => ({ src:photo.src, name:p.name })) : (placePhotos[p.id] || []).map(photo => ({ src:photo.src, name:p.name })))}/> : <button className="outing-photo-fallback" aria-label={`查看${p.name}`} onClick={() => openPlace(p)}><Icon name="location"/></button>}</div><span className="outing-badge">{p.area} · {p.category}</span><button className="outing-save" aria-label={`${saved.includes(p.id) ? '取消收藏' : '收藏'}${p.name}`} aria-pressed={saved.includes(p.id)} onClick={() => toggleSave(p.id)}><Icon name="bookmark"/></button></div>
-          <button className="outing-content" aria-label={`查看${p.name}`} onClick={() => openPlace(p)}><h3>{p.name}</h3><small className="outing-contributions">{sharedPosts.filter(post => post.placeId===p.id).length} 篇同学分享</small><p className="outing-description">{p.desc}</p><div className="outing-location"><Icon name="location"/><span>{p.location.replace('（示例）','')}</span></div><div className="outing-card-bottom"><b>{p.price.split(' · ')[0]}</b><span>查看详情<Icon name="next"/></span></div></button>
+          <div className="outing-cover"><div className="outing-image-link">{(placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts)[0]?.src || placePhotos[p.id]?.[0]?.src) ? <Photo src={placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts)[0]?.src || placePhotos[p.id][0].src} name={p.name} onPreview={() => previewPhoto(placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts).length ? placeSlides(sharedPosts.filter(post => post.placeId === p.id),likedPosts).map(photo => ({ src:photo.src, name:p.name })) : (placePhotos[p.id] || []).map(photo => ({ src:photo.src, name:p.name })))}/> : <button className="outing-photo-fallback" aria-label={`查看${p.name}`} onClick={() => openPlace(p)}><Icon name="location"/></button>}</div><span className="outing-badge">{p.area} · {p.category}</span><button className="outing-save outing-like" aria-label={`点赞地点${p.name}`} aria-pressed={likedPlaces.includes(p.id)} onClick={() => togglePlaceLike(p.id)}><Icon name="like"/></button><button className="outing-save" aria-label={`${saved.includes(p.id) ? '取消收藏' : '收藏'}${p.name}`} aria-pressed={saved.includes(p.id)} onClick={() => toggleSave(p.id)}><Icon name="bookmark"/></button></div>
+          <button className="outing-content" aria-label={`查看${p.name}`} onClick={() => openPlace(p)}><h3>{p.name}</h3><small className="outing-contributions">{sharedPosts.filter(post => post.placeId===p.id).length} 篇同学分享</small><p className="outing-description">{p.desc}</p><div className="outing-location"><Icon name="location"/><span>{p.location.replace('（示例）','')}</span></div><div className="outing-card-bottom"><b>{p.price.split(' · ')[0]}</b><span>查看详情</span></div></button>
         </article>)}</div>
         {!!places.length && <><div className="outing-note"><Icon name="bookmark"/><div><b>喜欢的地方，先收藏起来</b><p>在「我的收藏」里，留一份下次出发的清单。</p></div></div><p className="discover-disclaimer outing-source">地点及开放信息为校园样例 · 图片仅作场景示意</p></>}
       </>}
@@ -97,10 +87,10 @@ export function Discover({ active, selectedId, select, account, name, saved, tog
         <h2>{product?.name || shop.name}</h2>
         <div className="discover-detail-meta"><b>{product ? `¥${product.price} / 份` : `${average} 分 · ${shopReviews.length} 条店铺评价`}</b><span>{product ? `${count(product.id,product.likes)} 人推荐` : `人均 ¥${shop.price}`}</span></div>
         {product ? <p>{product.description}</p> : <div className="discover-location-box"><div><Icon name="location"/><div><b>{shop.address}</b><small>营业时间 {shop.hours}</small></div></div><small>虚构校园样例地址，暂不提供真实导航</small></div>}
-        <div className="discover-detail-actions"><button aria-pressed={liked(target)} onClick={() => toggleLike(target)}><Icon name="like"/>{liked(target) ? '已点赞' : '点赞推荐'} · {count(target,product?.likes || shop.likes)}</button>{!product && <button aria-pressed={saved.includes(shop.id)} onClick={() => toggleSave(shop.id)}><Icon name="bookmark"/>{saved.includes(shop.id) ? '已收藏' : '收藏店铺'}</button>}</div>
-        {!product && <><div className="discover-list-title"><h3>进店必点</h3><span>按商品点赞数排序</span></div><div className="discover-products">{[...shop.products].sort((a,b) => count(b.id,b.likes)-count(a.id,a.likes)).map((p,i) => <div className="discover-product-row" key={p.id}><Photo src={p.image} name={p.name} onPreview={() => previewPhoto(shop.products.map(item => ({ src:item.image, name:item.name })), shop.products.findIndex(item => item.id === p.id))}/><button className="discover-product-info" aria-label={`查看${p.name}详情`} onClick={() => { setProductId(p.id); resetDraft() }}><small>TOP {i+1} · {count(p.id,p.likes)} 人推荐</small><h3>{p.name}</h3><p>{p.description}</p><b>¥{p.price}</b><span>详情 / 评价 →</span></button></div>)}</div><div className="discover-review-tabs">{['店铺评价','商品评价'].map(t => <button key={t} aria-pressed={reviewTab === t} onClick={() => { setReviewTab(t); resetDraft() }}>{t} <small>{allReviews.filter(r => t === '店铺评价' ? r.target === shop.id : shop.products.some(p => p.id === r.target)).length}</small></button>)}</div></>}
+        <div className="discover-detail-actions"><button aria-pressed={liked(target)} onClick={() => toggleLike(target)}><Icon name="like"/>{liked(target) ? '已点赞' : '点赞推荐'} · {count(target,product?.likes || shop.likes)}</button><button aria-pressed={saved.includes(target)} onClick={() => toggleSave(target)}><Icon name="bookmark"/>{saved.includes(target) ? '已收藏' : product ? '收藏美食' : '收藏店铺'}</button></div>
+        {!product && <><div className="discover-list-title"><h3>进店必点</h3><span>按商品点赞数排序</span></div><div className="discover-products">{[...shop.products].sort((a,b) => count(b.id,b.likes)-count(a.id,a.likes)).map((p,i) => <div className="discover-product-row" key={p.id}><Photo src={p.image} name={p.name} onPreview={() => previewPhoto(shop.products.map(item => ({ src:item.image, name:item.name })), shop.products.findIndex(item => item.id === p.id))}/><button className="discover-product-info" aria-label={`查看${p.name}详情`} onClick={() => { setProductId(p.id); resetDraft() }}><small>TOP {i+1} · {count(p.id,p.likes)} 人推荐</small><h3>{p.name}</h3><p>{p.description}</p><b>¥{p.price}</b><span>详情 / 评价</span></button></div>)}</div><div className="discover-review-tabs">{['店铺评价','商品评价'].map(t => <button key={t} aria-pressed={reviewTab === t} onClick={() => { setReviewTab(t); resetDraft() }}>{t} <small>{allReviews.filter(r => t === '店铺评价' ? r.target === shop.id : shop.products.some(p => p.id === r.target)).length}</small></button>)}</div></>}
         <div className="discover-list-title"><h3>{product ? `${product.name}的评价` : '同学探店反馈'}</h3><Select className="quiet-filter-select" aria-label="评价排序" value={reviewSort} onChange={setReviewSort} options={['最新','最有帮助'].map(value => ({ value, label:value }))}/></div>
-        <div className="discover-reviews">{targetReviews.map(r => <article key={r.id}><div className="discover-review-author"><UserAvatar name={r.author}/><div><b>{r.author}</b><small>{r.time} · {r.rating} 分</small></div></div>{r.target !== shop.id && <button className="discover-review-product" onClick={() => { setProductId(r.target); resetDraft() }}>评价商品 · {shop.products.find(p => p.id === r.target)?.name}</button>}<p>{r.text}</p><button aria-label={`赞同${r.author}的评价`} aria-pressed={liked(r.id)} onClick={() => toggleLike(r.id)}><Icon name="like"/>有帮助 {count(r.id,r.likes)}</button></article>)}{!targetReviews.length && <p className="discover-no-reviews">还没有评价，来分享你的第一手体验吧。</p>}</div>
+        <div className="discover-reviews">{targetReviews.map(r => <article key={r.id} id={'discover-review-' + r.id}><div className="discover-review-author"><UserAvatar name={r.author}/><div><b>{r.author}</b><small>{r.time} · {r.rating} 分</small></div></div>{r.target !== shop.id && <button className="discover-review-product" onClick={() => { setProductId(r.target); resetDraft() }}>评价商品 · {shop.products.find(p => p.id === r.target)?.name}</button>}<p>{r.text}</p><button aria-label={`赞同${r.author}的评价`} aria-pressed={liked(r.id)} onClick={() => toggleLike(r.id)}><Icon name="like"/>有帮助 {count(r.id,r.likes)}</button></article>)}{!targetReviews.length && <p className="discover-no-reviews">还没有评价，来分享你的第一手体验吧。</p>}</div>
         {sent && <p className="discover-published" role="status">{storageError ? '评价已发布，仅本次体验保留。' : '评价已发布，保存在本机。'}</p>}
         <p className="discover-disclaimer">店铺、商品与初始评价均为演示样例。{storageError ? '本机存储不可用，新增点赞与评价仅在本次体验保留。' : '你的点赞与评价仅保存在当前浏览器，不会同步给其他同学。'}</p>
       </div>}

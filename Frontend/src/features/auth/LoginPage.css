@@ -33,10 +33,35 @@
 .account-login[data-palette="black"] { --login-strong: #292622; --login-hover: var(--text-secondary); --login-heading: #242321; }
 .account-identity { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 18px; min-height: 40px; font-size: 12px; color: #77716a; }
 .account-identity b { font-weight: 500; color: #242321; }
-.account-identity > button { color: var(--login-strong); font-size: 12px; padding: 0; min-height: 40px; }
-.account-identity-arrow { margin-left: 5px; font-size: 14px; }
+.account-identity > button { display: inline-flex; align-items: center; flex-shrink: 0; color: var(--text-secondary); font-size: 12px; line-height: 20px; white-space: nowrap; padding: 0; min-height: 40px; }
+.account-identity-arrow { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; width: 16px; height: 16px; margin-left: 9px; color: #898079; }
+.account-identity-arrow svg { display: block; width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
 @media(max-width:360px) { .account-login { padding-inline: 24px; } }
 :root[data-compact-viewport='true'] .account-brand { padding-top:12px; padding-bottom:16px; }
 :root[data-compact-viewport='true'] .companion-logo { width:58px; height:58px; margin-bottom:11px; }
 :root[data-compact-viewport='true'] .account-brand h1 { font-size:30px; }
 :root[data-compact-viewport='true'] .account-signature { padding-top:8px; }
+
+.account-school-field { display: flex; flex: 1; min-width: 0; max-width: 240px; min-height: 36px; text-align: left; }
+.account-school-field .ant-select { flex: 1; min-width: 0; height: 40px; padding-inline: 14px; font-size: 13px; color: var(--text-secondary); }
+.account-school-field .ant-select-content { min-width: 0; }
+.account-school-field .ant-select-selection-item { color: #48423d; font-weight: 500; }
+.account-school-field .ant-select-placeholder { color: var(--text-secondary); }
+.account-school-error { margin: -8px 0 16px; }
+.account-school-error button { color: var(--accent); margin-left: 10px; }
+.account-login .account-brand { padding-bottom: 36px; }
+.account-fields { gap: 22px; }
+
+.account-school-row { display: flex; align-items: center; gap: 12px; margin: 20px 0 18px; min-height: 40px; font-size: 12px; color: var(--text-secondary); }
+.account-school-row > label { flex-shrink:0; min-width:36px; font-size:12px; font-weight:400; color:#77716a; }
+.account-school-row .account-school-field { max-width: none; }
+.account-sample-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; }
+.account-sample-row + .account-sample-row { border-top: 1px solid var(--theme-tint); }
+.account-sample-row > div { flex: 1; min-width: 0; }
+.account-sample-row button { flex-shrink: 0; }
+
+.account-school-field .ant-select-suffix { color:#8c847d; }
+.account-school-field .ant-select-placeholder { font-size:13px; }
+.login-school-menu { padding:6px; }
+.login-school-menu .ant-select-item-option { padding:10px 12px; min-height:40px; border-radius:8px; }
+.account-mode-switch{display:flex;justify-content:center;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);margin:14px 0 0}.account-mode-switch button{min-height:44px;color:var(--login-strong);font-size:13px;font-weight:600;padding:4px 6px}.account-registration-note{font-size:11px;line-height:1.8;color:var(--text-secondary);max-width:380px;margin:8px auto 0}.account-register .account-brand{display:flex;align-items:center;gap:10px;text-align:left;padding:20px 0}.account-register .companion-logo{width:40px;height:40px;margin:0}.account-register .account-brand h1{font-size:23px;letter-spacing:1px;margin:0}.account-register .account-brand>p{display:none}.account-register-heading{width:100%;max-width:380px;margin:4px auto 18px}.account-register-heading h2{font-size:24px;margin:0 0 8px}.account-register-heading p{font-size:12px;line-height:1.7;color:var(--text-secondary);margin:0}.account-register .account-fields{gap:18px}.account-register .account-school-row{margin:0 0 20px;border:1px solid var(--theme-tint);border-radius:10px;background:var(--surface);padding:4px 12px}.account-confirm-password{margin-top:18px;margin-bottom:20px}.account-confirm-password label{display:block;font-size:13px;font-weight:600;margin:0 0 11px}.account-confirm-password .ant-input-affix-wrapper{min-height:46px;background:var(--surface);border:1px solid var(--theme-tint);border-radius:10px;padding:10px 14px}.account-confirm-password .ant-input{background:transparent}.account-register .account-submit{letter-spacing:1px}.account-register .account-signature{margin-top:20px}@media(max-width:350px){.account-register{padding-inline:20px}.account-register .account-brand{padding-top:12px}}

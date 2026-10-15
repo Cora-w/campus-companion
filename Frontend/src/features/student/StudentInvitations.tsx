@@ -60,7 +60,7 @@ export function StudentInvitations({ appointments, now, teacherName, onRespond }
   }
   return <section className="student-invitations"><h2>约谈邀请</h2>
     <nav className="invitation-filters" aria-label="约谈筛选">{['全部', '待回应', '待参加', '历史'].map(value => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{value}{value === '待回应' && appointments.some(isPending) ? ` ${appointments.filter(isPending).length}` : ''}</button>)}</nav>
-    {notice && <Alert type="success" role="status" title={notice} closable onClose={() => setNotice('')}/>}
+    {notice && <Alert className="invitation-response-notice" type="success" role="status" title={notice} closable onClose={() => setNotice('')}/>}
     {visible.length ? [...visible].sort((a, b) => Number(isPending(b)) - Number(isPending(a)) || (filter === '历史' ? -1 : 1) * `${a.day} ${a.start}`.localeCompare(`${b.day} ${b.start}`)).map(item => <InvitationCard key={`${item.id}-${item.day}-${item.start}-${item.responseStatus}`} item={item} now={now} teacherName={teacherName} onRespond={respond}/>) : <p className="invitation-hint">{appointments.length ? '当前筛选下暂无约谈安排。' : '暂时没有约谈邀请，老师发出邀请后会显示在这里。'}</p>}
     <p className="invitation-hint">演示邀请和回应保留在当前浏览器，不发送真实推送；申请改期后需等待老师重新邀请。</p>
   </section>

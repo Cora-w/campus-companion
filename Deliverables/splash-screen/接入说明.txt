@@ -1,0 +1,26 @@
+心伙伴独立开屏组件 · 2026-10-14
+
+文件
+splash.html：单文件预览，CSS 与 SVG 全部内联，无网络请求，无 JS / 字体 / 框架依赖。
+SplashScreen.tsx + splash.css：React 组件，放在同一目录。
+brand-mark.svg：矢量品牌标志，可供原生加载层使用。
+preview.png：390×844 实际渲染效果，用于查看。
+splash-static-1080x2400.png：静态开屏图，可供原生首帧或交付评审使用；不同设备优先用矢量标志与原生文字排版，避免整图拉伸。
+
+React 接入
+import { SplashScreen } from './SplashScreen'
+<SplashScreen visible={!ready} />
+由宿主在首个可交互页面准备好后设置 ready=true。不要用固定倒计时延迟用户进入。
+
+解决启动白屏
+仅在 React 挂载后显示组件，无法覆盖 JS 下载和执行前的白屏。
+Web：把 splash.html 的内联样式与 cc-splash 节点直接放进入口 HTML，放在应用挂载根节点之外；应用首屏完成后由宿主移除该节点。
+Android / WebView：创建 WebView 前立即显示原生加载层，背景色 #faf9f6，使用 brand-mark.svg 的双轨图形及相同文案；WebView 首屏已实际可见时再关闭原生加载层。
+React 宿主与原生层只保留一个加载状态来源，避免双重开屏。
+
+设计
+暖白背景 #faf9f6，品牌色 #b84020，正文 #292622。
+标志 76px，名称 30px；加载点仅透明度轻微呼吸，循环 1.5 秒，不旋转、不跳动、不显示虚假百分比。
+支持安全区、窄屏、横屏及系统“减少动态效果”。
+无强制停留、无自动跳转、无接口调用；显示与退出由宿主控制。
+本次仅提供独立交付包，未改动现有 App 入口。

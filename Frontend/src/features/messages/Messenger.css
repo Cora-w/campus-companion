@@ -105,6 +105,9 @@
 .social-section-caption button { color: var(--accent); padding: 6px; font-size: 12px; }
 .social-person-list { border-radius: 14px; background: var(--surface); padding: 0 14px; }
 .social-person-row.contact-item { gap: 12px; padding: 17px 0; }
+.contact-panel > .request-entry { margin: 12px 0; }
+.contact-panel > .request-entry + .contact-item { padding-top: 0; }
+.contact-panel > .request-entry > span:last-child { flex: 0 0 auto; margin-left: auto; font-size: 12px; color: var(--text-secondary); }
 .social-person-row:last-child { border-bottom: 0; }
 .social-person-row .contact-avatar { width: 44px; height: 44px; border-radius: 13px; }
 .social-person-row strong { font-size: 14px; }
@@ -154,3 +157,9 @@
 .social-request-status p { font-size: 12px; color: var(--text-secondary); }
 :root[data-short-viewport='true'] .inbox-add-button { bottom:calc(100px + env(safe-area-inset-bottom)); }
 :root[data-short-viewport='true'] .social-search-intro { padding-top:32px; }
+
+/* Names and user IDs use the available line width; timestamps cannot squeeze them. */
+.messenger-refresh .conversation-copy { flex: 1; min-width: 0; }
+.messenger-refresh .conversation-copy strong { white-space: normal; }
+.messenger-refresh .conversation-name { min-width: 0; max-width: 100%; overflow-wrap: anywhere; word-break: normal; }
+.messenger-refresh .conversation-meta { flex: 0 0 auto; max-width: 64px; white-space: normal; overflow-wrap: anywhere; text-align: right; }

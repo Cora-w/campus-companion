@@ -16,6 +16,40 @@
 }
 .wall-refresh-top { position: fixed; right: max(20px, calc((100vw - 480px) / 2 + 20px)); bottom: calc(var(--bottom-height) + 40px); z-index: 50; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid #e8e8eb; border-radius: 50%; background: #ffffff; color: #54545b; box-shadow: 0 4px 16px #24232114; }
 .wall-refresh-top svg { width: 20px; height: 20px; }
+.wall-refresh-top.is-refreshing { color: var(--accent); cursor: wait; }
+.wall-refresh-top.is-refreshing svg { animation: wall-refresh-spin 650ms cubic-bezier(.3, .1, .3, 1) both; transform-origin: center; }
+@keyframes wall-refresh-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .wall-refresh-top.is-refreshing svg { animation: none; } }
 :root .campus-feedback-toast.ant-message-notice { max-width: min(360px, calc(100vw - 32px)); padding: 10px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); color: var(--text-primary); box-shadow: 0 6px 24px #24232114; }
 .campus-feedback-toast .ant-message-notice-wrapper { display: flex; align-items: center; gap: 8px; text-align: left; font-size: 13px; line-height: 1.6; }
 .campus-feedback-toast svg { width: 16px; height: 16px; color: var(--text-secondary); }
+
+/* Keep the home feed in proportion on phone screens. */
+.app-shell:has(.wall-feed) { --bottom-height:calc(62px + env(safe-area-inset-bottom,0px)); }
+.app-shell:has(.wall-feed) > .bound-school { padding-block:6px; }
+.app-shell:has(.wall-feed) .mobile-header { min-height:56px; padding-block:6px; }
+.app-shell:has(.wall-feed) .mobile-brand > b { font-size:21px; }
+.app-shell:has(.wall-feed) .main-shell > main { padding-top:8px; }
+.app-shell:has(.wall-feed) .hot-posts { margin-top:12px; }
+.app-shell:has(.wall-feed) .hot-post-card { min-height:120px; padding:14px 16px; }
+.app-shell:has(.wall-feed) .hot-post-card b { font-size:18px; min-height:50px; margin-top:6px; }
+.app-shell:has(.wall-feed) .hot-post-card em { margin-top:8px; }
+.app-shell:has(.wall-feed) .hot-post-card .feature-number { font-size:60px; flex-basis:68px; padding-top:6px; }
+.app-shell:has(.wall-feed) .hot-post-card.merchant-promotion .feature-number { font-size:24px; letter-spacing:-1px; }
+.app-shell:has(.wall-feed) .campus-hub-entries { padding-block:8px; }
+.app-shell:has(.wall-feed) .campus-hub-entries button { min-height:52px; gap:6px; }
+.app-shell:has(.wall-feed) .campus-hub-entries span { font-size:12px; }
+.app-shell:has(.wall-feed) .campus-hub-entries svg { width:20px; height:20px; }
+.app-shell:has(.wall-feed) .wall-sort { margin-top:8px; }
+.app-shell:has(.wall-feed) .wall-sort > div { gap:20px; }
+.app-shell:has(.wall-feed) .wall-sort > div > button { min-height:44px; font-size:15px; }
+.app-shell:has(.wall-feed) .wall-sort .share-daily-entry { min-height:38px; padding:8px 12px; }
+.app-shell:has(.wall-feed) .wall-categories { padding-block:8px 10px; }
+.app-shell:has(.wall-feed) .bottom-nav button { min-height:50px; }
+.app-shell:has(.wall-feed) .bottom-nav svg { width:20px; height:20px; }
+.app-shell:has(.wall-feed) .wall-refresh-top { width:40px; height:40px; bottom:calc(var(--bottom-height) + 24px); }
+@media(max-width:360px) {
+  .app-shell:has(.wall-feed) .campus-hub-entries span { font-size:11px; }
+  .app-shell:has(.wall-feed) .hot-post-card { padding-inline:14px; }
+  .app-shell:has(.wall-feed) .hot-post-card .feature-number { font-size:54px; flex-basis:60px; }
+}

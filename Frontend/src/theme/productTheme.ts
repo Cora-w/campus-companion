@@ -21,14 +21,14 @@ export function useProductTheme():ThemeConfig {
     token: {
       colorPrimary:palette.accent, colorInfo:palette.accent,
       colorText:'#242321', colorTextSecondary:'#66635f', colorTextPlaceholder:'#77716a',
-      colorBorder:'#e2dfda', colorBgContainer:'#fff', colorBgLayout:'#f6f5f3',
+      colorBorder:palette.tint, colorBgContainer:'#fff', colorBgLayout:palette.canvas,
       borderRadius:8, controlHeight:44, fontSize:14,
       fontFamily:'-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif',
     },
     components: {
       Button:{ primaryShadow:'none', defaultShadow:'none' },
-      Input:{ activeBorderColor:palette.accent, hoverBorderColor:palette.accent },
-      Select:{ optionSelectedBg:'#f2f0ed', activeBorderColor:palette.accent },
+      Input:{ activeBorderColor:palette.tint, hoverBorderColor:palette.tint },
+      Select:{ optionSelectedBg:palette.soft, activeBorderColor:palette.tint },
     },
   }), [palette])
 }

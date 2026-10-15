@@ -1,0 +1,15 @@
+import {readFileSync,writeFileSync} from 'node:fs';import vm from 'node:vm';
+const html=readFileSync('qa/reference-campus-map.html','utf8');
+class E {constructor(tag){this.tag=tag;this.attrs={};this.children=[];this.dataset={};this.style={setProperty:(k,v)=>this.attrs.style=(this.attrs.style||'')+`${k}:${v};`};this.classList={add:c=>this.attrs.class=(this.attrs.class||'')+' '+c}}setAttribute(k,v){this.attrs[k]=String(v)}appendChild(e){this.children.push(e)}}
+const world=new E('g'),sandbox={document:{querySelector:()=>world,createElementNS:(_,tag)=>new E(tag)}};
+vm.runInNewContext(html.split('<script>')[1].split('/* ---------- view transform ---------- */')[0]+';globalThis.places=P})();',sandbox);
+const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
+const serialize=e=>`<${e.tag} ${Object.entries(e.attrs).map(([k,v])=>`${k}="${esc(v)}"`).join(' ')}>${esc(e.textContent||'')}${e.children.map(serialize).join('')}</${e.tag}>`;
+for(const p of sandbox.places.filter(p=>p.pin))p.shape.setAttribute('transform',`translate(${p.pin.join(' ')})`);
+world.children=world.children.filter(e=>e.attrs.id!=='labels');
+const vars=html.slice(html.indexOf(':root{'),html.indexOf('@media (prefers-color-scheme')),css=html.slice(html.indexOf('/* map paint */'),html.indexOf('/* chrome */')),defs=html.slice(html.indexOf('<defs>'),html.indexOf('</defs>')+7);
+writeFileSync('public/campus/sanxingdui-reference.svg',`<svg xmlns="http://www.w3.org/2000/svg" viewBox="380 300 1620 1400"><style>${vars}svg{--fs:3}${css}</style>${defs}${serialize(world)}</svg>`);
+const places=sandbox.places.map(p=>({id:p.id,name:p.name,building:p.name,room:[p.sub,...(p.units||[]).map(u=>u.join(' · '))].filter(Boolean).join('；'),x:p.c[0],y:p.c[1],source:'用户提供：三星堆校区地图.zip / index.html',description:p.desc,category:p.cat,polygon:p.poly,path:p.path,pin:p.pin,teacher:!!p.teacher,short:p.short,major:!!p.major,labelWidth:p.bw}));
+places.push({id:'construction',name:'二期扩建区',building:'二期扩建区',room:'二期扩建区域，暂不开放导航',x:540,y:620,source:'用户提供：三星堆校区地图.zip / index.html',closed:true,polygon:[[90,400],[880,330],[860,400],[772,690],[772,898],[462,898],[462,1600],[400,1600]]});
+writeFileSync('src/data/campusMapData.ts',`export type CampusPlace = { id:string; name:string; building:string; room:string; x:number; y:number; source:string; closed?:boolean; description?:string; category?:string; polygon?:number[][]; path?:string; pin?:number[]; teacher?:boolean; short?:string; major?:boolean; labelWidth?:number }\n// Copied from the user-provided map. Coordinates are not GPS.\nexport const campusPlaces:CampusPlace[] = ${JSON.stringify(places,null,2)}\nexport const facultyHousing = campusPlaces.filter(p=>p.teacher)\nexport function findCampusPlace(building:string|null){return campusPlaces.find(p=>p.building===building)}\nexport function searchCampusPlaces(query:string){const term=query.replace(/\\s/g,'').toLowerCase();return campusPlaces.filter(p=>(p.name+p.room).replace(/\\s/g,'').toLowerCase().includes(term))}\n`);
+

@@ -1,9 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { submitPostReport, reviewPost, priorityReportCount } from '../src/features/moderation/moderationModel.ts'
+import { submitPostReport, reviewPost, priorityReportCount, visiblePostsFor } from '../src/features/moderation/moderationModel.ts'
 const schoolId = 'school-1'
 const post = { id: 'p1', author: '学生', category: '校园日常', title: '公开帖', text: '正文', location: '', time: '', likes: 0, comments: [], images: [], ownerId: 'owner' }
-const initial = () => ({ posts: [{ schoolId, post }, { schoolId, post: { ...post, id: 'private', visibility: 'self' } }], reports: [], decisions: [] })
+const initial = () => ({ posts: [{ schoolId, post }, { schoolId, post: { ...post, id: 'private', visibility: 'private' } }], reports: [], decisions: [] })
 const actor = (id, role = 'student', school = schoolId) => ({ id, role, schoolId: school, enabled: true })
 const report = (id, postId = 'p1') => ({ id: 'r-' + id, postId, schoolId, reporterId: id, reason: '泄露个人信息', time: 'now', resolved: false })
 const decision = (action = '删除', postId = 'p1') => ({ id: 'd1', postId, schoolId, actorId: 'admin', action, reason: '核实违规内容', time: 'now' })
@@ -17,9 +17,9 @@ test('distinct reports reach priority threshold without deleting the post; dupli
   assert.match(duplicate.error, /已经举报/)
   assert.equal(duplicate.state, state)
 })
-test('private posts, own posts, other schools, disabled and nonstudent reporters are denied', () => {
+test('private posts, own posts, other schools, disabled and unsupported-role reporters are denied', () => {
   const state = initial()
-  const attempts = [[actor('owner'), report('owner')], [actor('s1'), report('s1', 'private')], [actor('s1', 'student', 'other'), report('s1')], [{ ...actor('s1'), enabled: false }, report('s1')], [actor('admin', 'admin'), report('admin')]]
+  const attempts = [[actor('owner'), report('owner')], [actor('s1'), report('s1', 'private')], [actor('s1', 'student', 'other'), report('s1')], [{ ...actor('s1'), enabled: false }, report('s1')], [actor('merchant', 'merchant'), report('merchant')]]
   for (const [user, record] of attempts) { const result = submitPostReport(state, user, record); assert.ok(result.error); assert.equal(result.state, state) }
 })
 test('only same-school enabled admins can review public posts, with a nonempty reason', () => {
@@ -46,4 +46,24 @@ test('retain resolves existing reports, a new reporter can open a later review',
   const result = submitPostReport(state, actor('s2'), report('s2'))
   assert.equal(result.error, '')
   assert.equal(result.state.reports.filter(r => !r.resolved).length, 1)
+})
+
+
+test('every campus identity can report while only admins can moderate', () => {
+  for (const role of ['student', 'teacher', 'admin']) assert.equal(submitPostReport(initial(), actor(role, role), report(role)).error, '')
+  assert.ok(reviewPost(initial(), actor('admin', 'teacher'), decision()).error)
+})
+test('community reads isolate schools and private content for all campus roles', () => {
+  const state = initial()
+  for (const role of ['student', 'teacher', 'admin']) {
+    assert.deepEqual(visiblePostsFor(state, actor(role, role)).map(p => p.id), ['p1'])
+    assert.deepEqual(visiblePostsFor(state, actor(role, role, 'other')), [])
+    assert.deepEqual(visiblePostsFor(state, { ...actor(role, role), enabled: false }), [])
+    assert.equal(visiblePostsFor(state, actor('owner', role)).find(p => p.id === 'private').owned, true)
+  }
+  assert.deepEqual(visiblePostsFor(state, actor('merchant', 'merchant')), [])
+  const deleted = reviewPost(state, actor('admin', 'admin'), decision()).state
+  assert.deepEqual(visiblePostsFor(deleted, actor('teacher', 'teacher')).map(p => p.id), [])
+  assert.deepEqual(visiblePostsFor(deleted, actor('teacher', 'teacher'), true), [])
+  assert.equal(visiblePostsFor(deleted, actor('admin', 'admin'), true)[0].id, 'p1')
 })

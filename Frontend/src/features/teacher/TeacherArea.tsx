@@ -1,3 +1,5 @@
+import { BookingButton } from './BookingButton'
+import { useIdentity } from '../identity/IdentityContext'
 import { useProductTheme } from '../../theme/productTheme'
 import { useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
@@ -23,11 +25,12 @@ import './TeacherVisual.css'
 import '../../theme/StaffRefinement.css'
 
 export type TeacherPage = 'workbench' | 'triage' | 'care' | 'schedule' | 'profile'
-type Props = { appointments: Appointment[]; setAppointments: Dispatch<SetStateAction<Appointment[]>>; requests: SupportRequest[]; acceptRequest: (id: string) => void; page: TeacherPage; go: (page: TeacherPage) => void; cases: CareCase[]; setCases: Dispatch<SetStateAction<CareCase[]>>; log: (action: string) => void; session: Session; logout: () => void }
+type Props = { embedded?: boolean; appointments: Appointment[]; setAppointments: Dispatch<SetStateAction<Appointment[]>>; requests: SupportRequest[]; acceptRequest: (id: string) => void; page: TeacherPage; go: (page: TeacherPage) => void; cases: CareCase[]; setCases: Dispatch<SetStateAction<CareCase[]>>; log: (action: string) => void; session: Session; logout: () => void }
 const riskOrder: Record<Risk, number> = { 高: 0, 中: 1, 低: 2 }
 
-export function TeacherArea({ page, go, cases, setCases, log, session, logout, requests, acceptRequest, appointments, setAppointments }: Props) {
+export function TeacherArea({ page, go, cases, setCases, log, session, logout, requests, acceptRequest, appointments, setAppointments, embedded }: Props) {
   const productTheme = useProductTheme()
+  const { studentIdentity } = useIdentity()
   const [status, setStatus] = useState('全部')
   const [risk, setRisk] = useState('全部')
   const [search, setSearch] = useState('')
@@ -54,8 +57,9 @@ export function TeacherArea({ page, go, cases, setCases, log, session, logout, r
   const [simulated, setSimulated] = useState(false)
   const [modal, contextHolder] = Modal.useModal()
   // Demonstration scoping only; production filtering must be enforced by the server.
-  const own = cases.filter(item => item.teacherId === session.id)
+  const own = cases.filter(item => session.role === 'teacher' && item.schoolId === session.schoolId && item.teacherId === session.id)
   const selected = own.find(item => item.id === selectedId)
+  const protectedIdentity = selected?.studentAccountId ? studentIdentity(selected.studentAccountId) : null
   const pending = own.filter(item => item.status === '待处理').sort((a, b) => riskOrder[a.risk] - riskOrder[b.risk])
   const following = own.filter(item => item.status === '跟进中')
   const ownAppointments = appointments.filter(item => item.teacherId === session.id && own.some(student => student.id === item.caseId))
@@ -111,7 +115,7 @@ export function TeacherArea({ page, go, cases, setCases, log, session, logout, r
   }
   const simulate = () => {
     if (simulated) return
-    const item: CareCase = { id: uid(), teacherId: session.id, student: '同学 E', studentId: 'S***091', group: '计算机专业 · 一年级', risk: '高', topic: '新状态变化，需要及时复核', time: nowLabel(), status: '待处理', source: '预警到达演示', summary: '虚构事件：近期状态发生变化，等待教师了解实际情况和支持需要。', signals: ['新状态变化待核实'], records: [] }
+    const item: CareCase = { id: uid(), schoolId: session.schoolId, teacherId: session.id, student: '同学 E', studentId: 'S***091', group: '计算机专业 · 一年级', risk: '高', topic: '新状态变化，需要及时复核', time: nowLabel(), status: '待处理', source: '预警到达演示', summary: '虚构事件：近期状态发生变化，等待教师了解实际情况和支持需要。', signals: ['新状态变化待核实'], records: [] }
     setCases(previous => [item, ...previous]); setSimulated(true); log('接收模拟预警事件'); setToast('收到一条模拟预警，已加入待复核列表。')
   }
   const visible = own.filter(item => (status === '全部' || (status === '到期跟进' ? item.status === '跟进中' && !!nextFollowUp(item) && nextFollowUp(item)! <= schoolToday() : item.status === status)) && (risk === '全部' || item.risk === risk) && `${item.student}${item.studentId}${item.group}${item.topic}`.includes(search.trim())).sort((a, b) => riskOrder[a.risk] - riskOrder[b.risk])
@@ -123,19 +127,19 @@ export function TeacherArea({ page, go, cases, setCases, log, session, logout, r
   }
   const navigate = (destination: 'triage' | 'care' | 'schedule', filter = '全部') => { setStatus(filter); setRisk('全部'); setSearch(''); go(destination) }
   return <ConfigProvider theme={productTheme}>
-    <TeacherLayout page={page} go={go} session={session} pending={pending.length}>{contextHolder}
+    <TeacherLayout embedded={embedded} page={page} go={go} session={session} pending={pending.length}>{contextHolder}
       {page === 'workbench' && <Workbench items={own} appointments={ownAppointments} open={open} navigate={navigate} book={() => setBooking({})} inbox={() => setInbox(true)}/>}
       {page === 'triage' && <Triage items={own} open={open} simulate={simulate} simulated={simulated}/>}
       {page === 'care' && <Roster items={visible} open={open} search={search} setSearch={setSearch} status={status} setStatus={setStatus} risk={risk} setRisk={setRisk} book={() => setBooking({})}/>}
       {page === 'schedule' && <Schedule appointments={ownAppointments} items={own} open={open} onBook={setBooking} onStatus={(item, nextStatus) => { setAppointments(previous => previous.map(value => value.id === item.id && value.teacherId === session.id ? { ...value, status: nextStatus } : value)); log('更新咨询状态 ' + item.id + ' ' + nextStatus) }}/>}
-      {page === 'profile' && <TeacherSettings session={session} count={own.length} reminders={reminders} setReminders={setReminders} logout={logout}/>}
+      {page === 'profile' && <TeacherSettings embedded={embedded} session={session} count={own.length} reminders={reminders} setReminders={setReminders} logout={logout}/>}
       {toast && !selected && <p role="status" className="tw-toast">{toast}</p>}
     </TeacherLayout>
     {booking && <BookingDialog booking={booking} items={own} appointments={ownAppointments} session={session} onClose={() => setBooking(null)} onSave={saveAppointment}/>}
     <Drawer rootClassName="teacher-overlay" className="tw-drawer" placement="right" size="min(480px, 100vw)" title="服务提醒" open={inbox} onClose={() => setInbox(false)}><section className="tw-notice-section"><h3>约谈改期申请</h3>{ownAppointments.filter(item => item.status === '已安排' && item.responseStatus === '申请改期').map(item => <button key={item.id} className="tw-task" onClick={() => { setInbox(false); setBooking({ appointment: item }) }}><span><b>{own.find(student => student.id === item.caseId)?.student} · 申请改期</b><small>{item.changeRequest?.day} {item.changeRequest?.start}</small></span></button>)}<h3>待复核预警 · {pending.length}</h3>{pending.map(item => <button className="tw-task" key={item.id} onClick={() => { setInbox(false); open(item) }}><span><b>{item.student} · {attentionNames[item.risk]}</b><small>{item.topic}</small></span></button>)}<h3>到期跟进 · {due.length}</h3>{due.map(item => <button className="tw-task" key={item.id} onClick={() => { setInbox(false); open(item, item.observation ? '状态概览' : '服务记录') }}><span><b>{item.student} · {item.observation ? '观察复核' : '跟进回访'}</b><small>{nextFollowUp(item)}</small></span></button>)}{requests.length > 0 && <><h3>授权联系请求</h3>{requests.map(item => <section key={item.id}><b>{item.studentName}</b><p>{item.topic}</p><Button disabled={item.status === '已受理'} onClick={() => { acceptRequest(item.id); log('受理联系请求 ' + item.id) }}>{item.status === '已受理' ? '已受理' : '受理请求'}</Button></section>)}</>}<p className="teacher-footnote">工作待办演示，不代表实时通知。</p></section></Drawer>
     <Drawer zIndex={1100} rootClassName="teacher-overlay" className="tw-drawer tw-case-drawer tw-native-detail" placement="right" size="min(480px, 100vw)" title="学生支持档案" open={!!selected} onClose={() => close()} destroyOnHidden>
       {selected && <div className="teacher-detail"><div className="teacher-detail-identity"><span className="avatar">{selected.student.slice(-1)}</span><div><h2>{selected.student}</h2><p>{selected.studentId} · {selected.group}</p></div></div><div className="teacher-detail-meta"><span className={`teacher-attention attention-${selected.risk}`}>{attentionNames[selected.risk]}</span><Tag>{statusNames[selected.status]}</Tag></div>
-        <div className="tw-detail-actions"><Button type="primary" disabled={selected.status !== '跟进中' || !selected.review} onClick={() => close(() => setBooking({ caseId: selected.id }))}>约谈该学生</Button><Button onClick={() => close(() => go('schedule'))}>查看咨询日程</Button></div>
+        {protectedIdentity && <section className="tw-panel teacher-protected-identity" aria-label="授权学生身份"><h3>授权学生身份</h3><dl><div><dt>真实姓名</dt><dd>{protectedIdentity.realName || '未填写'}</dd></div><div><dt>学号</dt><dd>{protectedIdentity.studentNumber}</dd></div></dl><small>仅本校负责该学生的授权教师可见 · 学生填写信息未经核验</small></section>}<div className="tw-detail-actions"><BookingButton label="约谈该学生" disabled={selected.status !== '跟进中' || !selected.review} onClick={() => close(() => setBooking({ caseId: selected.id }))}/><Button onClick={() => close(() => go('schedule'))}>查看咨询日程</Button></div>
         <div className="teacher-status-tabs">{['状态概览', '服务记录'].map(value => <button key={value} className={tab === value ? 'selected' : ''} aria-pressed={tab === value} onClick={() => { setTab(value); setError('') }}>{value}</button>)}</div>
         <div id="teacher-feedback" tabIndex={-1} className="tw-detail-feedback">{error && <Alert type="error" showIcon title={error}/>} {toast && <Alert type="success" showIcon title={toast}/>}</div>
         {tab === '状态概览' && <>
@@ -163,3 +167,4 @@ export function TeacherArea({ page, go, cases, setCases, log, session, logout, r
     </Drawer>
   </ConfigProvider>
 }
+

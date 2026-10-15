@@ -13,3 +13,6 @@
 .invitation-filters{display:flex;gap:6px;margin-bottom:16px}.invitation-filters button{flex:1;min-width:0;min-height:44px;padding:6px;font-size:12px;border-radius:10px;color:var(--text-secondary)}.invitation-filters button.active{background:var(--accent-soft);color:var(--accent)}.student-invitations>.ant-alert{margin-bottom:16px}.student-invitation .ant-input{width:100%;max-width:100%}.student-invitation header>b{overflow-wrap:anywhere}
 
 .student-appointments-page{padding:20px 16px calc(24px + env(safe-area-inset-bottom,0px));min-width:0}
+.student-invitations .invitation-response-notice { background:#edf4fb; border-color:#d5e3f0; color:#49627a; }
+.invitation-response-notice .ant-alert-title, .invitation-response-notice .ant-alert-description { color:#49627a; }
+.invitation-response-notice .ant-alert-close-icon { color:#6e8599; }

@@ -1,10 +1,4 @@
 /* Colors are derived from the existing appearance palette in App, including login. */
-.teacher-shell-host,.teacher-overlay,.admin-shell-host,.admin-editor,.admin-records {
-  --brand-canvas:#f6f5f3;
-  --brand-soft:#f2f0ed;
-  --brand-tint:#e2dfda;
-  --brand-border:#e2dfda;
-}
 .admin-shell-host,.admin-editor,.admin-records {
   --accent:var(--brand-primary); --accent-soft:var(--brand-soft); --canvas:var(--brand-canvas);
   --border:var(--brand-border); --text-primary:var(--brand-text);
